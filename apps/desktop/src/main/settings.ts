@@ -2,10 +2,12 @@ import { readFileSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PRINTERS } from '@retarget3mf/core';
-import type { Settings, SlicerKind } from '../shared/api.ts';
+import type { OpenMode, Settings, SlicerKind, Theme } from '../shared/api.ts';
 
-export const DEFAULT_SETTINGS: Settings = { slicer: 'flashstudio', slicerPaths: {}, output: 'next-to-original', openAfterConvert: true };
+export const DEFAULT_SETTINGS: Settings = { slicer: 'flashstudio', slicerPaths: {}, output: 'next-to-original', openAfterConvert: true, theme: 'system', openMode: 'auto' };
 const SLICERS: readonly SlicerKind[] = ['flashstudio', 'orca'];
+const THEMES: readonly Theme[] = ['system', 'light', 'dark'];
+const OPEN_MODES: readonly OpenMode[] = ['auto', 'review'];
 
 /** Keeps only known, well-typed fields; settings files are user-editable. */
 export function sanitizeSettings(raw: unknown, base: Settings = DEFAULT_SETTINGS): Settings {
@@ -18,6 +20,8 @@ export function sanitizeSettings(raw: unknown, base: Settings = DEFAULT_SETTINGS
     slicerPaths: Object.fromEntries(SLICERS.flatMap((k) => (typeof paths[k] === 'string' ? [[k, paths[k]]] : base.slicerPaths[k] ? [[k, base.slicerPaths[k]]] : []))),
     output: r.output === 'app-folder' || r.output === 'next-to-original' ? r.output : base.output,
     openAfterConvert: typeof r.openAfterConvert === 'boolean' ? r.openAfterConvert : base.openAfterConvert,
+    theme: THEMES.includes(r.theme as Theme) ? (r.theme as Theme) : base.theme,
+    openMode: OPEN_MODES.includes(r.openMode as OpenMode) ? (r.openMode as OpenMode) : base.openMode,
   };
 }
 

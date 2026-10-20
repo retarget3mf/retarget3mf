@@ -1,115 +1,45 @@
-import { mkdirSync, statSync } from 'node:fs';
-import { writeFile } from 'node:fs/promises';
-import { extname, join } from 'node:path';
-import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
-import { PRINTERS } from '@retarget3mf/core';
-import type { AppState, ConvertRequest, ConvertResult, InspectResult, Result, Settings, SlicerKind } from '../shared/api.ts';
-import { runWorker } from './converter.ts';
-import { outputPathFor } from './paths.ts';
-import { loadSettings, sanitizeSettings, saveSettings } from './settings.ts';
-import { detectSlicers, launchSlicer, SLICER_NAMES } from './slicers.ts';
+import { app } from 'electron';
+import { AppContext } from './context.ts';
+import { projectPathsFromArgv } from './externalFiles.ts';
+import { openFromOs } from './fastPath.ts';
+import { registerIpc } from './ipc.ts';
+import { loadSettings } from './settings.ts';
+import { showWindow } from './window.ts';
 
-let settings: Settings;
-let window: BrowserWindow | undefined;
+// One instance owns the window and the converter; later launches forward their files and exit.
+if (!app.requestSingleInstanceLock()) app.quit();
 
-const outputFolder = () => join(app.getPath('documents'), 'Retarget3MF');
+const IDLE_QUIT_MS = 15_000;
+let ctx: AppContext | undefined;
+const early: string[] = [];
 
-function state(): AppState {
-  return { settings, printers: PRINTERS, slicers: detectSlicers(settings.slicerPaths), outputFolder: outputFolder() };
+// Windows/Linux have no dock to keep a windowless app reachable: quit once OS-opened files are done.
+async function openAndMaybeQuit(path: string): Promise<void> {
+  await openFromOs(ctx!, path);
+  if (process.platform !== 'darwin') setTimeout(() => { if (!ctx?.window) app.quit(); }, IDLE_QUIT_MS);
 }
+const open = (path: string) => (ctx ? void openAndMaybeQuit(path) : early.push(path));
 
-/** Paths from the renderer are untrusted: only existing .3mf files are accepted. */
-function assertProjectPath(path: unknown): string {
-  if (typeof path !== 'string' || extname(path).toLowerCase() !== '.3mf' || !statSync(path, { throwIfNoEntry: false })?.isFile()) {
-    throw new Error('Only existing .3mf files can be opened.');
-  }
-  return path;
-}
-
-async function handleConvert(request: ConvertRequest): Promise<Result<ConvertResult>> {
-  const path = assertProjectPath(request.path);
-  const printer = PRINTERS.find((p) => p.id === request.printer);
-  if (!printer) return { ok: false, error: 'Pick a printer first.' };
-  let folder: string | undefined;
-  if (settings.output === 'app-folder') {
-    folder = outputFolder();
-    mkdirSync(folder, { recursive: true });
-  }
-  const shortName = printer.displayName.replace(/^Flashforge /, '');
-  return runWorker<ConvertResult>({ kind: 'convert', request: { ...request, path }, outputPath: outputPathFor(path, shortName, folder) });
-}
-
-async function handleOpenInSlicer(path: string, kind: SlicerKind): Promise<Result<void>> {
-  const slicer = detectSlicers(settings.slicerPaths).find((s) => s.kind === kind);
-  if (!slicer) return { ok: false, error: `${SLICER_NAMES[kind]} was not found. Install it or choose its location in Settings.` };
-  try {
-    await launchSlicer(slicer.path, assertProjectPath(path));
-    return { ok: true, value: undefined };
-  } catch (error) {
-    console.error(error);
-    return { ok: false, error: `${SLICER_NAMES[kind]} could not be started. Open the file from the slicer with File → Open Project.` };
-  }
-}
-
-function registerIpc(): void {
-  ipcMain.handle('state', () => state());
-  ipcMain.handle('settings:save', async (_e, patch: unknown) => {
-    settings = sanitizeSettings({ ...settings, ...(patch as object) }, settings);
-    await saveSettings(app.getPath('userData'), settings);
-    return state();
-  });
-  ipcMain.handle('file:pick', async () => {
-    const r = await dialog.showOpenDialog(window!, { properties: ['openFile'], filters: [{ name: '3MF project', extensions: ['3mf'] }] });
-    return r.canceled ? undefined : r.filePaths[0];
-  });
-  ipcMain.handle('slicer:pick', async (_e, kind: SlicerKind) => {
-    if (!(kind in SLICER_NAMES)) return state();
-    const r = await dialog.showOpenDialog(window!, { title: `Locate ${SLICER_NAMES[kind]}`, properties: ['openFile', 'treatPackageAsDirectory'] });
-    if (!r.canceled && r.filePaths[0]) {
-      settings = { ...settings, slicerPaths: { ...settings.slicerPaths, [kind]: r.filePaths[0] } };
-      await saveSettings(app.getPath('userData'), settings);
-    }
-    return state();
-  });
-  ipcMain.handle('inspect', async (_e, path: unknown) => runWorker<InspectResult>({ kind: 'inspect', path: assertProjectPath(path) }));
-  ipcMain.handle('convert', (_e, request: ConvertRequest) => handleConvert(request));
-  ipcMain.handle('slicer:open', (_e, path: string, kind: SlicerKind) => handleOpenInSlicer(path, kind));
-  ipcMain.handle('file:show', (_e, path: string) => shell.showItemInFolder(assertProjectPath(path)));
-  ipcMain.handle('report:export', async (_e, result: ConvertResult, format: 'md' | 'json') => {
-    const defaultPath = result.outputPath.replace(/\.3mf$/i, `.report.${format}`);
-    const r = await dialog.showSaveDialog(window!, { defaultPath });
-    if (r.canceled || !r.filePath) return;
-    await writeFile(r.filePath, format === 'md' ? result.markdown : JSON.stringify(result.report, null, 2));
-  });
-}
-
-function createWindow(): void {
-  window = new BrowserWindow({
-    width: 1100,
-    height: 760,
-    minWidth: 760,
-    minHeight: 560,
-    title: 'Retarget3MF',
-    webPreferences: { preload: join(import.meta.dirname, '../preload/index.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false },
-  });
-  // No remote content: block navigation and new windows; external links go to the OS browser.
-  window.webContents.on('will-navigate', (e) => e.preventDefault());
-  window.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('https://')) void shell.openExternal(url);
-    return { action: 'deny' };
-  });
-  if (process.env.ELECTRON_RENDERER_URL) void window.loadURL(process.env.ELECTRON_RENDERER_URL);
-  else void window.loadFile(join(import.meta.dirname, '../renderer/index.html'));
-}
-
-// Lets e2e tests run against a throwaway profile.
-if (process.env.RETARGET3MF_USER_DATA) app.setPath('userData', process.env.RETARGET3MF_USER_DATA);
-
-app.whenReady().then(() => {
-  settings = loadSettings(app.getPath('userData'));
-  registerIpc();
-  createWindow();
-  app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
+// macOS delivers files (Finder double-click, "Open With", `open -a`) as events, possibly before `ready`.
+app.on('open-file', (event, path) => {
+  event.preventDefault();
+  open(path);
+});
+app.on('second-instance', (_e, argv, cwd) => {
+  const files = projectPathsFromArgv(argv, cwd);
+  if (files.length === 0 && ctx) showWindow(ctx);
+  files.forEach(open);
 });
 
+app.whenReady().then(() => {
+  ctx = new AppContext(loadSettings(app.getPath('userData')));
+  registerIpc(ctx);
+  const files = [...early, ...projectPathsFromArgv(process.argv.slice(1), process.cwd())];
+  // The fast path stays windowless; a plain launch shows the window.
+  if (files.length === 0) showWindow(ctx);
+  files.forEach((f) => void openAndMaybeQuit(f));
+  app.on('activate', () => showWindow(ctx!));
+});
+
+// macOS apps stay alive without windows so OS file opens skip a cold start.
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

@@ -1,3 +1,11 @@
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { pngFromIcns } from '../src/main/appIcon.ts';
+import { projectPathsFromArgv } from '../src/main/externalFiles.ts';
+import { exeFromUninstallEntry, parseRegistry } from '../src/main/slicers.ts';
+import { groupByVendor } from '../src/renderer/src/components/PrinterPicker.tsx';
+import { PRINTERS } from '@retarget3mf/core';
 import { describe, expect, it } from 'vitest';
 import { compactMap } from '../src/renderer/src/components/ConversionView.tsx';
 import { outputPathFor } from '../src/main/paths.ts';
@@ -36,5 +44,64 @@ describe('compactMap', () => {
   const used = [1, 3, 5].map((index) => ({ index, colour: '#000', type: 'PLA', used: true }));
   it('closes gaps so slots start at 1', () => {
     expect(compactMap({ 1: 2, 3: 4, 5: 2 }, used)).toEqual({ 1: 1, 3: 2, 5: 1 });
+  });
+});
+
+
+describe('Windows uninstall registry', () => {
+  const output = [
+    'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\OrcaSlicer',
+    '    DisplayName    REG_SZ    OrcaSlicer',
+    '    DisplayIcon    REG_SZ    "C:\\Program Files\\OrcaSlicer\\orca-slicer.exe",0',
+    '',
+    'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Flash Studio',
+    '    DisplayName    REG_SZ    Flash Studio 1.7.9',
+    '    InstallLocation    REG_SZ    C:\\Program Files\\Flash Studio',
+  ].join('\r\n');
+
+  it('parses one record per key', () => {
+    expect(parseRegistry(output).map((e) => e.DisplayName)).toEqual(['OrcaSlicer', 'Flash Studio 1.7.9']);
+  });
+
+  it('finds the executable from DisplayIcon or InstallLocation', () => {
+    const [orca, flash] = parseRegistry(output);
+    expect(exeFromUninstallEntry(orca!, 'orca-slicer.exe')).toBe('C:\\Program Files\\OrcaSlicer\\orca-slicer.exe');
+    expect(exeFromUninstallEntry(flash!, 'Flash Studio.exe')).toMatch(/Flash Studio[\\/]Flash Studio\.exe$/);
+  });
+});
+
+describe('pngFromIcns', () => {
+  const entry = (type: string, data: Buffer) => {
+    const head = Buffer.alloc(8);
+    head.write(type, 0, 'latin1');
+    head.writeUInt32BE(data.length + 8, 4);
+    return Buffer.concat([head, data]);
+  };
+  const png = (tag: number) => Buffer.from([0x89, 0x50, 0x4e, 0x47, tag]);
+
+  it('picks a mid-size embedded PNG', () => {
+    const body = Buffer.concat([entry('ic10', png(10)), entry('ic07', png(7)), entry('is32', Buffer.from([1, 2, 3]))]);
+    const head = Buffer.alloc(8);
+    head.write('icns', 0, 'latin1');
+    head.writeUInt32BE(body.length + 8, 4);
+    expect(pngFromIcns(Buffer.concat([head, body]))?.at(-1)).toBe(7);
+  });
+
+  it('ignores non-icns data', () => {
+    expect(pngFromIcns(Buffer.from('nope'))).toBeUndefined();
+  });
+});
+
+describe('projectPathsFromArgv', () => {
+  it('keeps existing .3mf files and ignores flags and the app path', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'argv-'));
+    writeFileSync(join(dir, 'a.3mf'), '');
+    expect(projectPathsFromArgv(['/app/Retarget3MF', '--inspect', 'a.3mf', 'missing.3mf', 'notes.txt'], dir)).toEqual([join(dir, 'a.3mf')]);
+  });
+});
+
+describe('groupByVendor', () => {
+  it('groups printers by brand in data order', () => {
+    expect(groupByVendor(PRINTERS).map(([vendor, list]) => [vendor, list.length])).toEqual([['Flashforge', 3]]);
   });
 });

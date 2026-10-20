@@ -1,0 +1,29 @@
+# Main, preload and renderer are fully bundled into out/, so no node_modules ship.
+appId: app.retarget3mf.desktop
+productName: Retarget3MF
+directories:
+  output: dist
+files:
+  - out/**
+  - package.json
+fileAssociations:
+  # Registered as an alternative handler: never takes over .3mf from the user's slicer without asking.
+  - ext: 3mf
+    name: 3MF Project
+    description: 3D printing project
+    mimeType: model/3mf
+    role: Viewer
+    rank: Alternate
+mac:
+  target: [dmg, zip]
+  category: public.app-category.productivity
+win:
+  target: nsis
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+linux:
+  target: [AppImage, deb]
+  category: Graphics
+  mimeTypes: [model/3mf]

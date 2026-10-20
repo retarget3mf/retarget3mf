@@ -1,36 +1,27 @@
-import type { AppState, Settings, SlicerKind } from '../../../shared/api.ts';
+import type { AppState, Settings } from '../../../shared/api.ts';
+import { PrinterSelect } from './PrinterPicker.tsx';
+import { ThemeSwitch } from './ThemeSwitch.tsx';
 import styles from './Header.module.css';
 
 interface Props {
   state: AppState;
   onChange: (patch: Partial<Settings>) => void;
-  onPickSlicer: (kind: SlicerKind) => void;
+  onSettings: () => void;
 }
 
-export function Header({ state, onChange, onPickSlicer }: Props) {
+export function Header({ state, onChange, onSettings }: Props) {
   const { settings, printers, slicers } = state;
-  const slicerFound = slicers.some((s) => s.kind === settings.slicer);
+  const slicer = slicers.find((s) => s.kind === settings.slicer);
   return (
     <header className={styles.header}>
       <strong className={styles.brand}>Retarget3MF</strong>
-      <label>
-        Printer{' '}
-        <select value={settings.printer} onChange={(e) => onChange({ printer: e.target.value as NonNullable<Settings['printer']> })}>
-          {printers.map((p) => <option key={p.id} value={p.id}>{p.displayName}</option>)}
-        </select>
-      </label>
-      <label>
-        Slicer{' '}
-        <select value={settings.slicer} onChange={(e) => onChange({ slicer: e.target.value as SlicerKind })}>
-          <option value="flashstudio">Flash Studio</option>
-          <option value="orca">OrcaSlicer</option>
-        </select>
-      </label>
-      {!slicerFound && <button onClick={() => onPickSlicer(settings.slicer)}>Locate slicer…</button>}
-      <label className={styles.toggle}>
-        <input type="checkbox" checked={settings.output === 'app-folder'} onChange={(e) => onChange({ output: e.target.checked ? 'app-folder' : 'next-to-original' })} />
-        Save to {state.outputFolder.split(/[\\/]/).pop()} folder
-      </label>
+      <PrinterSelect printers={printers} value={settings.printer} onChange={(printer) => onChange({ printer })} />
+      <button type="button" className={styles.slicer} onClick={onSettings} title="Change slicer in Settings">
+        {slicer?.icon && <img src={slicer.icon} alt="" width={20} height={20} />}
+        {slicer?.name ?? 'No slicer found'}
+      </button>
+      <ThemeSwitch value={settings.theme} onChange={(theme) => onChange({ theme })} />
+      <button type="button" onClick={onSettings} aria-label="Settings" title="Settings">⚙</button>
     </header>
   );
 }

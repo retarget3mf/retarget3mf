@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import type { AppState, ConvertResult, InspectResult, Settings } from '../../shared/api.ts';
+import type { AppEvent, AppState, ConvertResult, InspectResult, Settings } from '../../shared/api.ts';
 import { ConversionView } from './components/ConversionView.tsx';
 import { DropZone } from './components/DropZone.tsx';
 import { Header } from './components/Header.tsx';
 import { Onboarding } from './components/Onboarding.tsx';
 import { ReportView } from './components/ReportView.tsx';
 import { ResultView } from './components/ResultView.tsx';
+import { SettingsView } from './components/SettingsView.tsx';
 import styles from './App.module.css';
 
 type Stage =
@@ -13,7 +14,8 @@ type Stage =
   | { kind: 'busy'; message: string }
   | { kind: 'review'; project: InspectResult }
   | { kind: 'done'; project: InspectResult; result: ConvertResult; launchError?: string }
-  | { kind: 'report'; project: InspectResult; result: ConvertResult };
+  | { kind: 'report'; project: InspectResult; result: ConvertResult }
+  | { kind: 'settings' };
 
 const api = window.desktop;
 
@@ -21,20 +23,33 @@ export function App() {
   const [state, setState] = useState<AppState>();
   const [stage, setStage] = useState<Stage>({ kind: 'idle' });
   const [error, setError] = useState<string>();
+  const [pending, setPending] = useState<AppEvent[]>([]);
 
   useEffect(() => { void api.getState().then(setState); }, []);
+  useEffect(() => api.onEvent((event) => setPending((queue) => [...queue, event])), []);
+  // Events from the OS fast path wait until onboarding is done.
+  useEffect(() => {
+    const event = pending[0];
+    if (!event || !state?.settings.printer) return;
+    setPending((queue) => queue.slice(1));
+    if (event.kind === 'open-project') void open(event.path);
+    else if (event.kind === 'show-result') setStage({ kind: 'done', project: event.project, result: event.result, ...(event.launchError && { launchError: event.launchError }) });
+    else setError(event.message);
+  }, [pending, state]);
+
   if (!state) return null;
 
   const save = async (patch: Partial<Settings>) => setState(await api.saveSettings(patch));
-  if (!state.settings.printer) return <Onboarding state={state} onDone={save} onPickSlicer={async (k) => setState(await api.pickSlicer(k))} />;
+  const locate = async (kind: Settings['slicer']) => setState(await api.pickSlicer(kind));
+  if (!state.settings.printer) return <Onboarding state={state} onDone={save} onPickSlicer={locate} />;
 
-  const open = async (path: string) => {
+  async function open(path: string) {
     setError(undefined);
     setStage({ kind: 'busy', message: 'Reading project…' });
     const r = await api.inspect(path).catch((e: Error) => ({ ok: false as const, error: e.message }));
     if (r.ok) setStage({ kind: 'review', project: r.value });
     else { setError(r.error); setStage({ kind: 'idle' }); }
-  };
+  }
 
   const convert = async (project: InspectResult, filamentMap: Record<number, number>, openAfter: boolean) => {
     setError(undefined);
@@ -52,7 +67,7 @@ export function App() {
 
   return (
     <div className={styles.app}>
-      <Header state={state} onChange={save} onPickSlicer={async (k) => setState(await api.pickSlicer(k))} />
+      <Header state={state} onChange={save} onSettings={() => setStage({ kind: 'settings' })} />
       <main className={styles.main}>
         {error && <div role="alert" className={styles.error}>{error}</div>}
         {stage.kind === 'idle' && <DropZone onFile={open} />}
@@ -77,6 +92,15 @@ export function App() {
             onShow={() => api.showInFolder(stage.result.outputPath)}
             onReport={() => setStage({ kind: 'report', project: stage.project, result: stage.result })}
             onNext={() => setStage({ kind: 'idle' })}
+          />
+        )}
+        {stage.kind === 'settings' && (
+          <SettingsView
+            state={state}
+            onChange={save}
+            onLocate={locate}
+            onRescan={async () => setState(await api.refreshSlicers())}
+            onBack={() => setStage({ kind: 'idle' })}
           />
         )}
         {stage.kind === 'report' && (
