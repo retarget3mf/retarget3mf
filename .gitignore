@@ -1,0 +1,5 @@
+node_modules/
+dist/
+research/
+fixtures/
+.DS_Store
