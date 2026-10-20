@@ -3,6 +3,7 @@
 Retarget3MF converts 3D-printing projects (.3mf with print settings) made for one printer so they open correctly in the slicer of **your** printer: the right printer and filament profiles, filaments mapped to your slots, objects placed on your bed, and the author's settings (layer height, walls, infill, supports, paint) kept where they make sense.
 
 - **Desktop app** (macOS, Windows, Linux): drop a file, or double-click a .3mf, and it converts and opens your slicer.
+- **Web app**: the same conversion in any modern browser, nothing to install. It works offline once opened and gives you the converted file to download. Published to GitHub Pages from `main`, in English and Polish.
 - **Browser extension** (Chrome-family browsers and Firefox): adds **Open for <your printer>** to the download menus of MakerWorld, Printables, Creality Cloud and Snapmaker Space.
 
 Everything runs on your computer. Nothing is uploaded, there is no account and no telemetry.
@@ -68,12 +69,13 @@ pnpm test
 | Command | What it does |
 |---|---|
 | `pnpm desktop` | desktop app with hot reload |
+| `pnpm web` | web app with hot reload (`pnpm -C apps/web build` for the static site in `apps/web/dist`) |
 | `pnpm extension` | builds the extension into `apps/extension/dist/` (Chrome and Firefox) |
 | `pnpm test`, `pnpm typecheck`, `pnpm e2e` | unit tests, types, end-to-end tests (Electron and Chromium) |
 | `pnpm slice-check` | converts fixtures for every printer and slices them with the installed slicers (`ORCA_CLI`, `BAMBU_CLI`, `FLASHSTUDIO_CLI`; defaults to the macOS apps) |
 | `pnpm sync-profiles` | regenerates `packages/profiles/src/generated` from slicer checkouts in `research/` |
 
-Layout: `packages/core` (conversion), `packages/profiles` (printer definitions and slicer profiles), `packages/bridge` (extension ↔ app protocol), `apps/desktop` (Electron), `apps/extension` (WXT). Decisions are recorded in [docs/decisions](docs/decisions).
+Layout: `packages/core` (conversion), `packages/profiles` (printer definitions and slicer profiles), `packages/bridge` (extension ↔ app protocol), `packages/ui` (shared React components and translations), `apps/desktop` (Electron), `apps/web` (static PWA), `apps/extension` (WXT). Decisions are recorded in [docs/decisions](docs/decisions).
 
 ### Adding a printer
 
