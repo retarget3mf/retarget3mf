@@ -2,9 +2,10 @@ import type { OptionInfo, Preset, SlicerId, TargetProfiles } from '@retarget3mf/
 import { asList, first, sameValue, type Config, type ConfigValue } from '../config.ts';
 import type { FilamentSummary, SettingChange } from '../report.ts';
 import {
-  BAMBU_TRANSLATIONS, FILAMENT_REF_KEYS, FLASHSTUDIO_VALUES, ORCA_VALUES, TEMPERATURE_KEYS,
+  BAMBU_TRANSLATIONS, FILAMENT_REF_KEYS, FLASHSTUDIO_VALUES, ORCA_VALUES, PRESET_META, TEMPERATURE_KEYS,
   isBedTemperatureKey, ruleFor, type Section,
 } from '../rules/index.ts';
+import { toBambuStudio, toBambuValue } from '../targets/bambuStudio.ts';
 import { remapRef, type FilamentPlan } from './filaments.ts';
 
 export interface SettingsInput {
@@ -14,7 +15,8 @@ export interface SettingsInput {
   usedFilaments: number;
   target: TargetProfiles;
   slicer: SlicerId;
-  options: { orca: Readonly<Record<string, OptionInfo>>; slicer: Readonly<Record<string, OptionInfo>> };
+  /** `slicer` is in OrcaSlicer's key space; `native` is the target slicer's own table when its keys differ (Bambu Studio). */
+  options: { orca: Readonly<Record<string, OptionInfo>>; slicer: Readonly<Record<string, OptionInfo>>; native?: Readonly<Record<string, OptionInfo>> };
   wipeTower?: { x: string[]; y: string[] };
 }
 
@@ -27,15 +29,9 @@ export interface SettingsResult {
   convertOverride: (key: string, value: string, owner: string) => [string, string][];
 }
 
-// Preset bookkeeping that is not a slicer setting of the project.
-const PRESET_META = new Set([
-  'name', 'inherits', 'from', 'setting_id', 'instantiation', 'type', 'version', 'filament_id', 'renamed_from',
-  'description', 'is_custom_defined', 'compatible_printers', 'compatible_printers_condition', 'compatible_prints',
-  'compatible_prints_condition', 'print_settings_id', 'printer_settings_id', 'filament_settings_id',
-]);
 // Rebuilt for the target presets on every conversion; reporting them would only be noise.
 const IDENTITY_KEYS = new Set(['name', 'from', 'version', 'inherits_group', 'different_settings_to_system', 'print_compatible_printers', 'filament_ids', 'filament_map', 'filament_map_mode', 'filament_self_index', 'filament_extruder_variant']);
-const SLICER_NAMES: Record<SlicerId, string> = { orca: 'OrcaSlicer', flashstudio: 'Flash Studio' };
+export const SLICER_NAMES: Record<SlicerId, string> = { orca: 'OrcaSlicer', flashstudio: 'Flash Studio', bambustudio: 'Bambu Studio' };
 const PROJECT_PER_FILAMENT = new Set(['filament_colour', 'filament_colour_type', 'filament_multi_colour']);
 const PINNED_LAYER_HEIGHT = 0.2;
 const DEFAULT_VARIANT = 'Direct Drive Standard';
@@ -57,7 +53,7 @@ function rankFilament(name: string): number {
 }
 
 function pickFilament(type: string, target: TargetProfiles, slicer: SlicerId): { name: string; exact: boolean } {
-  const names = target.filamentNames[slicer].filter((n) => target.filaments[n]);
+  const names = (target.filamentNames[slicer] ?? []).filter((n) => target.filaments[n]);
   const byType = (t: string) => names
     .filter((n) => first(target.filaments[n]!.filament_type)?.toUpperCase() === t.toUpperCase())
     .sort((a, b) => rankFilament(a) - rankFilament(b) || a.localeCompare(b));
@@ -280,8 +276,9 @@ function makeOverrideConverter(ctx: Ctx): SettingsResult['convertOverride'] {
       if (!keep) { record(ctx, label, 'dropped', 'per-object override not carried over; the target profile decides', value); continue; }
       const fixed = (slicer === 'flashstudio' ? FLASHSTUDIO_VALUES : ORCA_VALUES)[key]?.[value] ?? value;
       if (!isValid(fixed, options.slicer[key])) { record(ctx, label, 'dropped', 'value is not accepted by the target slicer', value); continue; }
-      if (fixed !== value || key !== rawKey) record(ctx, label, 'translated', `written as ${key}=${fixed}`, value, fixed);
-      out.push([key, fixed]);
+      const [outKey, outValue] = ctx.input.options.native ? toBambuValue(key, fixed) : [key, fixed];
+      if (outValue !== value || outKey !== rawKey) record(ctx, label, 'translated', `written as ${outKey}=${outValue}`, value, outValue);
+      out.push([outKey, first(outValue) ?? '']);
     }
     return out;
   };
@@ -327,9 +324,19 @@ export function buildSettings(input: SettingsInput): SettingsResult {
   };
   const [processName, process] = pickProcess(target);
   baseline(ctx, process);
+  const presetValues = { ...ctx.config };
   for (const key of Object.keys(source).sort()) applySourceKey(ctx, key, source[key]!);
   applySpecialCases(ctx);
   setIdentity(ctx, processName, process);
+  if (input.options.native) {
+    if (!target.native) throw new Error(`No ${SLICER_NAMES[input.slicer]} presets for ${target.printer.machinePreset}`);
+    const out = toBambuStudio({
+      config: ctx.config, baseline: presetValues, native: target.native, processName,
+      filamentNames: ctx.chosen.map((c) => c.name), options: input.options.native,
+    });
+    ctx.config = out.config;
+    ctx.changes.push(...out.changes);
+  }
 
   const filaments = plan.keep.slice(0, input.usedFilaments).map((f, i) => ({
     from: f, to: i + 1, type: ctx.chosen[i]!.type, colour: asList(ctx.config.filament_colour)[i] ?? '', preset: ctx.chosen[i]!.name,

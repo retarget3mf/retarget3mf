@@ -8,7 +8,8 @@ import type { ConversionReport } from './report.ts';
 import { detectSource, PROJECT_SETTINGS } from './stages/detect.ts';
 import { applyFilamentMap, padToToolheads, planFilaments, remapRef, type FilamentMap } from './stages/filaments.ts';
 import { parseBed, planPlacement } from './stages/placement.ts';
-import { buildSettings, type SettingsResult } from './stages/settings.ts';
+import { buildSettings, SLICER_NAMES, type SettingsResult } from './stages/settings.ts';
+import { bambuStudioOptionsInOrcaSpace } from './targets/bambuStudio.ts';
 
 type OverrideConverter = SettingsResult['convertOverride'];
 import { validateConfig } from './stages/validate.ts';
@@ -16,7 +17,7 @@ import { readArchive, readText, setText, writeArchive, type Archive } from './zi
 
 export interface ConvertOptions {
   printer: PrinterId;
-  /** Defaults to Flash Studio, whose stricter rules also load cleanly in OrcaSlicer. */
+  /** Defaults to the printer's preferred slicer (Flash Studio for Flashforge, whose output also loads in OrcaSlicer). */
   slicer?: SlicerId | 'pandaforge';
   /** Source filament → target filament (1-based); merges colours when the printer has fewer slots. */
   filamentMap?: FilamentMap;
@@ -36,13 +37,19 @@ const ORCA_TAG = '2.4.2';
 export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<ConvertResult> {
   const printer = getPrinter(opts.printer);
   if (!printer) throw new ConversionError('unknown-printer', `Unknown printer "${opts.printer}". Pick a printer from the list.`);
-  const slicer = opts.slicer ?? 'flashstudio';
+  const slicer = opts.slicer ?? printer.slicers[0]!;
   if (slicer === 'pandaforge') throw new ConversionError('unsupported-slicer', 'PandaForge output is not supported yet; choose OrcaSlicer or Flash Studio.');
+  if (!printer.slicers.includes(slicer)) {
+    throw new ConversionError('unsupported-slicer', `${SLICER_NAMES[slicer]} has no profiles for the ${printer.displayName}; choose ${printer.slicers.map((s) => SLICER_NAMES[s]).join(' or ')}.`);
+  }
 
   const source = detectSource(readArchive(input));
   const { archive } = source;
   const target = getTargetProfiles(printer.id);
-  const options = { orca: getOptions('orca'), slicer: getOptions(slicer) };
+  const orca = getOptions('orca');
+  const options = slicer === 'bambustudio'
+    ? { orca, slicer: bambuStudioOptionsInOrcaSpace(orca, getOptions(slicer)), native: getOptions(slicer) }
+    : { orca, slicer: getOptions(slicer) };
   const settings = readModelSettings(readText(archive, MODEL_SETTINGS));
   const geo = readGeometry(archive);
   const used = planFilaments(source.config, settings, geo, readText(archive, CUSTOM_GCODE));
@@ -57,7 +64,7 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
   }, parseBed(target.machine.printable_area));
 
   const result = buildSettings({ source: source.config, plan, usedFilaments: mapped.keep.length, target, slicer, options, ...(placement.wipeTower && { wipeTower: placement.wipeTower }) });
-  const problems = validateConfig(result.config, options.slicer);
+  const problems = validateConfig(result.config, options.native ?? options.slicer);
   if (problems.length) throw new ConversionError('invalid-project', `Internal error while converting (${problems.join('; ')}). Please report this file.`);
 
   const output: Archive = new Map();
@@ -83,7 +90,10 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
     output: writeArchive(output),
     report: {
       source: { kind: source.kind, slicer: source.slicer, application: source.application, printer: first(source.config.printer_settings_id) ?? 'unknown' },
-      target: { printer: printer.displayName, slicer: slicer === 'orca' ? 'OrcaSlicer' : 'Flash Studio', profiles: `OrcaSlicer ${PROFILE_SOURCE.orca.tag}` },
+      target: {
+        printer: printer.displayName, slicer: SLICER_NAMES[slicer],
+        profiles: slicer === 'bambustudio' ? `Bambu Studio ${PROFILE_SOURCE.bambuStudio.tag}` : `OrcaSlicer ${PROFILE_SOURCE.orca.tag}`,
+      },
       warnings,
       filaments: result.filaments,
       plates: placement.plates,
@@ -120,6 +130,7 @@ function rewriteModels(archive: Archive, map: ReadonlyMap<number, number>, shift
       text = moveItems(text, shifts);
       text = setModelMetadata(text, 'Application', APPLICATION);
       text = setModelMetadata(text, 'OrcaSlicer', ORCA_TAG);
+      text = setModelMetadata(text, 'BambuStudio:3mfVersion', '1');
     }
     setText(archive, path, text);
   }

@@ -24,6 +24,13 @@ export const FILAMENT_REF_KEYS = [
   'top_surface_filament_id', 'bottom_surface_filament_id',
 ] as const;
 
+// Preset bookkeeping that is not a slicer setting of the project.
+export const PRESET_META: ReadonlySet<string> = new Set([
+  'name', 'inherits', 'from', 'setting_id', 'instantiation', 'type', 'version', 'filament_id', 'renamed_from',
+  'description', 'is_custom_defined', 'compatible_printers', 'compatible_printers_condition', 'compatible_prints',
+  'compatible_prints_condition', 'print_settings_id', 'printer_settings_id', 'filament_settings_id',
+]);
+
 export const TEMPERATURE_KEYS = ['nozzle_temperature', 'nozzle_temperature_initial_layer'] as const;
 export const isBedTemperatureKey = (key: string): boolean => /_plate_temp(_initial_layer)?$/.test(key);
 

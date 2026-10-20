@@ -13,6 +13,14 @@ describe('parseSlicerLink', () => {
     expect(parseSlicerLink(href)).toEqual({ url: signed, name: 'Carabiner_Heart.3mf' });
   });
 
+  it('reads Printables links the way PrusaSlicer does', () => {
+    const url = 'https://files.printables.com/media/prints/1/3mf/2/benchy.3mf';
+    expect(parseSlicerLink(`prusaslicer://open?file=${encodeURIComponent(url)}`)).toEqual({ url, name: 'benchy.3mf' });
+    expect(parseSlicerLink(`prusaslicer://open/?file=${encodeURIComponent(url)}`)?.url).toBe(url);
+    expect(isAllowedDownloadUrl(url)).toBe(true);
+    expect(isAllowedDownloadUrl('https://printables.com.evil.example/x.3mf')).toBe(false);
+  });
+
   it('reads Creality Cloud links without forwarding the login code', () => {
     const url = 'https://file2-cdn.creality.com/model/a.3mf?sig=1';
     expect(parseSlicerLink(`crealityprintlink://open?file=${encodeURIComponent(url)}&name=${encodeURIComponent('Skip Bo')}&code=SECRET&lang=en`)).toEqual({ url, name: 'Skip Bo.3mf' });

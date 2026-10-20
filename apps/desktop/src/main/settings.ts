@@ -5,7 +5,7 @@ import { PRINTERS } from '@retarget3mf/core';
 import type { OpenMode, Settings, SlicerKind, Theme } from '../shared/api.ts';
 
 export const DEFAULT_SETTINGS: Settings = { slicer: 'flashstudio', slicerPaths: {}, output: 'next-to-original', openAfterConvert: true, theme: 'system', openMode: 'auto' };
-const SLICERS: readonly SlicerKind[] = ['flashstudio', 'orca'];
+const SLICERS: readonly SlicerKind[] = ['flashstudio', 'orca', 'bambustudio'];
 const THEMES: readonly Theme[] = ['system', 'light', 'dark'];
 const OPEN_MODES: readonly OpenMode[] = ['auto', 'review'];
 
@@ -13,10 +13,12 @@ const OPEN_MODES: readonly OpenMode[] = ['auto', 'review'];
 export function sanitizeSettings(raw: unknown, base: Settings = DEFAULT_SETTINGS): Settings {
   const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
   const paths = (r.slicerPaths && typeof r.slicerPaths === 'object' ? r.slicerPaths : {}) as Record<string, unknown>;
-  const printer = PRINTERS.find((p) => p.id === r.printer)?.id ?? base.printer;
+  const printer = PRINTERS.find((p) => p.id === r.printer) ?? PRINTERS.find((p) => p.id === base.printer);
+  const slicer = SLICERS.includes(r.slicer as SlicerKind) ? (r.slicer as SlicerKind) : base.slicer;
   return {
-    ...(printer && { printer }),
-    slicer: SLICERS.includes(r.slicer as SlicerKind) ? (r.slicer as SlicerKind) : base.slicer,
+    ...(printer && { printer: printer.id }),
+    // A printer only converts for slicers that ship its profiles.
+    slicer: !printer || printer.slicers.includes(slicer) ? slicer : printer.slicers[0]!,
     slicerPaths: Object.fromEntries(SLICERS.flatMap((k) => (typeof paths[k] === 'string' ? [[k, paths[k]]] : base.slicerPaths[k] ? [[k, base.slicerPaths[k]]] : []))),
     output: r.output === 'app-folder' || r.output === 'next-to-original' ? r.output : base.output,
     openAfterConvert: typeof r.openAfterConvert === 'boolean' ? r.openAfterConvert : base.openAfterConvert,

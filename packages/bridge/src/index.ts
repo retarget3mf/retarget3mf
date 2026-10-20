@@ -4,13 +4,14 @@ export const NATIVE_HOST_NAME = 'app.retarget3mf.bridge';
 /** Fixed by the `key` in the extension manifest (apps/extension/.keys); store IDs are added when published. */
 export const EXTENSION_IDS = ['gkpcbbjkoifgehdhgdbegojpjaaplfgp'];
 
-export type SourceSite = 'makerworld' | 'crealitycloud' | 'snapmaker';
+export type SourceSite = 'makerworld' | 'crealitycloud' | 'snapmaker' | 'printables';
 
 /** Model sites: display name and the hosts their model pages live on. */
 export const SITE_INFO: Record<SourceSite, { name: string; hosts: string[] }> = {
   makerworld: { name: 'MakerWorld', hosts: ['makerworld.com', 'www.makerworld.com'] },
   crealitycloud: { name: 'Creality Cloud', hosts: ['www.crealitycloud.com', 'crealitycloud.com'] },
   snapmaker: { name: 'Snapmaker Space', hosts: ['space.snapmaker.com'] },
+  printables: { name: 'Printables', hosts: ['www.printables.com', 'printables.com'] },
 };
 
 /** A model page URL is only kept (and later opened) if it is https on the site's own host. */
@@ -51,12 +52,14 @@ export function isAllowedDownloadUrl(raw: string): boolean {
   } catch {
     return false;
   }
-  return url.protocol === 'https:' && !url.username && !url.password && DOWNLOAD_HOSTS.has(url.hostname);
+  // Printables: PrusaSlicer itself downloads from any printables.com subdomain (Downloader.cpp start_download).
+  const isPrintables = url.hostname === 'printables.com' || url.hostname.endsWith('.printables.com');
+  return url.protocol === 'https:' && !url.username && !url.password && (DOWNLOAD_HOSTS.has(url.hostname) || isPrintables);
 }
 
 export interface SlicerLink { url: string; name: string }
 
-export const SLICER_SCHEMES = /^(bambustudio|bambustudioopen|bambusuite|crealityprintlink|snapmaker-orca):\/\//i;
+export const SLICER_SCHEMES = /^(bambustudio|bambustudioopen|bambusuite|crealityprintlink|snapmaker-orca|prusaslicer):\/\//i;
 
 /**
  * The project URL inside a slicer deep link:
@@ -64,6 +67,7 @@ export const SLICER_SCHEMES = /^(bambustudio|bambustudioopen|bambusuite|creality
  *   the name sits inside the encoded URL.
  * - Creality Cloud: `crealityprintlink://open?file=<enc>&name=<enc>&code=…&lang=…` (the login `code` is ignored).
  * - Snapmaker Space: `snapmaker-orca://open?file=<enc>&name=<enc>`.
+ * - Printables: `prusaslicer://open?file=<enc url>`; like PrusaSlicer, everything after `file=` is the URL.
  */
 export function parseSlicerLink(href: string): SlicerLink | undefined {
   if (!SLICER_SCHEMES.test(href)) return undefined;
@@ -71,7 +75,9 @@ export function parseSlicerLink(href: string): SlicerLink | undefined {
   let name: string | undefined;
   try {
     const mac = href.match(/^bambustudioopen:\/\/(.+)$/i);
+    const prusa = href.match(/^prusaslicer:\/\/open\/?\?file=(.+)$/i);
     if (mac) file = decodeURIComponent(mac[1]!);
+    else if (prusa) file = decodeURIComponent(prusa[1]!);
     else {
       const query = new URLSearchParams(href.slice(href.indexOf('?') + 1));
       file = query.get('file') ?? undefined;

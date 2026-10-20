@@ -1,6 +1,7 @@
 import type { AppState, Settings, SlicerKind } from '../../../shared/api.ts';
 import { PrinterPicker } from './PrinterPicker.tsx';
 import { SlicerCards } from './SlicerCards.tsx';
+import { slicersFor } from '../slicerKinds.ts';
 import { ThemeSwitch } from './ThemeSwitch.tsx';
 import styles from './SettingsView.module.css';
 
@@ -28,7 +29,7 @@ export function SettingsView({ state, onChange, onLocate, onRescan, onBack }: Pr
         <h3>Slicer</h3>
         <button type="button" onClick={onRescan}>Search again</button>
       </div>
-      <SlicerCards slicers={state.slicers} value={settings.slicer} onChange={(slicer) => onChange({ slicer })} onLocate={onLocate} />
+      <SlicerCards kinds={slicersFor(state.printers, settings.printer)} slicers={state.slicers} value={settings.slicer} onChange={(slicer) => onChange({ slicer })} onLocate={onLocate} />
 
       <h3>Converted files</h3>
       <label className={styles.option}>

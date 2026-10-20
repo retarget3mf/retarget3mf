@@ -35,8 +35,18 @@ export const SLICERS: Record<SlicerKind, SlicerSpec> = {
     flatpakIds: ['com.orcaslicer.OrcaSlicer', 'io.github.softfever.OrcaSlicer'],
     appImage: /^orca[_-]?slicer.*\.appimage$/i,
   },
+  // Bundle id from the installed app; executable name from BambuStudio src/CMakeLists.txt:152.
+  bambustudio: {
+    name: 'Bambu Studio',
+    macBundleIds: ['com.bambulab.bambu-studio'],
+    winDisplayName: /^Bambu ?Studio\b/i,
+    winExe: 'bambu-studio.exe',
+    linuxBins: ['bambu-studio', 'BambuStudio'],
+    flatpakIds: ['com.bambulab.BambuStudio'],
+    appImage: /^bambu[_-]?studio.*\.appimage$/i,
+  },
 };
-export const SLICER_NAMES: Record<SlicerKind, string> = { flashstudio: SLICERS.flashstudio.name, orca: SLICERS.orca.name };
+export const SLICER_NAMES = Object.fromEntries(Object.entries(SLICERS).map(([k, s]) => [k, s.name])) as Record<SlicerKind, string>;
 const FLATPAK = 'flatpak:';
 const UNINSTALL = 'Microsoft\\Windows\\CurrentVersion\\Uninstall';
 const UNINSTALL_KEYS = [`HKCU\\SOFTWARE\\${UNINSTALL}`, `HKLM\\SOFTWARE\\${UNINSTALL}`, `HKLM\\SOFTWARE\\WOW6432Node\\${UNINSTALL}`];

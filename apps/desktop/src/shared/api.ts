@@ -1,7 +1,7 @@
 import type { ConversionReport, FilamentMap, PrinterDefinition, PrinterId, ProjectFilament } from '@retarget3mf/core';
 import type { SourceSite } from '@retarget3mf/bridge';
 
-export type SlicerKind = 'flashstudio' | 'orca';
+export type SlicerKind = 'flashstudio' | 'orca' | 'bambustudio';
 
 export interface SlicerInstall { kind: SlicerKind; name: string; path: string; /** App icon as a data URL, read from the installed app. */ icon?: string }
 

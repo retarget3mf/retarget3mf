@@ -11,6 +11,7 @@ import { compactMap } from '../src/renderer/src/components/ConversionView.tsx';
 import { outputPathFor } from '../src/main/paths.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings } from '../src/main/settings.ts';
 import { launchCommand } from '../src/main/slicers.ts';
+import { pickSlicer, slicersFor } from '../src/renderer/src/slicerKinds.ts';
 
 describe('sanitizeSettings', () => {
   it('keeps valid fields and drops unknown or malformed ones', () => {
@@ -19,7 +20,22 @@ describe('sanitizeSettings', () => {
   });
 
   it('ignores unknown printers', () => {
-    expect(sanitizeSettings({ printer: 'bambu-x1' }).printer).toBeUndefined();
+    expect(sanitizeSettings({ printer: 'bambu-x9' }).printer).toBeUndefined();
+  });
+
+  it('switches to a slicer that has the printer\'s profiles', () => {
+    expect(sanitizeSettings({ printer: 'bambu-x1c-0.4', slicer: 'flashstudio' }).slicer).toBe('bambustudio');
+    expect(sanitizeSettings({ printer: 'bambu-x1c-0.4', slicer: 'orca' }).slicer).toBe('orca');
+    expect(sanitizeSettings({ printer: 'ad5x-0.4', slicer: 'bambustudio' }).slicer).toBe('flashstudio');
+  });
+});
+
+describe('pickSlicer', () => {
+  const installed = [{ kind: 'orca' as const, name: 'OrcaSlicer', path: '/o' }];
+  it('keeps a supported slicer and otherwise prefers an installed one', () => {
+    expect(pickSlicer(slicersFor(PRINTERS, 'ad5x-0.4'), 'orca', installed)).toBe('orca');
+    expect(pickSlicer(slicersFor(PRINTERS, 'bambu-a1-0.4'), 'flashstudio', installed)).toBe('orca');
+    expect(pickSlicer(slicersFor(PRINTERS, 'bambu-a1-0.4'), 'flashstudio', [])).toBe('bambustudio');
   });
 });
 
@@ -102,6 +118,6 @@ describe('projectPathsFromArgv', () => {
 
 describe('groupByVendor', () => {
   it('groups printers by brand in data order', () => {
-    expect(groupByVendor(PRINTERS).map(([vendor, list]) => [vendor, list.length])).toEqual([['Flashforge', 5]]);
+    expect(groupByVendor(PRINTERS).map(([vendor, list]) => [vendor, list.length])).toEqual([['Flashforge', 5], ['Bambu Lab', 9]]);
   });
 });

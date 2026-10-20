@@ -1,22 +1,21 @@
 import type { SlicerInstall, SlicerKind } from '../../../shared/api.ts';
+import { SLICER_KINDS } from '../slicerKinds.ts';
 import styles from './SlicerCards.module.css';
 
-const KINDS: { kind: SlicerKind; name: string; blurb: string }[] = [
-  { kind: 'flashstudio', name: 'Flash Studio', blurb: "Flashforge's own slicer" },
-  { kind: 'orca', name: 'OrcaSlicer', blurb: 'Open-source, all brands' },
-];
-
 interface Props {
+  /** Slicers that support the chosen printer. */
+  kinds: readonly SlicerKind[];
   slicers: SlicerInstall[];
   value: SlicerKind;
   onChange: (kind: SlicerKind) => void;
   onLocate: (kind: SlicerKind) => void;
 }
 
-export function SlicerCards({ slicers, value, onChange, onLocate }: Props) {
+export function SlicerCards({ kinds, slicers, value, onChange, onLocate }: Props) {
   return (
     <div className={styles.grid} role="radiogroup" aria-label="Slicer">
-      {KINDS.map(({ kind, name, blurb }) => {
+      {kinds.map((kind) => {
+        const { name, blurb } = SLICER_KINDS[kind];
         const install = slicers.find((s) => s.kind === kind);
         const selected = value === kind;
         return (
