@@ -6,6 +6,10 @@ directories:
 files:
   - out/**
   - package.json
+# The native messaging host runs under plain Node, which cannot read inside app.asar.
+asarUnpack:
+  - out/main/host.js
+  - out/main/chunks/**
 fileAssociations:
   # Registered as an alternative handler: never takes over .3mf from the user's slicer without asking.
   - ext: 3mf

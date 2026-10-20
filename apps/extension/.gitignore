@@ -1,0 +1,4 @@
+/.keys/extension.pem
+.output/
+.wxt/
+e2e/.results/

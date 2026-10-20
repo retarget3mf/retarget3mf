@@ -19,11 +19,15 @@ export interface Settings {
   openMode: OpenMode;
 }
 
+/** Whether the browser extension can reach this app from the given browser. */
+export interface BrowserStatus { browser: string; registered: boolean }
+
 export interface AppState {
   settings: Settings;
   printers: readonly PrinterDefinition[];
   slicers: SlicerInstall[];
   outputFolder: string;
+  browsers: BrowserStatus[];
 }
 
 export interface InspectResult {

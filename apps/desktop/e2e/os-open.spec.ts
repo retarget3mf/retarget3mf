@@ -16,7 +16,7 @@ test('a file opened from the OS converts straight away', async () => {
   const { dir, userData } = profile({ printer: 'ad5x-0.4', openAfterConvert: false });
   const input = join(dir, 'cube.3mf');
   writeFileSync(input, bambuProject());
-  const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`, input] });
+  const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`, input], env: { ...process.env, RETARGET3MF_E2E_HOME: tmpdir() } });
   const page = await app.firstWindow();
   await expect(page.getByRole('heading', { name: /Converted: cube - AD5X\.3mf/ })).toBeVisible();
   expect(existsSync(join(dir, 'cube - AD5X.3mf'))).toBe(true);
@@ -28,7 +28,7 @@ test('too many colours for the printer opens the review screen instead', async (
   const { dir, userData } = profile({ printer: 'adventurer-5m-0.4', openAfterConvert: false });
   const input = join(dir, 'cube.3mf');
   writeFileSync(input, bambuProject());
-  const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`, input] });
+  const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`, input], env: { ...process.env, RETARGET3MF_E2E_HOME: tmpdir() } });
   const page = await app.firstWindow();
   await expect(page.getByRole('heading', { name: 'Test cube' })).toBeVisible();
   await expect(page.getByText(/uses 2 colours but the printer has 1 slot/)).toBeVisible();
@@ -38,7 +38,7 @@ test('too many colours for the printer opens the review screen instead', async (
 
 test('settings: theme, brand groups and slicer cards', async () => {
   const { userData } = profile({ printer: 'ad5x-0.4' });
-  const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`] });
+  const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`], env: { ...process.env, RETARGET3MF_E2E_HOME: tmpdir() } });
   const page = await app.firstWindow();
   // Playwright emulates a light scheme by default, which would hide Electron's nativeTheme.
   await page.emulateMedia({ colorScheme: null });
@@ -58,7 +58,7 @@ test('settings: theme, brand groups and slicer cards', async () => {
 
 test('header slicer menu switches slicer and links to settings', async () => {
   const { userData } = profile({ printer: 'ad5x-0.4', slicer: 'flashstudio' });
-  const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`] });
+  const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`], env: { ...process.env, RETARGET3MF_E2E_HOME: tmpdir() } });
   const page = await app.firstWindow();
   await page.getByRole('button', { name: 'Slicer: Flash Studio' }).click();
   await expect(page.getByRole('menu')).toBeVisible();

@@ -1,7 +1,7 @@
 import { app, BrowserWindow, nativeTheme } from 'electron';
 import { join } from 'node:path';
 import { PRINTERS } from '@retarget3mf/core';
-import type { AppEvent, AppState, Settings, SlicerInstall } from '../shared/api.ts';
+import type { AppEvent, AppState, BrowserStatus, Settings, SlicerInstall } from '../shared/api.ts';
 import { saveSettings } from './settings.ts';
 import { macAppIcon } from './appIcon.ts';
 import { discoverSlicers } from './slicers.ts';
@@ -10,6 +10,7 @@ import { discoverSlicers } from './slicers.ts';
 export class AppContext {
   settings: Settings;
   window: BrowserWindow | undefined;
+  browsers: BrowserStatus[] = [];
   private slicers: Promise<SlicerInstall[]>;
   private queue: AppEvent[] = [];
   private rendererReady = false;
@@ -25,7 +26,7 @@ export class AppContext {
   }
 
   async state(): Promise<AppState> {
-    return { settings: this.settings, printers: PRINTERS, slicers: await this.slicers, outputFolder: this.outputFolder };
+    return { settings: this.settings, printers: PRINTERS, slicers: await this.slicers, outputFolder: this.outputFolder, browsers: this.browsers };
   }
 
   async findSlicer(kind: Settings['slicer']): Promise<SlicerInstall | undefined> {

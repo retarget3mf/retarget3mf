@@ -8,7 +8,7 @@ test('onboarding → open → map slots → convert → report', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'retarget3mf-e2e-'));
   const input = join(dir, 'cube.3mf');
   writeFileSync(input, bambuProject());
-  const app = await electron.launch({ args: ['.', `--user-data-dir=${join(dir, 'profile')}`] });
+  const app = await electron.launch({ args: ['.', `--user-data-dir=${join(dir, 'profile')}`], env: { ...process.env, RETARGET3MF_E2E_HOME: tmpdir() } });
   // The native file dialog cannot be driven, so it answers with the fixture.
   await app.evaluate(({ dialog }, path) => { dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [path] }); }, input);
   const page = await app.firstWindow();
