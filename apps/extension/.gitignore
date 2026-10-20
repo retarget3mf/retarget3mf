@@ -1,4 +1,5 @@
 /.keys/extension.pem
 .output/
+dist/
 .wxt/
 e2e/.results/

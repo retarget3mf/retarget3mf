@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chromium, expect, test } from '@playwright/test';
 
-const EXTENSION = resolve(import.meta.dirname, '../.output/chrome-mv3');
+const EXTENSION = resolve(import.meta.dirname, '../dist/chrome-mv3');
 const SIGNED = 'https://makerworld.bblmw.com/makerworld/model/X/1/instance/a.3mf?exp=1&key=k';
 
 // Markup and click behaviour mirror makerworld.com as observed on 2026-10-20: the green button is a span tree whose

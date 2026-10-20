@@ -5,7 +5,7 @@ import { _electron as electron, chromium, expect, test } from '@playwright/test'
 import { EXTENSION_IDS, NATIVE_HOST_NAME } from '@retarget3mf/bridge';
 import { bambuProject } from '../../../packages/core/test/fixtures.ts';
 
-const EXTENSION = resolve(import.meta.dirname, '../.output/chrome-mv3');
+const EXTENSION = resolve(import.meta.dirname, '../dist/chrome-mv3');
 const DESKTOP = resolve(import.meta.dirname, '../../desktop');
 const SIGNED = 'https://makerworld.bblmw.com/makerworld/model/X/1/instance/a.3mf?exp=1&key=k';
 const PAGE = `<!doctype html><html><body>
