@@ -65,6 +65,11 @@ test('header slicer menu switches slicer and links to settings', async () => {
   await page.screenshot({ path: 'e2e/.results/slicer-menu.png' });
   await page.keyboard.press('Escape');
   await expect(page.getByRole('menu')).toBeHidden();
+  await page.getByRole('button', { name: 'Printer: AD5X' }).click();
+  await expect(page.getByRole('group', { name: 'Flashforge' })).toBeVisible();
+  await page.screenshot({ path: 'e2e/.results/printer-menu.png' });
+  await page.getByRole('menuitemradio', { name: /Adventurer 5M Pro/ }).click();
+  await expect(page.getByRole('button', { name: 'Printer: Adventurer 5M Pro' })).toBeVisible();
   await page.getByRole('button', { name: 'Slicer: Flash Studio' }).click();
   await page.getByRole('menuitem', { name: 'Manage slicers…' }).click();
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();

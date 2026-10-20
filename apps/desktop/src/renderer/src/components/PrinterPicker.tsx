@@ -1,4 +1,5 @@
 import type { PrinterDefinition, PrinterId } from '@retarget3mf/core';
+import { Dropdown } from './Dropdown.tsx';
 import styles from './PrinterPicker.module.css';
 
 /** Printers grouped by brand; the brand list comes from the printer data, so new vendors appear without UI changes. */
@@ -34,15 +35,11 @@ export function PrinterPicker({ printers, value, onChange }: Props) {
   );
 }
 
-/** Compact header variant: a select with one optgroup per brand. */
+/** Header variant: the shared dropdown with one group per brand. */
 export function PrinterSelect({ printers, value, onChange }: Props) {
-  return (
-    <select value={value} onChange={(e) => onChange(e.target.value as PrinterId)} aria-label="Printer">
-      {groupByVendor(printers).map(([vendor, list]) => (
-        <optgroup key={vendor} label={vendor}>
-          {list.map((p) => <option key={p.id} value={p.id}>{modelName(p)}</option>)}
-        </optgroup>
-      ))}
-    </select>
-  );
+  const groups = groupByVendor(printers).map(([vendor, list]) => ({
+    label: vendor,
+    options: list.map((p) => ({ value: p.id, label: modelName(p), note: slotsLabel(p) })),
+  }));
+  return <Dropdown label="Printer" value={value} groups={groups} onChange={onChange} />;
 }
