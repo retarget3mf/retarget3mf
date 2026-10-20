@@ -1,5 +1,6 @@
 import { NATIVE_HOST_NAME, isAllowedDownloadUrl, type BridgeRequest, type BridgeResponse } from '@retarget3mf/bridge';
-import { stateFor, type AppStatus, type ToBackground } from '../src/messages.ts';
+import { NOTIFICATION_PREFIX, projectDownload } from '../src/downloads.ts';
+import { idleLabel, stateFor, type AppStatus, type ToBackground } from '../src/messages.ts';
 
 type Pending = (response: BridgeResponse | { type: 'no-app' }) => void;
 
@@ -40,6 +41,47 @@ export default defineBackground(() => {
       resolve(r.type === 'pong' ? { connected: true, version: r.version, ...(r.printer && { printer: r.printer }), ...(r.slicer && { slicer: r.slicer }) } : { connected: false });
     });
   });
+
+  // Passive mode (opt-in from the popup): a finished .3mf from a model site gets an "Open for <printer>?" notification.
+  // The APIs exist only once the optional permissions are granted; listeners register on start-up and when granted.
+  const findDownload = async (id: number) => {
+    const [item] = await browser.downloads.search({ id });
+    return item && item.state === 'complete' ? projectDownload(item) : undefined;
+  };
+  const notify = (id: string, title: string, message: string) =>
+    browser.notifications.create(id, { type: 'basic', iconUrl: browser.runtime.getURL('/icon/128.png'), title, message });
+
+  async function onDownloadChanged(delta: Browser.downloads.DownloadDelta): Promise<void> {
+    if (delta.state?.current !== 'complete') return;
+    const project = await findDownload(delta.id);
+    if (!project) return;
+    const app = await status();
+    if (!app.connected) return;
+    const file = project.path.split(/[\\/]/).pop()!;
+    await notify(`${NOTIFICATION_PREFIX}${delta.id}`, `${idleLabel(app.printer)}?`, `${file}: convert it and open your slicer.`);
+  }
+
+  async function onNotificationClicked(notificationId: string): Promise<void> {
+    if (!notificationId.startsWith(NOTIFICATION_PREFIX)) return;
+    await browser.notifications.clear(notificationId);
+    const project = await findDownload(Number(notificationId.slice(NOTIFICATION_PREFIX.length)));
+    if (!project) return;
+    request({ type: 'open-file', ...project }, (r) => {
+      const state = stateFor(r);
+      // Success is announced by the desktop app itself.
+      if (state.kind === 'error') void notify(`${NOTIFICATION_PREFIX}error`, 'Retarget3MF', state.label);
+    });
+  }
+
+  let watching = false;
+  function watchDownloads(): void {
+    if (watching || !browser.downloads || !browser.notifications) return;
+    watching = true;
+    browser.downloads.onChanged.addListener((delta) => void onDownloadChanged(delta));
+    browser.notifications.onClicked.addListener((id) => void onNotificationClicked(id));
+  }
+  watchDownloads();
+  browser.permissions.onAdded.addListener(watchDownloads);
 
   browser.runtime.onMessage.addListener((message: ToBackground, sender, sendResponse) => {
     if (message.type === 'status') {

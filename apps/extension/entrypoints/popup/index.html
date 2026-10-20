@@ -9,11 +9,13 @@
       h1 { font-size: 15px; margin: 0 0 10px; }
       .ok { color: #1a7f37; } .off { color: #a33; }
       p { margin: 6px 0; } small { color: GrayText; }
+      label { display: flex; gap: 6px; align-items: flex-start; margin: 10px 0; }
     </style>
   </head>
   <body>
     <h1>Retarget3MF</h1>
     <p id="status">Checking the desktop app…</p>
+    <label id="watch-row" hidden><input type="checkbox" id="watch" /> Offer to open 3MF downloads from model sites</label>
     <p><small>On MakerWorld, Printables, Creality Cloud and Snapmaker Space, open the site's download or slicer menu and pick “Open for …”.</small></p>
     <script type="module" src="./main.ts"></script>
   </body>

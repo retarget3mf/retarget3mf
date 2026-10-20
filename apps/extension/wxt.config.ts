@@ -14,6 +14,8 @@ export default defineConfig({
       ? { browser_specific_settings: { gecko: { id: FIREFOX_EXTENSION_ID, strict_min_version: '128.0', data_collection_permissions: { required: ['none'] } } } }
       : { key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt82dVqMhVpc/9pWH+auvW0CMfvtChi/kMn5zPsc1Bh44fP2sCtUPvZARGZ1W1K5mVjZxsca9Pk0CLXjE/Hj288RNGHOYTlEymFFbbLducPT7BhskNmsgsJUct+sT1ayWRbXEuj4hnQUVZgpS4GmoWc9y2D62LOZoQUjYqWF3B11C5roDMSvA2rEjsgaj9Ofhkc+x1aT6c/ylUClxJLVqhFAS7LuvJ7mU+Py8QHgKwEvXJKD5GAlP8b8DmkUiR9TPbF1MUN7AWHPbg2o3NVquMQfCwBiLdHdHJR/OfdrKNutwAgWP9T1i3Z+Gz9dSWnfXCBgFWmQIyRHnSMiNdznBHQIDAQAB' }),
     permissions: ['nativeMessaging', 'storage'],
+    // Passive mode, requested from the popup only when the user turns it on.
+    optional_permissions: ['downloads', 'notifications'],
     // Model CDNs: the in-browser converter page downloads projects itself.
     host_permissions: [...SITES, ...DOWNLOAD_HOST_PATTERNS],
     web_accessible_resources: [{ resources: ['page-hook.js'], matches: SITES }],

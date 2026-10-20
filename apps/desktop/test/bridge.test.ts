@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -37,6 +37,22 @@ describe('bridge requests', () => {
   it('reports download problems in plain words', async () => {
     const out = await collect({ id: 3, type: 'open', url: 'x', name: 'a', site: 'makerworld', pageUrl: '' }, deps({ download: async () => { throw new DownloadError('This link is not from a supported model site.'); } }));
     expect(out.at(-1)).toEqual({ id: 3, type: 'error', message: 'This link is not from a supported model site.' });
+  });
+
+  it('opens a downloaded .3mf and keeps its model page only when it is on the site', async () => {
+    const path = join(mkdtempSync(join(tmpdir(), 'dl-')), 'cube.3mf');
+    writeFileSync(path, 'x');
+    const seen: unknown[] = [];
+    const d = deps({ open: async (p, origin) => { seen.push([p, origin]); return { kind: 'opened', message: 'Opened', outputPath: p }; } });
+    expect((await collect({ id: 4, type: 'open-file', path, site: 'printables', pageUrl: 'https://www.printables.com/model/1' }, d)).at(-1)).toMatchObject({ type: 'done' });
+    await collect({ id: 5, type: 'open-file', path, site: 'printables', pageUrl: 'https://evil.example/' }, d);
+    expect(seen).toEqual([[path, { site: 'printables', pageUrl: 'https://www.printables.com/model/1' }], [path, undefined]]);
+  });
+
+  it('refuses paths that are not existing .3mf files', async () => {
+    for (const path of ['relative.3mf', '/etc/passwd', join(tmpdir(), 'missing-xyz.3mf')]) {
+      expect((await collect({ id: 6, type: 'open-file', path }, deps())).at(-1)).toMatchObject({ type: 'error' });
+    }
   });
 });
 
