@@ -40,9 +40,13 @@ export function fakeMakerworldPage(signedUrl: string, loggedIn: boolean, confirm
       e.stopPropagation();
       const popper = document.createElement('div');
       popper.className = 'MuiPopper-root'; popper.setAttribute('role', 'tooltip');
+      // "Download STL/CAD Files" sits two levels deeper, next to an info icon (markup seen 2026-10-20 evening).
+      const row = (t) => t === 'Download STL/CAD Files'
+        ? '<div class="menu-row sub_download"><div class="MuiStack-root" style="display:flex;justify-content:center;gap:6px"><span>' + t + '</span><div aria-label="STL files are generated from the print profile"><svg width="14" height="14"><circle cx="7" cy="7" r="6" stroke="#aaa" fill="none"/></svg></div></div></div>'
+        : '<div class="menu-row">' + t + '</div>';
       popper.innerHTML = '<div style="background:#252525;border:1px solid #444;border-radius:8px;width:480px;padding:4px"><div class="rows">' +
-        ${JSON.stringify(rows)}.map((t) => '<div class="menu-row">' + t + '</div>').join('') + '</div></div>';
-      popper.querySelectorAll('.menu-row').forEach((r) => r.addEventListener('click', () => { closeMenu(); if (r.textContent === 'Open in Bambu Studio') openInStudio(); }));
+        ${JSON.stringify(rows)}.map(row).join('') + '</div></div>';
+      popper.querySelectorAll('.menu-row').forEach((r) => r.addEventListener('click', () => { closeMenu(); if (r.textContent.trim() === 'Open in Bambu Studio') openInStudio(); }));
       document.getElementById('mount').append(popper);
     });
     document.body.addEventListener('click', closeMenu);

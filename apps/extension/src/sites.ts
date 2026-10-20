@@ -53,22 +53,24 @@ export function findSlicerTarget(root: ParentNode, site: SiteAdapter): HTMLEleme
   return textElements(root, site.slicerText)[0];
 }
 
-/** The open download menu: the container holding at least two of the site's menu rows. */
+/**
+ * The open download menu: the smallest element holding at least two of the site's menu texts; its children are the
+ * rows. A row may wrap its text with icons (MakerWorld's "Download STL/CAD Files" ⓘ), but holds no other text, which
+ * keeps page sections that merely contain two of the texts from passing as a menu.
+ */
 export function findMenu(root: ParentNode, site: SiteAdapter): { rows: HTMLElement[]; slicerRow?: HTMLElement } | undefined {
-  const rows = site.menuTexts.flatMap((t) => textElements(root, t)).map(rowOf);
-  const byParent = new Map<Element, HTMLElement[]>();
-  for (const row of rows) if (row.parentElement) byParent.set(row.parentElement, [...(byParent.get(row.parentElement) ?? []), row]);
-  const menuRows = [...byParent.values()].filter((r) => r.length >= 2).sort((a, b) => b.length - a.length)[0];
-  if (!menuRows) return undefined;
-  const slicerRow = menuRows.find((r) => r.textContent?.trim() === site.slicerText);
-  return { rows: menuRows, ...(slicerRow && { slicerRow }) };
-}
-
-/** The menu row containing `el`: its ancestor whose parent holds several rows. */
-function rowOf(el: HTMLElement): HTMLElement {
-  let row = el;
-  while (row.parentElement && row.parentElement.childElementCount < 2) row = row.parentElement;
-  return row;
+  const texts = site.menuTexts.flatMap((t) => textElements(root, t));
+  let menu: HTMLElement | undefined;
+  for (const text of texts) {
+    let box = text.parentElement;
+    while (box && texts.filter((t) => box!.contains(t)).length < 2) box = box.parentElement;
+    if (box && (!menu || menu.contains(box))) menu = box;
+  }
+  if (!menu) return undefined;
+  const rows = [...menu.children].filter((c): c is HTMLElement => texts.some((t) => c.contains(t)));
+  if (rows.length < 2 || rows.some((r) => !site.menuTexts.includes(r.textContent?.trim() ?? ''))) return undefined;
+  const slicerRow = rows.find((r) => r.textContent?.trim() === site.slicerText);
+  return { rows, ...(slicerRow && { slicerRow }) };
 }
 
 export function findImportButton(root: ParentNode, site: SiteAdapter): HTMLElement | undefined {
