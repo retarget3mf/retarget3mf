@@ -23,7 +23,10 @@ protocols:
   - name: Retarget3MF link
     schemes: [retarget3mf]
 mac:
-  target: [dmg, zip]
+  # Universal: one download for Apple silicon and Intel; the zip is what auto-update uses.
+  target:
+    - { target: dmg, arch: [universal] }
+    - { target: zip, arch: [universal] }
   category: public.app-category.productivity
 win:
   target: nsis
@@ -33,5 +36,8 @@ nsis:
   allowToChangeInstallationDirectory: true
 linux:
   target: [AppImage, deb]
+  executableName: retarget3mf
   category: Graphics
   mimeTypes: [model/3mf]
+deb:
+  artifactName: Retarget3MF_${version}_${arch}.${ext}

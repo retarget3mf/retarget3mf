@@ -6,6 +6,7 @@ const SITES = ['https://makerworld.com/*', 'https://www.crealitycloud.com/*', 'h
 export default defineConfig({
   // Visible folder: macOS file pickers hide ".output", which is what Chrome's "Load unpacked" needs.
   outDir: 'dist',
+  zip: { artifactTemplate: 'retarget3mf-{{version}}-{{browser}}.zip', sourcesTemplate: 'retarget3mf-{{version}}-sources.zip' },
   manifest: ({ browser }) => ({
     name: 'Retarget3MF',
     description: 'Adds "Open for your printer" to MakerWorld, Printables, Creality Cloud and Snapmaker Space: converts the project locally and opens it in your slicer.',

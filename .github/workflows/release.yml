@@ -1,0 +1,58 @@
+name: Release
+
+# Push a tag like v0.1.0. Installers are uploaded to a draft GitHub release; review it, then publish.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - name: Build installers
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Signing is used when these secrets exist; otherwise builds are unsigned (README explains the workaround).
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ -z "$CSC_LINK" ]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi
+          pnpm -C apps/desktop build
+          pnpm -C apps/desktop exec electron-builder --publish always \
+            -c.publish.provider=github -c.publish.owner="${GITHUB_REPOSITORY%/*}" -c.publish.repo="${GITHUB_REPOSITORY#*/}" -c.publish.releaseType=draft
+      - name: Smoke-test the packaged app (OS open, native host)
+        if: runner.os == 'macOS'
+        run: PACKAGED_APP="$PWD/apps/desktop/dist/mac-universal/Retarget3MF.app/Contents/MacOS/Retarget3MF" pnpm -C apps/desktop exec playwright test e2e/packaged.spec.ts
+
+  extension:
+    needs: desktop
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -C apps/extension zip
+      - name: Attach extension zips to the draft release
+        env: { GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
+        run: gh release upload "$GITHUB_REF_NAME" apps/extension/dist/*.zip --clobber --repo "$GITHUB_REPOSITORY"

@@ -1,4 +1,5 @@
 import { app } from 'electron';
+import electronUpdater from 'electron-updater';
 import { AppContext } from './context.ts';
 import { appLinksFromArgv, projectPathsFromArgv } from './externalFiles.ts';
 import { openFromOs } from './fastPath.ts';
@@ -50,6 +51,8 @@ app.whenReady().then(() => {
   // The fast path, and launches by the browser extension's host, stay windowless; a plain launch shows the window.
   if (files.length === 0 && !process.argv.includes('--from-browser')) showWindow(ctx);
   files.forEach((f) => void openAndMaybeQuit(f));
+  // GitHub Releases; unsigned macOS builds cannot apply updates, so failures are only logged.
+  if (app.isPackaged) electronUpdater.autoUpdater.checkForUpdatesAndNotify().catch((error: unknown) => console.error('update check', error));
   app.on('activate', () => showWindow(ctx!));
 });
 
