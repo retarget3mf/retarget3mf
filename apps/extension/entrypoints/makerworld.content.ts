@@ -1,17 +1,23 @@
 import { isAllowedDownloadUrl, parseSlicerLink } from '@retarget3mf/bridge';
-import { findMenu, findStudioTarget, MARKER } from '../src/makerworld.ts';
+import { findImportButton, findMenu, findStudioTarget, MARKER } from '../src/makerworld.ts';
 import { idleLabel, type AppStatus, type ButtonState, type ToBackground } from '../src/messages.ts';
 
 const CAPTURE_TIMEOUT_MS = 90_000;
 const ARMED = 'data-retarget3mf-armed';
 const TOAST_STYLE = `
-  :host { position: fixed; z-index: 2147483647; left: 50%; bottom: 24px; transform: translateX(-50%); }
-  div { display: flex; align-items: center; gap: 10px; max-width: min(520px, 90vw); padding: 10px 16px; border-radius: 10px;
-    font: 500 14px/1.35 system-ui, sans-serif; color: #fff; background: #2b2f36; box-shadow: 0 8px 24px rgb(0 0 0 / 0.3); }
+  :host { position: fixed; z-index: 2147483647; left: 50%; top: 84px; transform: translateX(-50%); }
+  div { display: flex; align-items: center; gap: 12px; max-width: min(560px, 92vw); padding: 12px 18px; border-radius: 12px;
+    font: 500 15px/1.4 system-ui, sans-serif; color: #fff; background: #1f6feb; box-shadow: 0 10px 30px rgb(0 0 0 / 0.45); }
   div[data-kind="done"] { background: #1a7f37; }
   div[data-kind="error"] { background: #a33; }
   b { font-weight: 700; }
   button { all: unset; margin-left: 6px; cursor: pointer; opacity: 0.8; } button:hover { opacity: 1; }
+`;
+const BANNER_STYLE = `
+  :host { display: block; margin: 0 0 12px; }
+  div { padding: 10px 14px; border-radius: 8px; border: 1px solid #4c8dff; background: rgb(31 111 235 / 0.16);
+    color: inherit; font: 500 14px/1.4 system-ui, sans-serif; }
+  b { color: #7fb0ff; }
 `;
 
 export default defineContentScript({
@@ -20,6 +26,7 @@ export default defineContentScript({
   async main(ctx) {
     await injectScript('/makerworld-main.js', { keepInDom: true });
     let status: AppStatus = { connected: false };
+    let waiting = false;
     const rows = new Set<HTMLElement>();
     const refreshStatus = () => browser.runtime.sendMessage({ type: 'status' } satisfies ToBackground).then((s) => {
       status = s as AppStatus;
@@ -60,12 +67,30 @@ export default defineContentScript({
       if (message.type === 'button-state' && message.state) show(message.state);
     });
 
-    const DIALOG_HINT_MS = 1500;
+    /** While we wait, MakerWorld may ask to confirm "Import into Bambu Studio"; explain inside its dialog what will happen. */
+    const annotateImportDialog = () => {
+      const button = findImportButton(document);
+      if (!button || document.querySelector(`[${MARKER}="banner"]`)) return;
+      let block = button;
+      while (block.parentElement && block.parentElement.childElementCount < 2) block = block.parentElement;
+      const host = document.createElement('div');
+      host.setAttribute(MARKER, 'banner');
+      const shadow = host.attachShadow({ mode: 'open' });
+      const style = document.createElement('style');
+      style.textContent = BANNER_STYLE;
+      const box = document.createElement('div');
+      const name = document.createElement('b');
+      name.textContent = 'Retarget3MF: ';
+      box.append(name, `press “Import into Bambu Studio” below. The project opens in Retarget3MF${status.printer ? ` for ${status.printer.replace(/^Flashforge /, '')}` : ''} instead of Bambu Studio.`);
+      shadow.append(style, box);
+      block.insertAdjacentElement('beforebegin', host);
+      toast?.host.remove();
+    };
+
     const start = async (studio: HTMLElement | undefined) => {
       if (!studio) return show({ kind: 'error', label: 'Could not find MakerWorld’s “Open in Bambu Studio”. Pick a print profile and try again.' });
       show({ kind: 'busy', label: 'Getting the project from MakerWorld…' });
-      // MakerWorld may show its "Import into Bambu Studio" dialog first; confirming it is what releases the link.
-      const hint = setTimeout(() => show({ kind: 'busy', label: 'If MakerWorld asks, press “Import into Bambu Studio”: the project opens in Retarget3MF instead.' }), DIALOG_HINT_MS);
+      waiting = true;
       document.documentElement.setAttribute(ARMED, String(Date.now() + CAPTURE_TIMEOUT_MS));
       const href = await new Promise<string | undefined>((resolve) => {
         const timer = setTimeout(() => { window.removeEventListener('message', onMessage); resolve(undefined); }, CAPTURE_TIMEOUT_MS);
@@ -79,7 +104,8 @@ export default defineContentScript({
         // MakerWorld fetches a signed link for the selected print profile; it may first ask to log in or confirm.
         studio.click();
       });
-      clearTimeout(hint);
+      waiting = false;
+      document.querySelector(`[${MARKER}="banner"]`)?.remove();
       const link = href ? parseSlicerLink(href) : undefined;
       if (!link || !isAllowedDownloadUrl(link.url)) {
         document.documentElement.removeAttribute(ARMED);
@@ -113,7 +139,7 @@ export default defineContentScript({
     };
 
     // The menu is mounted on open and removed on close; the page is a single-page app.
-    const observer = new MutationObserver(() => attach());
+    const observer = new MutationObserver(() => { attach(); if (waiting) annotateImportDialog(); });
     observer.observe(document.body, { childList: true, subtree: true });
     ctx.onInvalidated(() => observer.disconnect());
   },

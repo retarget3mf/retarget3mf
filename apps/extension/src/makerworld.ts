@@ -33,3 +33,13 @@ function rowOf(leaf: HTMLElement, popper: HTMLElement): HTMLElement {
   while (row.parentElement && row.parentElement !== popper && row.parentElement.childElementCount < 2) row = row.parentElement;
   return row;
 }
+
+export const IMPORT_TEXT = 'Import into Bambu Studio';
+
+/**
+ * The confirm button of MakerWorld's "Import into Bambu Studio" dialog (shown before the first hand-off). The dialog
+ * title has the same text, so the last visible match is the button.
+ */
+export function findImportButton(root: ParentNode): HTMLElement | undefined {
+  return leaves(root, IMPORT_TEXT).at(-1);
+}

@@ -35,3 +35,25 @@ for (const loggedIn of [true, false]) {
     await context.close();
   });
 }
+
+test('explains MakerWorld’s import dialog inside it', async () => {
+  const context = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'ext-')), {
+    channel: 'chromium',
+    args: [`--disable-extensions-except=${EXTENSION}`, `--load-extension=${EXTENSION}`],
+  });
+  await context.route('https://makerworld.com/**', (route) => route.fulfill({ contentType: 'text/html', body: fakeMakerworldPage(SIGNED, true, true) }));
+  const page = await context.newPage();
+  await page.goto('https://makerworld.com/en/models/1-test-cube');
+  await page.locator('.icon-box').click();
+  await page.locator('[data-retarget3mf="row"]').click();
+  const banner = page.locator('[data-retarget3mf="banner"]');
+  await expect(banner).toContainText('press “Import into Bambu Studio” below');
+  // Sits inside the dialog, right above its confirm button.
+  expect(await banner.evaluate((b) => b.nextElementSibling?.textContent)).toBe('Import into Bambu Studio');
+  await page.screenshot({ path: 'e2e/.results/import-dialog.png' });
+  await page.locator('.import').click();
+  await expect(banner).toHaveCount(0);
+  await expect(page.getByRole('status')).toContainText('Install the Retarget3MF desktop app', { timeout: 30_000 });
+  await page.screenshot({ path: 'e2e/.results/toast-top.png' });
+  await context.close();
+});

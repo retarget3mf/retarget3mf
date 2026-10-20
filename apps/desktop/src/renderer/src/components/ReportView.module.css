@@ -5,10 +5,14 @@
 .filters input { margin-left: auto; min-width: 200px; }
 .muted { color: var(--muted); margin: 0; }
 .warnings { background: var(--warn-bg); color: var(--warn-text); border-radius: var(--radius); margin: 0; padding: 10px 12px 10px 30px; }
-.table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.table { border-collapse: collapse; width: 100%; font-size: 13px; table-layout: fixed; }
 .table th { text-align: left; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); padding: 6px; }
-.table td { border-bottom: 1px solid var(--border); padding: 6px; vertical-align: top; }
-.value { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, monospace; }
+.table td { border-bottom: 1px solid var(--border); padding: 6px; vertical-align: top; overflow-wrap: anywhere; }
+.table th:nth-child(1) { width: 26%; } .table th:nth-child(2) { width: 11%; }
+.table th:nth-child(3), .table th:nth-child(4) { width: 18%; }
+.table code { font-size: 12px; }
+/* Long values (G-code, per-filament lists) are clipped to two lines; the full value is in the tooltip. */
+.value { font-family: ui-monospace, monospace; font-size: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .kept { color: var(--ok); }
 .clamped, .replaced { color: var(--warn-text); }
 .translated { color: var(--accent); }

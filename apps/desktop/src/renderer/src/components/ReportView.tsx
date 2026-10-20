@@ -40,8 +40,8 @@ export function ReportView({ result, onBack, onExport }: Props) {
             <tr key={`${s.key}-${s.outcome}-${i}`}>
               <td><code>{s.key}</code></td>
               <td><span className={styles[s.outcome]}>{s.outcome}</span></td>
-              <td className={styles.value}>{show(s.from)}</td>
-              <td className={styles.value}>{show(s.to)}</td>
+              <td title={show(s.from)}><span className={styles.value}>{show(s.from)}</span></td>
+              <td title={show(s.to)}><span className={styles.value}>{show(s.to)}</span></td>
               <td>{s.reason}</td>
             </tr>
           ))}

@@ -32,6 +32,7 @@ test('onboarding → open → map slots → convert → report', async () => {
   await shot('3-done');
 
   await page.getByRole('button', { name: 'View report' }).click();
+  await page.screenshot({ path: 'e2e/.results/4a-report-all.png' });
   await page.getByRole('button', { name: /^kept/ }).click();
   await page.getByLabel('Search setting').fill('layer');
   await expect(page.getByRole('cell', { name: 'layer_height', exact: true })).toBeVisible();
