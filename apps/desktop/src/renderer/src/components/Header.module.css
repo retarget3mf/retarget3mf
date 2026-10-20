@@ -1,3 +1,2 @@
 .header { display: flex; align-items: center; gap: 12px; padding: 10px 24px; border-bottom: 1px solid var(--border); background: var(--surface); flex-wrap: wrap; }
 .brand { margin-right: auto; font-size: 15px; }
-.slicer { display: inline-flex; align-items: center; gap: 8px; }

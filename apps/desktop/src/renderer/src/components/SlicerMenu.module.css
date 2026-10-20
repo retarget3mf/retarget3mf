@@ -1,0 +1,17 @@
+.root { position: relative; }
+.trigger { display: inline-flex; align-items: center; gap: 8px; }
+.chevron { color: var(--muted); font-size: 11px; }
+.menu {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 10; min-width: 240px; padding: 6px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18); display: flex; flex-direction: column; gap: 2px;
+}
+.item { display: flex; align-items: center; gap: 10px; width: 100%; border: none; background: transparent; text-align: left; padding: 8px 10px; border-radius: 8px; }
+.item:hover, .item:focus-visible { background: var(--bg); outline: none; }
+.name { flex: 1; }
+.status { color: var(--accent); font-size: 12px; }
+.missing { color: var(--muted); }
+.missing img, .missing .placeholder { filter: grayscale(1); opacity: 0.6; }
+.missing .status { color: var(--muted); }
+.placeholder { width: 20px; height: 20px; border-radius: 5px; display: inline-grid; place-items: center; background: var(--bg); color: var(--muted); font-size: 12px; font-weight: 700; }
+.separator { height: 1px; background: var(--border); margin: 4px 6px; }

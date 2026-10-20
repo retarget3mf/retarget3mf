@@ -55,3 +55,18 @@ test('settings: theme, brand groups and slicer cards', async () => {
   await app.close();
 });
 
+
+test('header slicer menu switches slicer and links to settings', async () => {
+  const { userData } = profile({ printer: 'ad5x-0.4', slicer: 'flashstudio' });
+  const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`] });
+  const page = await app.firstWindow();
+  await page.getByRole('button', { name: 'Slicer: Flash Studio' }).click();
+  await expect(page.getByRole('menu')).toBeVisible();
+  await page.screenshot({ path: 'e2e/.results/slicer-menu.png' });
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('menu')).toBeHidden();
+  await page.getByRole('button', { name: 'Slicer: Flash Studio' }).click();
+  await page.getByRole('menuitem', { name: 'Manage slicers…' }).click();
+  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+  await app.close();
+});
