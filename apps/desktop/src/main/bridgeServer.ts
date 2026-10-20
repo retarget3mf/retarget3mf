@@ -12,6 +12,7 @@ export interface BridgeDeps {
 }
 
 const MAX_LINE = 64 * 1024;
+export const DOWNLOAD_FAILED = 'The download failed. Check your connection and try again.';
 
 /** Handles one request, streaming progress through `send`; never throws. */
 export async function handleRequest(request: BridgeRequest, deps: BridgeDeps, send: (r: BridgeResponse) => void): Promise<void> {
@@ -33,7 +34,7 @@ export async function handleRequest(request: BridgeRequest, deps: BridgeDeps, se
     else send({ id, type: 'done', outcome: outcome.kind, message: outcome.message });
   } catch (error) {
     if (!(error instanceof DownloadError)) console.error(error);
-    send({ id, type: 'error', message: error instanceof DownloadError ? error.message : 'The download failed. Check your connection and try again.' });
+    send({ id, type: 'error', message: error instanceof DownloadError ? error.message : DOWNLOAD_FAILED });
   }
 }
 

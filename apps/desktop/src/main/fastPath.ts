@@ -54,9 +54,13 @@ function review(ctx: AppContext, path: string, message: string): FastPathOutcome
   return { kind: 'review', message };
 }
 
-function fail(ctx: AppContext, message: string): FastPathOutcome {
+export function showError(ctx: AppContext, message: string): void {
   ctx.emit({ kind: 'error', message });
   showWindow(ctx);
+}
+
+function fail(ctx: AppContext, message: string): FastPathOutcome {
+  showError(ctx, message);
   return { kind: 'error', message };
 }
 

@@ -96,6 +96,26 @@ export function parseSlicerLink(href: string): SlicerLink | undefined {
   return { url, name: base.toLowerCase().endsWith('.3mf') ? base : `${base}.3mf` };
 }
 
+/** The desktop app's own scheme: the fallback hand-off when the native messaging host cannot be reached. */
+export const APP_SCHEME = 'retarget3mf';
+
+export interface OpenLink { url: string; name: string; site: SourceSite; pageUrl: string }
+
+export function buildOpenLink(link: OpenLink): string {
+  return `${APP_SCHEME}://open?${new URLSearchParams({ url: link.url, name: link.name, site: link.site, page: link.pageUrl })}`;
+}
+
+/** Any web page can launch this link, so it gets the same checks as a native message; an off-site page URL is dropped. */
+export function parseOpenLink(href: string): OpenLink | undefined {
+  if (!href.toLowerCase().startsWith(`${APP_SCHEME}://open?`)) return undefined;
+  const query = new URLSearchParams(href.slice(href.indexOf('?') + 1));
+  const url = query.get('url') ?? '';
+  const site = query.get('site') as SourceSite;
+  if (!isAllowedDownloadUrl(url) || !(site in SITE_INFO)) return undefined;
+  const pageUrl = query.get('page') ?? '';
+  return { url, name: query.get('name') || 'model', site, pageUrl: isSitePageUrl(pageUrl, site) ? pageUrl : '' };
+}
+
 /** Native messaging framing: 32-bit little-endian length, then UTF-8 JSON. */
 export function encodeNativeMessage(message: unknown): Uint8Array {
   const body = new TextEncoder().encode(JSON.stringify(message));

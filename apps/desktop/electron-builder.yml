@@ -18,6 +18,10 @@ fileAssociations:
     mimeType: model/3mf
     role: Viewer
     rank: Alternate
+# Fallback hand-off from the browser extension when its native messaging host is unreachable.
+protocols:
+  - name: Retarget3MF link
+    schemes: [retarget3mf]
 mac:
   target: [dmg, zip]
   category: public.app-category.productivity

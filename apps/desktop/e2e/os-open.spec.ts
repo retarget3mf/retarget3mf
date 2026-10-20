@@ -2,6 +2,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { _electron as electron, expect, test } from '@playwright/test';
+import { buildOpenLink } from '@retarget3mf/bridge';
 import { bambuProject } from '../../../packages/core/test/fixtures.ts';
 
 function profile(settings: object): { dir: string; userData: string } {
@@ -21,6 +22,31 @@ test('a file opened from the OS converts straight away', async () => {
   await expect(page.getByRole('heading', { name: /Converted: cube - AD5X\.3mf/ })).toBeVisible();
   expect(existsSync(join(dir, 'cube - AD5X.3mf'))).toBe(true);
   await page.screenshot({ path: 'e2e/.results/os-open-done.png' });
+  await app.close();
+});
+
+test('a retarget3mf:// link downloads, converts and records where it came from', async () => {
+  const { dir, userData } = profile({ printer: 'ad5x-0.4', openAfterConvert: false });
+  const fixture = join(dir, 'fixture.3mf');
+  writeFileSync(fixture, bambuProject());
+  const link = buildOpenLink({ url: 'https://files.printables.com/media/prints/1/3mf/2/cube.3mf', name: 'cube.3mf', site: 'printables', pageUrl: 'https://www.printables.com/model/1-cube' });
+  const app = await electron.launch({
+    args: ['.', `--user-data-dir=${userData}`, link],
+    env: { ...process.env, RETARGET3MF_E2E_HOME: dir, RETARGET3MF_E2E_FIXTURE: fixture },
+  });
+  const page = await app.firstWindow();
+  await expect(page.getByRole('heading', { name: /Converted: cube - AD5X\.3mf/ })).toBeVisible();
+  expect(existsSync(join(dir, 'cube - AD5X.3mf'))).toBe(true);
+  await page.getByRole('button', { name: 'History' }).click();
+  await expect(page.getByRole('button', { name: 'Printables ↗' })).toBeVisible();
+  await app.close();
+});
+
+test('a retarget3mf:// link to another host is refused', async () => {
+  const { userData } = profile({ printer: 'ad5x-0.4' });
+  const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`, 'retarget3mf://open?url=https%3A%2F%2Fevil.example%2Fa.3mf&site=printables'], env: { ...process.env, RETARGET3MF_E2E_HOME: tmpdir() } });
+  const page = await app.firstWindow();
+  await expect(page.getByRole('alert')).toContainText('not from a supported model site');
   await app.close();
 });
 

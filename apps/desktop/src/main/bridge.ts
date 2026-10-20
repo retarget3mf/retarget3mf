@@ -2,12 +2,13 @@ import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { app } from 'electron';
+import { APP_SCHEME, parseOpenLink } from '@retarget3mf/bridge';
 import { PRINTERS } from '@retarget3mf/core';
-import { startBridgeServer } from './bridgeServer.ts';
+import { DOWNLOAD_FAILED, startBridgeServer, type BridgeDeps } from './bridgeServer.ts';
 import { bridgeSocketPath } from './bridgeSocket.ts';
 import type { AppContext } from './context.ts';
-import { downloadProject } from './download.ts';
-import { openFromOs } from './fastPath.ts';
+import { DownloadError, downloadProject } from './download.ts';
+import { openFromOs, showError } from './fastPath.ts';
 import { registerNativeHost } from './nativeHost.ts';
 import { SLICER_NAMES } from './slicers.ts';
 
@@ -29,10 +30,8 @@ function testFetch(): typeof fetch | undefined {
 /** Throwaway home for e2e runs: native host registration and downloads stay out of the real profile. */
 const testHome = () => (!app.isPackaged && process.env.RETARGET3MF_E2E_HOME) || undefined;
 
-/** Local socket for the browser extension (via the native messaging host) plus host registration in browsers. */
-export function startBridge(ctx: AppContext): void {
-  const socket = bridgeSocketPath(app.getPath('userData'));
-  startBridgeServer(socket, {
+function bridgeDeps(ctx: AppContext): BridgeDeps {
+  return {
     version: app.getVersion(),
     status: () => {
       const printer = PRINTERS.find((p) => p.id === ctx.settings.printer)?.displayName;
@@ -43,7 +42,35 @@ export function startBridge(ctx: AppContext): void {
       ctx.origins.set(path, origin);
       return openFromOs(ctx, path);
     },
-  });
+  };
+}
+
+/** A retarget3mf://open link, launched by the extension when its native host is unreachable. */
+export async function openLink(ctx: AppContext, href: string): Promise<void> {
+  const link = parseOpenLink(href);
+  if (!link) return showError(ctx, 'This Retarget3MF link is not from a supported model site.');
+  const deps = bridgeDeps(ctx);
+  let path: string;
+  try {
+    path = await deps.download(link.url, link.name);
+  } catch (error) {
+    if (!(error instanceof DownloadError)) console.error(error);
+    return showError(ctx, error instanceof DownloadError ? error.message : DOWNLOAD_FAILED);
+  }
+  await deps.open(path, { site: link.site, pageUrl: link.pageUrl });
+}
+
+/** Packaged builds declare the scheme in their bundle/installer; dev runs register it on Windows/Linux only (macOS needs a bundle). */
+export function registerAppScheme(): void {
+  if (testHome()) return;
+  if (app.isPackaged) app.setAsDefaultProtocolClient(APP_SCHEME);
+  else if (process.platform !== 'darwin') app.setAsDefaultProtocolClient(APP_SCHEME, process.execPath, [app.getAppPath()]);
+}
+
+/** Local socket for the browser extension (via the native messaging host) plus host registration in browsers. */
+export function startBridge(ctx: AppContext): void {
+  const socket = bridgeSocketPath(app.getPath('userData'));
+  startBridgeServer(socket, bridgeDeps(ctx));
   const spec = {
     electron: process.execPath,
     hostScript: hostScriptPath(),

@@ -1,8 +1,9 @@
-import { isAllowedDownloadUrl, parseSlicerLink } from '@retarget3mf/bridge';
+import { buildOpenLink, isAllowedDownloadUrl, parseSlicerLink, type OpenLink } from '@retarget3mf/bridge';
 import { findImportButton, findMenu, findSlicerTarget, MARKER, siteFor } from '../src/sites.ts';
 import { idleLabel, type AppStatus, type ButtonState, type ToBackground } from '../src/messages.ts';
 
 const CAPTURE_TIMEOUT_MS = 90_000;
+const APP_LAUNCH_WAIT_MS = 6000;
 const ARMED = 'data-retarget3mf-armed';
 const TOAST_STYLE = `
   :host { position: fixed; z-index: 2147483647; left: 50%; top: 84px; transform: translateX(-50%); }
@@ -70,8 +71,25 @@ export default defineContentScript({
       if (state.kind !== 'busy') hideTimer = setTimeout(() => toast?.host.remove(), state.kind === 'error' ? 10_000 : 5000);
     };
 
+    /**
+     * Without the native host, hand the project to the desktop app through its own scheme (the browser asks first).
+     * Nothing reports back, so a page that kept focus most likely means the app is not installed.
+     */
+    let lastLink: OpenLink | undefined;
+    const launchApp = (link: OpenLink) => {
+      show({ kind: 'busy', label: 'Opening the Retarget3MF app…' });
+      let left = false;
+      window.addEventListener('blur', () => { left = true; }, { once: true });
+      location.href = buildOpenLink(link);
+      setTimeout(() => show(left
+        ? { kind: 'done', label: 'Continuing in the Retarget3MF app.' }
+        : { kind: 'error', label: 'Nothing opened? Install the Retarget3MF desktop app to open projects for your printer.', installHint: true }), APP_LAUNCH_WAIT_MS);
+    };
+
     browser.runtime.onMessage.addListener((message: { type: string; state?: ButtonState }) => {
-      if (message.type === 'button-state' && message.state) show(message.state);
+      if (message.type !== 'button-state' || !message.state) return;
+      if (message.state.kind === 'error' && message.state.installHint && lastLink) launchApp(lastLink);
+      else show(message.state);
     });
 
     /** While we wait, the site may ask to confirm importing into its slicer; explain inside its dialog what will happen. */
@@ -118,7 +136,9 @@ export default defineContentScript({
         document.documentElement.removeAttribute(ARMED);
         return show({ kind: 'error', label: href ? 'The site returned an unexpected link; this page may have changed.' : 'Log in to the site (or confirm its dialog), then try again.' });
       }
-      await browser.runtime.sendMessage({ type: 'open', url: link.url, name: link.name, site: site.id, pageUrl: location.href } satisfies ToBackground);
+      lastLink = { url: link.url, name: link.name, site: site.id, pageUrl: location.href };
+      if (!status.connected) return launchApp(lastLink);
+      await browser.runtime.sendMessage({ type: 'open', ...lastLink } satisfies ToBackground);
     };
 
     /** Adds our row to the site's download menu, copied from one of its own rows so it matches the site's style. */

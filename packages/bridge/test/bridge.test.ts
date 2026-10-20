@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeNativeMessages, encodeNativeMessage, isAllowedDownloadUrl, parseSlicerLink } from '../src/index.ts';
+import { buildOpenLink, decodeNativeMessages, encodeNativeMessage, isAllowedDownloadUrl, parseOpenLink, parseSlicerLink } from '../src/index.ts';
 
 const signed = 'https://makerworld.bblmw.com/makerworld/model/X/123/instance/abc.3mf?at=1&exp=2&key=k&uid=9';
 
@@ -57,5 +57,20 @@ describe('native message framing', () => {
     const second = decodeNativeMessages(new Uint8Array([...first.rest, ...b.subarray(5)]));
     expect(second.messages).toEqual([{ id: 2, type: 'open', name: 'ü' }]);
     expect(second.rest).toHaveLength(0);
+  });
+});
+
+describe('retarget3mf:// links', () => {
+  const link = { url: 'https://files.printables.com/media/prints/1/3mf/2/a.3mf', name: 'a.3mf', site: 'printables' as const, pageUrl: 'https://www.printables.com/model/1-a' };
+
+  it('round-trips an open request', () => {
+    expect(parseOpenLink(buildOpenLink(link))).toEqual(link);
+  });
+
+  it('rejects other hosts and sites and drops off-site page URLs', () => {
+    expect(parseOpenLink(buildOpenLink({ ...link, url: 'https://evil.example/a.3mf' }))).toBeUndefined();
+    expect(parseOpenLink(buildOpenLink({ ...link, site: 'nope' as never }))).toBeUndefined();
+    expect(parseOpenLink(buildOpenLink({ ...link, pageUrl: 'javascript:alert(1)' }))?.pageUrl).toBe('');
+    expect(parseOpenLink('bambustudio://open?url=x')).toBeUndefined();
   });
 });
