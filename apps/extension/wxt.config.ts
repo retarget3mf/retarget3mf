@@ -1,6 +1,6 @@
 import { defineConfig } from 'wxt';
 
-const SITES = ['https://makerworld.com/*', 'https://www.crealitycloud.com/*', 'https://crealitycloud.com/*', 'https://space.snapmaker.com/*'];
+const SITES = ['https://makerworld.com/*', 'https://www.crealitycloud.com/*', 'https://crealitycloud.com/*', 'https://space.snapmaker.com/*', 'https://www.printables.com/*', 'https://printables.com/*'];
 
 export default defineConfig({
   // Visible folder: macOS file pickers hide ".output", which is what Chrome's "Load unpacked" needs.

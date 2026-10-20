@@ -11,6 +11,8 @@ export interface SiteAdapter {
   /** Confirm button of the site's first-time "import into <slicer>" dialog, if it has one. */
   importText?: string;
   slicerName: string;
+  /** For menus shared by every file of a model: whether the control that opened it belongs to a 3MF project. */
+  isProjectMenu?: (opener: Element) => boolean;
 }
 
 export const SITES: SiteAdapter[] = [
@@ -26,6 +28,13 @@ export const SITES: SiteAdapter[] = [
   {
     id: 'snapmaker', hosts: ['space.snapmaker.com'], slicerName: 'Snapmaker Orca',
     slicerText: 'Open in Snapmaker Orca', menuTexts: ['Open in Snapmaker Orca', 'Download 3MF'],
+  },
+  {
+    // Each file row has its own "Slice" menu, mounted outside the row; the row's badge names the file type.
+    id: 'printables', hosts: ['www.printables.com', 'printables.com'], slicerName: 'PrusaSlicer',
+    slicerText: 'Open in PrusaSlicer', menuTexts: ['Open in PrusaSlicer', 'Open in OrcaSlicer', 'Open in Bambu Studio'],
+    importText: 'Open file in PrusaSlicer',
+    isProjectMenu: (opener) => opener.closest('.download-item')?.querySelector('.badge')?.textContent?.trim().toLowerCase() === '3mf',
   },
 ];
 

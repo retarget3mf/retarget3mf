@@ -94,3 +94,36 @@ export function fakeSnapmakerPage(signedUrl: string): string {
     });
   </script></body></html>`;
 }
+
+/**
+ * Printables (2026-10-20): each file row (.download-item with a type .badge) has a "Slice" chevron that mounts a
+ * floating role="menu" outside the row. "Open in PrusaSlicer" first shows a "PrusaSlicer Integration" dialog whose
+ * "Open file in PrusaSlicer" button clicks a prusaslicer://open?file=<enc url> link.
+ */
+export function fakePrintablesPage(fileUrl: string): string {
+  return `<!doctype html><html><head><meta charset="utf-8"></head><body style="background:#1d1d1d;color:#eee;font:16px system-ui;padding:24px">
+  ${['3mf', 'stl'].map((t) => `<div class="download-item" style="display:flex;gap:12px;width:520px;padding:8px">
+    <div class="shrink">model_${t}</div><span class="badge">${t}</span>
+    <div class="slicer-download-wrapper"><button class="btn slicer-download">Slice</button><div class="toggle" data-type="${t}" style="cursor:pointer">⌄</div></div></div>`).join('')}
+  <div id="floating"></div>
+  <script>
+    function dialog() {
+      const d = document.createElement('div'); d.setAttribute('role', 'dialog');
+      d.innerHTML = '<h3>PrusaSlicer Integration</h3><p>Open 3D models automatically in PrusaSlicer.</p><button class="btn btn-primary">Open file in PrusaSlicer</button><label><input type="checkbox"> Don\\'t show this again</label>';
+      d.querySelector('button').addEventListener('click', () => {
+        const a = document.createElement('a'); a.href = 'prusaslicer://open?file=' + encodeURIComponent(${JSON.stringify(fileUrl)}); a.click(); d.remove();
+      });
+      document.body.append(d);
+    }
+    document.querySelectorAll('.toggle').forEach((t) => t.addEventListener('click', () => {
+      const menu = document.createElement('div'); menu.setAttribute('role', 'menu'); menu.className = 'dropdown-menu';
+      for (const s of ['PrusaSlicer', 'OrcaSlicer', 'Ultimaker Cura', 'Bambu Studio']) {
+        const b = document.createElement('button'); b.className = 'btn slicer-option-button'; b.style.cssText = 'display:block;width:200px';
+        b.innerHTML = '<img alt="" width="12" height="12">Open in ' + s;
+        if (s === 'PrusaSlicer') b.addEventListener('click', () => { document.getElementById('floating').replaceChildren(); dialog(); });
+        menu.append(b);
+      }
+      document.getElementById('floating').replaceChildren(menu);
+    }));
+  </script></body></html>`;
+}

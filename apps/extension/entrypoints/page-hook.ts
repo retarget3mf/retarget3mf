@@ -1,13 +1,14 @@
+import { SLICER_SCHEMES } from '@retarget3mf/bridge';
+
 // Runs in the page's own JavaScript world. Model sites hand a signed project link to their slicer either by clicking
-// a hidden <a href="bambustudio://…"> (MakerWorld, Creality Cloud) or by assigning location.href (Snapmaker Space).
+// a hidden <a href="bambustudio://…"> (MakerWorld, Creality Cloud, Printables) or by assigning location.href (Snapmaker Space).
 // While our row is waiting (armed), that hand-off is captured for the extension; otherwise sites behave as before.
 export default defineUnlistedScript(() => {
-  const SCHEME = /^(bambustudio|bambustudioopen|bambusuite|crealityprintlink|snapmaker-orca):\/\//i;
   // The content script arms through a DOM attribute (shared and synchronous) holding an expiry timestamp.
   const ARMED = 'data-retarget3mf-armed';
   const root = document.documentElement;
   const capture = (href: string): boolean => {
-    if (!SCHEME.test(href) || !(Date.now() < Number(root.getAttribute(ARMED)))) return false;
+    if (!SLICER_SCHEMES.test(href) || !(Date.now() < Number(root.getAttribute(ARMED)))) return false;
     root.removeAttribute(ARMED);
     window.postMessage({ source: 'retarget3mf', type: 'captured', href }, location.origin);
     return true;

@@ -21,7 +21,7 @@ const BANNER_STYLE = `
 `;
 
 export default defineContentScript({
-  matches: ['https://makerworld.com/*', 'https://www.crealitycloud.com/*', 'https://crealitycloud.com/*', 'https://space.snapmaker.com/*'],
+  matches: ['https://makerworld.com/*', 'https://www.crealitycloud.com/*', 'https://crealitycloud.com/*', 'https://space.snapmaker.com/*', 'https://www.printables.com/*', 'https://printables.com/*'],
   runAt: 'document_idle',
   async main(ctx) {
     const site = siteFor(location.hostname);
@@ -30,6 +30,11 @@ export default defineContentScript({
     let status: AppStatus = { connected: false };
     let waiting = false;
     const rows = new Set<HTMLElement>();
+    let opener: Element | undefined;
+    document.addEventListener('pointerdown', (e) => {
+      const target = e.target as Element;
+      if (!target.closest(`[${MARKER}]`)) opener = target;
+    }, true);
     const refreshStatus = () => browser.runtime.sendMessage({ type: 'status' } satisfies ToBackground).then((s) => {
       status = s as AppStatus;
       rows.forEach((r) => { r.textContent = idleLabel(status.printer); });
@@ -116,10 +121,13 @@ export default defineContentScript({
       await browser.runtime.sendMessage({ type: 'open', url: link.url, name: link.name, site: site.id, pageUrl: location.href } satisfies ToBackground);
     };
 
-    /** Adds our row to MakerWorld's download menu, copied from one of its own rows so it matches the site's style. */
+    /** Adds our row to the site's download menu, copied from one of its own rows so it matches the site's style. */
     const attach = () => {
       const menu = findMenu(document, site);
-      if (!menu || menu.rows[0]?.parentElement?.querySelector(`[${MARKER}]`)) return;
+      if (!menu) return;
+      const existing = menu.rows[0]?.parentElement?.querySelector(`[${MARKER}="row"]`);
+      if (site.isProjectMenu && !(opener && site.isProjectMenu(opener))) { existing?.remove(); return; }
+      if (existing) return;
       const template = menu.slicerRow ?? menu.rows.find((r) => r.childElementCount === 0) ?? menu.rows[0]!;
       const row = template.cloneNode(false) as HTMLElement;
       row.setAttribute(MARKER, 'row');
