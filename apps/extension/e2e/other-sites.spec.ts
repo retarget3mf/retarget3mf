@@ -1,10 +1,10 @@
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { chromium, expect, test } from '@playwright/test';
+import { EXTENSION } from './extensionPath.ts';
 import { fakeCrealityPage, fakeSnapmakerPage } from './fakeSites.ts';
 
-const EXTENSION = resolve(import.meta.dirname, '../dist/chrome-mv3');
 const cases = [
   { site: 'Creality Cloud', url: 'https://www.crealitycloud.com/model-detail/skip-bo-case', page: fakeCrealityPage('https://file2-cdn.creality.com/model/a.3mf?sig=1'), open: '.choose-operate', after: 'Open in Creality Print' },
   { site: 'Snapmaker Space', url: 'https://space.snapmaker.com/en/model/38661-jumping-spider', page: fakeSnapmakerPage('https://cdn-model.snapmaker.com/m/x.3mf?t=1'), open: '#more', after: 'Open in Snapmaker Orca' },

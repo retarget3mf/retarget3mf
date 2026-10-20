@@ -2,11 +2,11 @@ import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { _electron as electron, chromium, expect, test } from '@playwright/test';
+import { EXTENSION } from './extensionPath.ts';
 import { EXTENSION_IDS, NATIVE_HOST_NAME } from '@retarget3mf/bridge';
 import { bambuProject } from '../../../packages/core/test/fixtures.ts';
 import { fakeMakerworldPage } from './fakeSites.ts';
 
-const EXTENSION = resolve(import.meta.dirname, '../dist/chrome-mv3');
 const DESKTOP = resolve(import.meta.dirname, '../../desktop');
 const SIGNED = 'https://makerworld.bblmw.com/makerworld/model/X/1/instance/a.3mf?exp=1&key=k';
 

@@ -1,11 +1,11 @@
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { chromium, expect, test } from '@playwright/test';
+import { EXTENSION } from './extensionPath.ts';
 import { bambuProject } from '../../../packages/core/test/fixtures.ts';
 import { fakePrintablesPage } from './fakeSites.ts';
 
-const EXTENSION = resolve(import.meta.dirname, '../dist/chrome-mv3');
 const URL = 'https://www.printables.com/model/1730141-marge-simpson';
 
 test('Printables: row only for 3MF files, explains the PrusaSlicer dialog, hands it to the app link', async () => {
