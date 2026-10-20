@@ -9,8 +9,19 @@ export const PROJECT_SETTINGS = 'Metadata/project_settings.config';
 
 export type SourceKind = 'bambu' | 'prusa';
 
-/** `archive` is in Bambu/Orca layout whatever the source was. */
-export interface DetectedSource { kind: SourceKind; application: string; config: Config; archive: Archive }
+/** `archive` is in Bambu/Orca layout whatever the source was. `slicer` is a display name for the app that saved it. */
+export interface DetectedSource { kind: SourceKind; slicer: string; application: string; config: Config; archive: Archive }
+
+// Bambu Studio forks write the same project layout; the Application metadata says which one saved the file.
+const SLICER_NAMES: [RegExp, string][] = [
+  [/^Creality[_ ]Print/i, 'Creality Print'],
+  [/^Snapmaker/i, 'Snapmaker Orca'],
+  [/^Anycubic/i, 'Anycubic Slicer Next'],
+  [/^OrcaSlicer/i, 'OrcaSlicer'],
+  [/^PrusaSlicer/i, 'PrusaSlicer'],
+  [/^BambuStudio/i, 'Bambu Studio'],
+];
+export const slicerName = (application: string) => SLICER_NAMES.find(([re]) => re.test(application))?.[1] ?? application;
 
 export function detectSource(archive: Archive): DetectedSource {
   const model = readText(archive, MAIN_MODEL);
@@ -22,7 +33,7 @@ export function detectSource(archive: Archive): DetectedSource {
   }
   if (archive.has(PRUSA_CONFIG)) {
     try {
-      return { kind: 'prusa', application, ...prusaToBambu(archive, getOptions('orca')) };
+      return { kind: 'prusa', slicer: 'PrusaSlicer', application, ...prusaToBambu(archive, getOptions('orca')) };
     } catch (cause) {
       throw new ConversionError('invalid-project', 'The PrusaSlicer project could not be read. Re-download the file; if it keeps failing, report it with the model link.', { cause });
     }
@@ -34,7 +45,9 @@ export function detectSource(archive: Archive): DetectedSource {
   try {
     const config = parseProjectConfig(settings);
     if (!Array.isArray(config.filament_colour) || config.filament_colour.length === 0) throw new Error('filament_colour missing');
-    return { kind: 'bambu', application, config, archive };
+    // An OrcaSlicer tag marks Orca-saved files even when Application says BambuStudio.
+    const orca = /<metadata name="OrcaSlicer">/.test(model);
+    return { kind: 'bambu', slicer: orca ? 'OrcaSlicer' : slicerName(application), application, config, archive };
   } catch (cause) {
     throw new ConversionError('invalid-project', 'The print settings in this 3MF are damaged and cannot be read. Re-download the file; if it keeps failing, report it with the model link.', { cause });
   }

@@ -10,6 +10,8 @@ export interface ProjectPlate { id: number; name: string; thumbnail?: Uint8Array
 
 export interface ProjectInfo {
   source: 'bambu' | 'prusa';
+  /** Display name of the slicer that saved the project. */
+  sourceSlicer: string;
   title: string;
   application: string;
   sourcePrinter: string;
@@ -28,6 +30,7 @@ export async function inspect(input: Uint8Array): Promise<ProjectInfo> {
   const model = readText(archive, '3D/3dmodel.model') ?? '';
   return {
     source: source.kind,
+    sourceSlicer: source.slicer,
     title: model.match(/<metadata name="Title">([^<]*)<\/metadata>/)?.[1] ?? '',
     application: source.application,
     sourcePrinter: asList(source.config.printer_settings_id)[0] ?? 'unknown',

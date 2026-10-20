@@ -35,6 +35,7 @@ export interface InspectResult {
   fileName: string;
   title: string;
   sourcePrinter: string;
+  sourceSlicer: string;
   filaments: ProjectFilament[];
   plates: { id: number; thumbnail?: string }[];
 }

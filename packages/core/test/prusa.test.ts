@@ -61,3 +61,17 @@ describe('PrusaSlicer 2.9 project → AD5X', () => {
     expect(text('Metadata/custom_gcode_per_layer.xml')).toMatch(/extruder="4"/);
   });
 });
+
+describe('Creality Print 7 project (Bambu Studio layout)', () => {
+  const creality = () => new Uint8Array(readFileSync(new URL('./fixtures/creality/creality-print-7-multicolor.3mf', import.meta.url)));
+
+  it('is recognised and converted with its four colours', async () => {
+    const info = await inspect(creality());
+    expect(info.sourceSlicer).toBe('Creality Print');
+    const { output, report } = await convert(creality(), { printer: 'ad5x-0.4' });
+    const config = JSON.parse(strFromU8(unzipSync(output)['Metadata/project_settings.config']!)) as Config;
+    expect(report.source.slicer).toBe('Creality Print');
+    expect(config.filament_colour).toEqual(['#000000', '#FF0000', '#FFFFFF', '#0000FF']);
+    expect(config.printer_settings_id).toBe('Flashforge AD5X 0.4 nozzle');
+  });
+});

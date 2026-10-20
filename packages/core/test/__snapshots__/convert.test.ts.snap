@@ -3,7 +3,7 @@
 exports[`convert: Bambu project → AD5X > produces a stable report (golden) 1`] = `
 "# Conversion report
 
-- Source: bambu (BambuStudio-02.08.04.57), printer "Bambu Lab X1 Carbon 0.4 nozzle"
+- Source: Bambu Studio (BambuStudio-02.08.04.57), printer "Bambu Lab X1 Carbon 0.4 nozzle"
 - Target: Flashforge AD5X for Flash Studio (profiles OrcaSlicer v2.4.2)
 
 ## Warnings

@@ -31,7 +31,7 @@ export function ConversionView({ project, state, onConvert, onCancel }: Props) {
       <div className={styles.head}>
         <div>
           <h2 id="project-title">{project.title || project.fileName}</h2>
-          <p className={styles.muted}>Made for {project.sourcePrinter} · {project.plates.length} plate(s)</p>
+          <p className={styles.muted}>Made for {project.sourcePrinter} in {project.sourceSlicer} · {project.plates.length} plate(s)</p>
         </div>
         <button onClick={onCancel}>Choose another file</button>
       </div>

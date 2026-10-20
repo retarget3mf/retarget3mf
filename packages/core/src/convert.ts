@@ -78,7 +78,7 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
   return {
     output: writeArchive(output),
     report: {
-      source: { kind: source.kind, application: source.application, printer: first(source.config.printer_settings_id) ?? 'unknown' },
+      source: { kind: source.kind, slicer: source.slicer, application: source.application, printer: first(source.config.printer_settings_id) ?? 'unknown' },
       target: { printer: printer.displayName, slicer: slicer === 'orca' ? 'OrcaSlicer' : 'Flash Studio', profiles: `OrcaSlicer ${PROFILE_SOURCE.orca.tag}` },
       warnings,
       filaments: result.filaments,

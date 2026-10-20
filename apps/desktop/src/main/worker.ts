@@ -22,6 +22,7 @@ async function handle(message: WorkerRequest): Promise<InspectResult | ConvertRe
       fileName: basename(message.path),
       title: info.title,
       sourcePrinter: info.sourcePrinter,
+      sourceSlicer: info.sourceSlicer,
       filaments: info.filaments,
       plates: info.plates.map((p) => ({ id: p.id, ...(p.thumbnail && { thumbnail: toDataUrl(p.thumbnail) }) })),
     };
