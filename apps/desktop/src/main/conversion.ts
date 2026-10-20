@@ -1,5 +1,5 @@
 import { mkdirSync, statSync } from 'node:fs';
-import { extname } from 'node:path';
+import { basename, extname } from 'node:path';
 import { PRINTERS } from '@retarget3mf/core';
 import type { ConvertRequest, ConvertResult, InspectResult, Result, SlicerKind } from '../shared/api.ts';
 import type { AppContext } from './context.ts';
@@ -29,7 +29,27 @@ export async function convertProject(ctx: AppContext, request: ConvertRequest): 
     mkdirSync(folder, { recursive: true });
   }
   const shortName = printer.displayName.replace(new RegExp(`^${printer.vendor} `), '');
-  return runWorker<ConvertResult>({ kind: 'convert', request: { ...request, path }, outputPath: outputPathFor(path, shortName, folder) });
+  const result = await runWorker<ConvertResult>({ kind: 'convert', request: { ...request, path }, outputPath: outputPathFor(path, shortName, folder) });
+  if (result.ok) await recordHistory(ctx, path, printer.displayName, request.slicer, result.value);
+  return result;
+}
+
+async function recordHistory(ctx: AppContext, inputPath: string, printer: string, slicer: SlicerKind, result: ConvertResult): Promise<void> {
+  const origin = ctx.origins.get(inputPath);
+  try {
+    await ctx.history.add({
+      title: result.title || basename(inputPath, extname(inputPath)),
+      inputPath,
+      outputPath: result.outputPath,
+      printer,
+      slicer: SLICER_NAMES[slicer],
+      report: result.report,
+      ...(result.thumbnail && { thumbnail: Buffer.from(result.thumbnail.replace(/^data:image\/png;base64,/, ''), 'base64') }),
+      ...(origin && { origin }),
+    });
+  } catch (error) {
+    console.error('history', error); // a full disk must not fail the conversion itself
+  }
 }
 
 export async function openInSlicer(ctx: AppContext, path: string, kind: SlicerKind): Promise<Result<void>> {

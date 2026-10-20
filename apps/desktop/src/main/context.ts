@@ -1,7 +1,8 @@
 import { app, BrowserWindow, nativeTheme } from 'electron';
 import { join } from 'node:path';
 import { PRINTERS } from '@retarget3mf/core';
-import type { AppEvent, AppState, BrowserStatus, Settings, SlicerInstall } from '../shared/api.ts';
+import type { AppEvent, AppState, BrowserStatus, ProjectOrigin, Settings, SlicerInstall } from '../shared/api.ts';
+import { History } from './history.ts';
 import { saveSettings } from './settings.ts';
 import { macAppIcon } from './appIcon.ts';
 import { discoverSlicers } from './slicers.ts';
@@ -11,6 +12,9 @@ export class AppContext {
   settings: Settings;
   window: BrowserWindow | undefined;
   browsers: BrowserStatus[] = [];
+  readonly history = new History(app.getPath('userData'));
+  /** Model pages of projects the browser extension downloaded, keyed by the downloaded file path. */
+  readonly origins = new Map<string, ProjectOrigin>();
   private slicers: Promise<SlicerInstall[]>;
   private queue: AppEvent[] = [];
   private rendererReady = false;

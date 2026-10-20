@@ -1,4 +1,5 @@
 import type { ConversionReport, FilamentMap, PrinterDefinition, PrinterId, ProjectFilament } from '@retarget3mf/core';
+import type { SourceSite } from '@retarget3mf/bridge';
 
 export type SlicerKind = 'flashstudio' | 'orca';
 
@@ -41,7 +42,26 @@ export interface InspectResult {
 }
 
 export interface ConvertRequest { path: string; printer: PrinterId; slicer: SlicerKind; filamentMap?: FilamentMap }
-export interface ConvertResult { outputPath: string; report: ConversionReport; markdown: string }
+export interface ConvertResult { outputPath: string; report: ConversionReport; markdown: string; title: string; thumbnail?: string }
+
+/** Where a project came from, when the browser extension handed it over. */
+export interface ProjectOrigin { site: SourceSite; pageUrl: string }
+
+export interface HistoryEntry {
+  id: string;
+  createdAt: string;
+  title: string;
+  inputPath: string;
+  outputPath: string;
+  printer: string;
+  slicer: string;
+  sourceSlicer: string;
+  warnings: number;
+  origin?: ProjectOrigin & { siteName: string };
+  /** False when the converted file was moved or deleted outside the app. */
+  exists: boolean;
+  thumbnail?: string;
+}
 
 /** Pushed from the main process, e.g. after a file was opened from the OS. */
 export type AppEvent =
@@ -65,4 +85,9 @@ export interface DesktopApi {
   openInSlicer(path: string, slicer: SlicerKind): Promise<Result<void>>;
   showInFolder(path: string): Promise<void>;
   exportReport(result: ConvertResult, format: 'md' | 'json'): Promise<void>;
+  listHistory(): Promise<HistoryEntry[]>;
+  historyReport(id: string): Promise<ConvertResult | undefined>;
+  removeHistory(id: string, moveFileToTrash: boolean): Promise<HistoryEntry[]>;
+  /** Opens a model page in the default browser; only known model-site pages are accepted. */
+  openSourcePage(id: string): Promise<void>;
 }

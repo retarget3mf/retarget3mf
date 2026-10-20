@@ -20,7 +20,7 @@ export function DropZone({ onFile }: { onFile: (path: string) => void }) {
       }}
     >
       <h2>Drop a .3mf project here</h2>
-      <p>Projects from MakerWorld (Bambu Studio) and Printables (PrusaSlicer 2.x). Download the 3MF with print settings, not just the model.</p>
+      <p>Projects from MakerWorld, Printables, Creality Cloud and Snapmaker Space (Bambu Studio, PrusaSlicer 2.x, Creality Print, OrcaSlicer). Download the 3MF with print settings, not just the model.</p>
       <button className="primary" onClick={pick}>Open file…</button>
     </section>
   );

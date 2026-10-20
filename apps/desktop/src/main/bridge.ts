@@ -39,7 +39,10 @@ export function startBridge(ctx: AppContext): void {
       return { ...(printer && { printer }), slicer: SLICER_NAMES[ctx.settings.slicer] };
     },
     download: (url, name) => downloadProject(url, name, testHome() ?? app.getPath('downloads'), testFetch() ?? fetch),
-    open: (path) => openFromOs(ctx, path),
+    open: (path, origin) => {
+      ctx.origins.set(path, origin);
+      return openFromOs(ctx, path);
+    },
   });
   const spec = {
     electron: process.execPath,

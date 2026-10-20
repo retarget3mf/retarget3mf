@@ -1,6 +1,6 @@
 import { chmodSync, existsSync, rmSync } from 'node:fs';
 import { createServer, type Server, type Socket } from 'node:net';
-import type { BridgeRequest, BridgeResponse } from '@retarget3mf/bridge';
+import type { BridgeRequest, BridgeResponse, SourceSite } from '@retarget3mf/bridge';
 import { DownloadError } from './download.ts';
 import type { FastPathOutcome } from './fastPath.ts';
 
@@ -8,7 +8,7 @@ export interface BridgeDeps {
   version: string;
   status: () => { printer?: string; slicer?: string };
   download: (url: string, name: string) => Promise<string>;
-  open: (path: string) => Promise<FastPathOutcome>;
+  open: (path: string, origin: { site: SourceSite; pageUrl: string }) => Promise<FastPathOutcome>;
 }
 
 const MAX_LINE = 64 * 1024;
@@ -28,7 +28,7 @@ export async function handleRequest(request: BridgeRequest, deps: BridgeDeps, se
     send({ id, type: 'progress', stage: 'downloading' });
     const path = await deps.download(request.url, request.name);
     send({ id, type: 'progress', stage: 'converting' });
-    const outcome = await deps.open(path);
+    const outcome = await deps.open(path, { site: request.site, pageUrl: String(request.pageUrl ?? '') });
     if (outcome.kind === 'error') send({ id, type: 'error', message: outcome.message });
     else send({ id, type: 'done', outcome: outcome.kind, message: outcome.message });
   } catch (error) {

@@ -20,6 +20,10 @@ const api: DesktopApi = {
   openInSlicer: (path, slicer) => ipcRenderer.invoke('slicer:open', path, slicer),
   showInFolder: (path) => ipcRenderer.invoke('file:show', path),
   exportReport: (result, format) => ipcRenderer.invoke('report:export', result, format),
+  listHistory: () => ipcRenderer.invoke('history:list'),
+  historyReport: (id) => ipcRenderer.invoke('history:report', id),
+  removeHistory: (id, moveFileToTrash) => ipcRenderer.invoke('history:remove', id, moveFileToTrash),
+  openSourcePage: (id) => ipcRenderer.invoke('history:source', id),
 };
 
 contextBridge.exposeInMainWorld('desktop', api);

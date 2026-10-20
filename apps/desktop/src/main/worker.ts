@@ -28,13 +28,16 @@ async function handle(message: WorkerRequest): Promise<InspectResult | ConvertRe
     };
   }
   const { request } = message;
-  const { output, report } = await convert(await readFile(request.path), {
+  const { output, report, preview } = await convert(await readFile(request.path), {
     printer: request.printer,
     slicer: request.slicer,
     ...(request.filamentMap && { filamentMap: request.filamentMap }),
   });
   await writeFile(message.outputPath, output);
-  return { outputPath: message.outputPath, report, markdown: reportToMarkdown(report) };
+  return {
+    outputPath: message.outputPath, report, markdown: reportToMarkdown(report), title: preview.title,
+    ...(preview.thumbnail && { thumbnail: toDataUrl(preview.thumbnail) }),
+  };
 }
 
 function describe(error: unknown): string {

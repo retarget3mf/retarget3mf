@@ -6,6 +6,23 @@ export const EXTENSION_IDS = ['gkpcbbjkoifgehdhgdbegojpjaaplfgp'];
 
 export type SourceSite = 'makerworld' | 'crealitycloud' | 'snapmaker';
 
+/** Model sites: display name and the hosts their model pages live on. */
+export const SITE_INFO: Record<SourceSite, { name: string; hosts: string[] }> = {
+  makerworld: { name: 'MakerWorld', hosts: ['makerworld.com', 'www.makerworld.com'] },
+  crealitycloud: { name: 'Creality Cloud', hosts: ['www.crealitycloud.com', 'crealitycloud.com'] },
+  snapmaker: { name: 'Snapmaker Space', hosts: ['space.snapmaker.com'] },
+};
+
+/** A model page URL is only kept (and later opened) if it is https on the site's own host. */
+export function isSitePageUrl(raw: string, site: SourceSite): boolean {
+  try {
+    const url = new URL(raw);
+    return url.protocol === 'https:' && !url.username && !url.password && SITE_INFO[site].hosts.includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
 export type BridgeRequest =
   | { id: number; type: 'ping' }
   | { id: number; type: 'open'; url: string; name: string; site: SourceSite; pageUrl: string };

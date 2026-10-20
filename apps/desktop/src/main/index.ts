@@ -2,7 +2,7 @@ import { app } from 'electron';
 import { AppContext } from './context.ts';
 import { projectPathsFromArgv } from './externalFiles.ts';
 import { openFromOs } from './fastPath.ts';
-import { registerIpc } from './ipc.ts';
+import { registerHistoryIpc, registerIpc } from './ipc.ts';
 import { startBridge } from './bridge.ts';
 import { loadSettings } from './settings.ts';
 import { showWindow } from './window.ts';
@@ -35,6 +35,7 @@ app.on('second-instance', (_e, argv, cwd) => {
 app.whenReady().then(() => {
   ctx = new AppContext(loadSettings(app.getPath('userData')));
   registerIpc(ctx);
+  registerHistoryIpc(ctx);
   startBridge(ctx);
   const files = [...early, ...projectPathsFromArgv(process.argv.slice(1), process.cwd())];
   // The fast path, and launches by the browser extension's host, stay windowless; a plain launch shows the window.

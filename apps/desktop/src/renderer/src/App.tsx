@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import type { AppEvent, AppState, ConvertResult, InspectResult, Settings } from '../../shared/api.ts';
+import type { AppEvent, AppState, ConvertResult, HistoryEntry, InspectResult, Settings } from '../../shared/api.ts';
+import { HistoryList } from './components/HistoryList.tsx';
 import { ConversionView } from './components/ConversionView.tsx';
 import { DropZone } from './components/DropZone.tsx';
 import { Header } from './components/Header.tsx';
@@ -14,7 +15,7 @@ type Stage =
   | { kind: 'busy'; message: string }
   | { kind: 'review'; project: InspectResult }
   | { kind: 'done'; project: InspectResult; result: ConvertResult; launchError?: string }
-  | { kind: 'report'; project: InspectResult; result: ConvertResult }
+  | { kind: 'report'; project?: InspectResult; result: ConvertResult }
   | { kind: 'settings' };
 
 const api = window.desktop;
@@ -24,8 +25,11 @@ export function App() {
   const [stage, setStage] = useState<Stage>({ kind: 'idle' });
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState<AppEvent[]>([]);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
 
   useEffect(() => { void api.getState().then(setState); }, []);
+  // Conversions can also finish outside this window (Finder, browser extension); refresh whenever the home screen shows.
+  useEffect(() => { if (stage.kind === 'idle' || stage.kind === 'done') void api.listHistory().then(setHistory); }, [stage]);
   useEffect(() => api.onEvent((event) => setPending((queue) => [...queue, event])), []);
   // Events from the OS fast path wait until onboarding is done.
   useEffect(() => {
@@ -70,7 +74,19 @@ export function App() {
       <Header state={state} onChange={save} onSettings={() => setStage({ kind: 'settings' })} />
       <main className={styles.main}>
         {error && <div role="alert" className={styles.error}>{error}</div>}
-        {stage.kind === 'idle' && <DropZone onFile={open} />}
+        {stage.kind === 'idle' && (
+          <>
+            <DropZone onFile={open} />
+            <HistoryList
+              entries={history}
+              onOpen={async (e) => { const r = await api.openInSlicer(e.outputPath, state.settings.slicer); if (!r.ok) setError(r.error); }}
+              onShow={(e) => api.showInFolder(e.outputPath)}
+              onReport={async (e) => { const result = await api.historyReport(e.id); if (result) setStage({ kind: 'report', result }); else setError('The report for this conversion is no longer available.'); }}
+              onSource={(e) => api.openSourcePage(e.id)}
+              onRemove={async (e, trash) => setHistory(await api.removeHistory(e.id, trash))}
+            />
+          </>
+        )}
         {stage.kind === 'busy' && <p className={styles.busy} aria-live="polite">{stage.message}</p>}
         {stage.kind === 'review' && (
           <ConversionView
@@ -106,7 +122,7 @@ export function App() {
         {stage.kind === 'report' && (
           <ReportView
             result={stage.result}
-            onBack={() => setStage({ kind: 'done', project: stage.project, result: stage.result })}
+            onBack={() => setStage(stage.project ? { kind: 'done', project: stage.project, result: stage.result } : { kind: 'idle' })}
             onExport={(format) => api.exportReport(stage.result, format)}
           />
         )}

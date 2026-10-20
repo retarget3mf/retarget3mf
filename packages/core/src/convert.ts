@@ -22,7 +22,8 @@ export interface ConvertOptions {
   filamentMap?: FilamentMap;
 }
 
-export interface ConvertResult { output: Uint8Array; report: ConversionReport }
+/** `preview` is what UIs show in lists: the project title and its first plate thumbnail (PNG). */
+export interface ConvertResult { output: Uint8Array; report: ConversionReport; preview: { title: string; thumbnail?: Uint8Array } }
 
 const CUSTOM_GCODE = 'Metadata/custom_gcode_per_layer.xml';
 const LAYER_RANGES = 'Metadata/layer_config_ranges.xml';
@@ -75,7 +76,10 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
   if (merged > 0) warnings.push(`${merged} colour(s) were merged onto shared slots as you chose.`);
   for (const p of placement.plates) if (!p.fits) warnings.push(`Plate ${p.id} is larger than the ${printer.displayName} bed; the objects were centred but not scaled.`);
 
+  const title = readText(archive, MAIN_MODEL)?.match(/<metadata name="Title">([^<]*)<\/metadata>/)?.[1] ?? '';
+  const thumbnail = archive.get('Metadata/plate_1.png');
   return {
+    preview: { title, ...(thumbnail && { thumbnail }) },
     output: writeArchive(output),
     report: {
       source: { kind: source.kind, slicer: source.slicer, application: source.application, printer: first(source.config.printer_settings_id) ?? 'unknown' },

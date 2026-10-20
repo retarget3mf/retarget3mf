@@ -47,6 +47,10 @@ test('MakerWorld button → native host → desktop app → converted project', 
   const window = await desktop.firstWindow();
   await expect(window.getByRole('heading', { name: /Converted: Test_Cube - AD5X\.3mf/ })).toBeVisible();
   await window.screenshot({ path: 'e2e/.results/full-chain-desktop.png' });
+  // The history keeps a link back to the model page the project came from.
+  await window.getByRole('button', { name: 'Convert another' }).click();
+  await expect(window.getByRole('button', { name: 'MakerWorld ↗' })).toBeVisible();
+  await window.screenshot({ path: 'e2e/.results/full-chain-history.png' });
   await browser.close();
   await desktop.close();
   expect(existsSync(join(root, 'home', 'Test_Cube - AD5X.3mf'))).toBe(true);

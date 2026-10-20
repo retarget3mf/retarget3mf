@@ -1,5 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import { dialog, ipcMain, shell } from 'electron';
+import { isSitePageUrl } from '@retarget3mf/bridge';
+import { reportToMarkdown } from '@retarget3mf/core';
 import type { ConvertRequest, ConvertResult, SlicerKind } from '../shared/api.ts';
 import type { AppContext } from './context.ts';
 import { assertProjectPath, convertProject, inspectProject, openInSlicer } from './conversion.ts';
@@ -35,5 +37,24 @@ export function registerIpc(ctx: AppContext): void {
     const r = await dialog.showSaveDialog(ctx.window!, { defaultPath: result.outputPath.replace(/\.3mf$/i, `.report.${format}`) });
     if (r.canceled || !r.filePath) return;
     await writeFile(r.filePath, format === 'md' ? result.markdown : JSON.stringify(result.report, null, 2));
+  });
+}
+
+export function registerHistoryIpc(ctx: AppContext): void {
+  ipcMain.handle('history:list', () => ctx.history.list());
+  ipcMain.handle('history:report', async (_e, id: string): Promise<ConvertResult | undefined> => {
+    const entry = ctx.history.get(String(id));
+    const report = entry && await ctx.history.report(entry.id);
+    return entry && report ? { outputPath: entry.outputPath, report, markdown: reportToMarkdown(report), title: entry.title } : undefined;
+  });
+  ipcMain.handle('history:remove', async (_e, id: string, moveFileToTrash: boolean) => {
+    const removed = await ctx.history.remove(String(id));
+    // Only the converted file this app wrote, and only to the Trash; the original download is left alone.
+    if (removed && moveFileToTrash === true && removed.exists) await shell.trashItem(removed.outputPath).catch((error) => console.error('trash', error));
+    return ctx.history.list();
+  });
+  ipcMain.handle('history:source', async (_e, id: string) => {
+    const origin = ctx.history.get(String(id))?.origin;
+    if (origin && isSitePageUrl(origin.pageUrl, origin.site)) await shell.openExternal(origin.pageUrl);
   });
 }

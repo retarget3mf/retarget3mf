@@ -37,5 +37,19 @@ test('onboarding → open → map slots → convert → report', async () => {
   await page.getByLabel('Search setting').fill('layer');
   await expect(page.getByRole('cell', { name: 'layer_height', exact: true })).toBeVisible();
   await shot('4-report');
+
+  // Back home: the conversion is in the history and can be reopened and removed.
+  await page.getByRole('button', { name: 'Back' }).click();
+  await page.getByRole('button', { name: 'Convert another' }).click();
+  await expect(page.getByRole('heading', { name: 'Recent conversions' })).toBeVisible();
+  await expect(page.getByText('Test cube')).toBeVisible();
+  await shot('5-history');
+  await page.getByRole('button', { name: 'Report' }).click();
+  await expect(page.getByRole('heading', { name: 'Conversion report' })).toBeVisible();
+  await page.getByRole('button', { name: 'Back' }).click();
+  await page.getByRole('button', { name: 'Remove Test cube' }).click();
+  await page.getByRole('button', { name: 'Remove from list' }).click();
+  await expect(page.getByRole('heading', { name: 'Recent conversions' })).toHaveCount(0);
+  expect(existsSync(join(dir, 'cube - AD5X.3mf'))).toBe(true);
   await app.close();
 });
