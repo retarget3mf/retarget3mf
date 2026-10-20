@@ -1,0 +1,12 @@
+.view { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+.head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.muted { color: var(--muted); margin: 0; }
+.warn { background: var(--warn-bg); color: var(--warn-text); padding: 10px 12px; border-radius: var(--radius); margin: 0; }
+.plates { display: flex; gap: 10px; overflow-x: auto; }
+.plates img { border-radius: 8px; border: 1px solid var(--border); background: var(--bg); object-fit: contain; }
+.filaments { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.filaments li { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 8px; background: var(--bg); }
+.unused { opacity: 0.55; grid-template-columns: 28px 1fr !important; }
+.swatch { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border); }
+.actions { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
+.visuallyHidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }

@@ -1,0 +1,15 @@
+.view { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+.head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.actions, .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.filters button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.filters input { margin-left: auto; min-width: 200px; }
+.muted { color: var(--muted); margin: 0; }
+.warnings { background: var(--warn-bg); color: var(--warn-text); border-radius: var(--radius); margin: 0; padding: 10px 12px 10px 30px; }
+.table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.table th { text-align: left; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); padding: 6px; }
+.table td { border-bottom: 1px solid var(--border); padding: 6px; vertical-align: top; }
+.value { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, monospace; }
+.kept { color: var(--ok); }
+.clamped, .replaced { color: var(--warn-text); }
+.translated { color: var(--accent); }
+.dropped { color: var(--muted); }

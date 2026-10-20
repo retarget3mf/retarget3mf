@@ -7,7 +7,9 @@
   "packageManager": "pnpm@11.10.0",
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc -b packages/profiles packages/core",
+    "typecheck": "tsc -b packages/profiles packages/core && tsc --noEmit -p apps/desktop",
+    "desktop": "pnpm -C apps/desktop dev",
+    "e2e": "pnpm -C apps/desktop e2e",
     "sync-profiles": "node packages/profiles/scripts/sync-profiles.ts"
   },
   "devDependencies": {

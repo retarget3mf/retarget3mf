@@ -1,0 +1,44 @@
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --text: #1c2024;
+  --muted: #5f6b7a;
+  --border: #dde1e6;
+  --accent: #0b6bcb;
+  --accent-text: #ffffff;
+  --warn-bg: #fff6e0;
+  --warn-text: #7a4b00;
+  --error-bg: #fdecec;
+  --error-text: #8a1c1c;
+  --ok: #1a7f37;
+  --radius: 10px;
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181b;
+    --surface: #1f2226;
+    --text: #e8eaed;
+    --muted: #9aa4b1;
+    --border: #33383e;
+    --accent: #4c9dff;
+    --accent-text: #0b0d10;
+    --warn-bg: #3a2e12;
+    --warn-text: #f3d28a;
+    --error-bg: #3d1a1a;
+    --error-text: #f5b4b4;
+    --ok: #4ac26b;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-size: 14px; }
+button {
+  font: inherit; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  padding: 8px 14px; cursor: pointer;
+}
+button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
+button:disabled { opacity: 0.5; cursor: default; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+select, input { font: inherit; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+h1, h2, h3 { margin: 0 0 8px; }

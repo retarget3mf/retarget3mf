@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "types": ["node", "electron-vite/node"],
+    "moduleResolution": "Bundler",
+    "module": "ESNext"
+  },
+  "include": ["src", "test", "electron.vite.config.ts"],
+  "references": [{ "path": "../../packages/core" }]
+}
