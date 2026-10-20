@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import type { AppState, Settings, SlicerKind } from '../../../shared/api.ts';
-import { PrinterPicker } from './PrinterPicker.tsx';
 import { pickSlicer, slicersFor } from '../slicerKinds.ts';
 import { SlicerCards } from './SlicerCards.tsx';
-import { ThemeSwitch } from './ThemeSwitch.tsx';
+import { PrinterPicker, ThemeSwitch } from '@retarget3mf/ui';
 import styles from './Onboarding.module.css';
 
 interface Props { state: AppState; onDone: (patch: Partial<Settings>) => void; onPickSlicer: (kind: SlicerKind) => void }

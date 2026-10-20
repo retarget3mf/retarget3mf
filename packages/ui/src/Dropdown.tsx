@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import styles from './Dropdown.module.css';
 
+/** Letter or symbol shown where an option has no icon image. */
+export function IconPlaceholder({ children }: { children: ReactNode }) {
+  return <span className={styles.placeholder} aria-hidden>{children}</span>;
+}
+
 export interface DropdownOption<T extends string> {
   value: T;
   label: string;

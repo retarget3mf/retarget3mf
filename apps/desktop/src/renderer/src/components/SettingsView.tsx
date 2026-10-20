@@ -1,8 +1,7 @@
 import type { AppState, Settings, SlicerKind } from '../../../shared/api.ts';
-import { PrinterPicker } from './PrinterPicker.tsx';
 import { SlicerCards } from './SlicerCards.tsx';
 import { slicersFor } from '../slicerKinds.ts';
-import { ThemeSwitch } from './ThemeSwitch.tsx';
+import { PrinterPicker, ThemeSwitch } from '@retarget3mf/ui';
 import styles from './SettingsView.module.css';
 
 interface Props {

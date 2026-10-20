@@ -9,7 +9,7 @@
   "packageManager": "pnpm@11.10.0",
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc -b packages/profiles packages/core packages/bridge && tsc -p packages/core/tsconfig.test.json && tsc --noEmit -p apps/desktop && tsc --noEmit -p apps/extension",
+    "typecheck": "tsc -b packages/profiles packages/core packages/bridge && tsc -p packages/core/tsconfig.test.json && tsc -p packages/ui && tsc --noEmit -p apps/desktop && tsc --noEmit -p apps/extension",
     "desktop": "pnpm -C apps/desktop dev",
     "e2e": "pnpm -C apps/desktop e2e && pnpm -C apps/extension e2e",
     "extension": "pnpm -C apps/extension build",

@@ -3,3 +3,4 @@
 .error { background: var(--error-bg); color: var(--error-text); padding: 12px 14px; border-radius: var(--radius); }
 .busy { color: var(--muted); text-align: center; padding: 80px 0; font-size: 16px; }
 .pageHead { display: flex; }
+.muted { color: var(--muted); }

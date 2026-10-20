@@ -15,8 +15,9 @@
   color-scheme: light dark;
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
+/* Dark tokens: follow the OS unless the page sets data-theme (the web app's theme switch). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #16181b;
     --surface: #1f2226;
     --text: #e8eaed;
@@ -31,6 +32,22 @@
     --ok: #4ac26b;
   }
 }
+:root[data-theme='dark'] {
+  --bg: #16181b;
+  --surface: #1f2226;
+  --text: #e8eaed;
+  --muted: #9aa4b1;
+  --border: #33383e;
+  --accent: #4c9dff;
+  --accent-text: #0b0d10;
+  --warn-bg: #3a2e12;
+  --warn-text: #f3d28a;
+  --error-bg: #3d1a1a;
+  --error-text: #f5b4b4;
+  --ok: #4ac26b;
+}
+:root[data-theme='light'] { color-scheme: light; }
+:root[data-theme='dark'] { color-scheme: dark; }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text); font-size: 14px; }
 button {

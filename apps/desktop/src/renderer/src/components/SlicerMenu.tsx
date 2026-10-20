@@ -1,12 +1,11 @@
 import type { SlicerInstall, SlicerKind } from '../../../shared/api.ts';
-import { Dropdown } from './Dropdown.tsx';
+import { Dropdown, IconPlaceholder } from '@retarget3mf/ui';
 import { SLICER_KINDS } from '../slicerKinds.ts';
-import styles from './Dropdown.module.css';
 
 interface Props { kinds: readonly SlicerKind[]; slicers: SlicerInstall[]; value: SlicerKind; onChange: (kind: SlicerKind) => void; onManage: () => void }
 
 const icon = (install: SlicerInstall | undefined, name: string) =>
-  install?.icon ? <img src={install.icon} alt="" width={20} height={20} /> : <span className={styles.placeholder} aria-hidden>{name[0]}</span>;
+  install?.icon ? <img src={install.icon} alt="" width={20} height={20} /> : <IconPlaceholder>{name[0]}</IconPlaceholder>;
 
 export function SlicerMenu({ kinds, slicers, value, onChange, onManage }: Props) {
   const options = kinds.map((kind) => {
@@ -20,7 +19,7 @@ export function SlicerMenu({ kinds, slicers, value, onChange, onManage }: Props)
       value={value}
       groups={[{ options }]}
       onChange={(kind) => (slicers.some((s) => s.kind === kind) ? onChange(kind) : onManage())}
-      action={{ label: 'Manage slicers…', icon: <span className={styles.placeholder} aria-hidden>⚙</span>, onSelect: onManage }}
+      action={{ label: 'Manage slicers…', icon: <IconPlaceholder>⚙</IconPlaceholder>, onSelect: onManage }}
     />
   );
 }

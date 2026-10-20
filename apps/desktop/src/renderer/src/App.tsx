@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import type { AppEvent, AppState, ConvertResult, HistoryEntry, InspectResult, Settings } from '../../shared/api.ts';
 import { HistoryList } from './components/HistoryList.tsx';
-import { ConversionView } from './components/ConversionView.tsx';
-import { DropZone } from './components/DropZone.tsx';
 import { Header } from './components/Header.tsx';
 import { Onboarding } from './components/Onboarding.tsx';
-import { ReportView } from './components/ReportView.tsx';
 import { ResultView } from './components/ResultView.tsx';
+import { ConversionView, DropZone, I18nProvider, ReportView } from '@retarget3mf/ui';
 import { SettingsView } from './components/SettingsView.tsx';
 import styles from './App.module.css';
 
@@ -84,13 +82,14 @@ export function App() {
   };
 
   return (
+    <I18nProvider locale="en">
     <div className={styles.app}>
       <Header state={state} onChange={save} onSettings={() => setStage({ kind: 'settings' })} onHistory={() => setStage({ kind: 'history' })} />
       <main className={styles.main}>
         {error && <div role="alert" className={styles.error}>{error}</div>}
         {stage.kind === 'idle' && (
           <>
-            <DropZone onFile={open} />
+            <DropZone onFile={(file) => void open(api.pathForFile(file))} onBrowse={async () => { const path = await api.pickFile(); if (path) await open(path); }} />
             <HistoryList title="Recent conversions" limit={HOME_HISTORY} onShowAll={() => setStage({ kind: 'history' })} entries={history} {...historyActions(undefined)} />
           </>
         )}
@@ -106,9 +105,9 @@ export function App() {
         {stage.kind === 'review' && (
           <ConversionView
             project={stage.project}
-            state={state}
-            onConvert={(map, openAfter) => convert(stage.project, map, openAfter)}
+            printer={state.printers.find((p) => p.id === state.settings.printer)!}
             onCancel={() => setStage({ kind: 'idle' })}
+            renderActions={(map) => <ConvertActions state={state} onConvert={(openAfter) => convert(stage.project, map, openAfter)} />}
           />
         )}
         {stage.kind === 'done' && (
@@ -136,12 +135,24 @@ export function App() {
         )}
         {stage.kind === 'report' && (
           <ReportView
-            result={stage.result}
+            report={stage.result.report}
             onBack={() => setStage(stage.project ? { kind: 'done', project: stage.project, result: stage.result } : { kind: stage.backTo ?? 'idle' })}
             onExport={(format) => api.exportReport(stage.result, format)}
           />
         )}
       </main>
     </div>
+    </I18nProvider>
+  );
+}
+
+function ConvertActions({ state, onConvert }: { state: AppState; onConvert: (openAfter: boolean) => void }) {
+  const slicer = state.slicers.find((s) => s.kind === state.settings.slicer);
+  return (
+    <>
+      <button className="primary" onClick={() => onConvert(true)} disabled={!slicer}>Convert &amp; open in {slicer?.name ?? 'slicer'}</button>
+      <button onClick={() => onConvert(false)}>Convert only</button>
+      {!slicer && <span className={styles.muted}>Slicer not found: use “Locate slicer…” above.</span>}
+    </>
   );
 }

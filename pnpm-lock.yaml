@@ -29,6 +29,9 @@ importers:
       '@retarget3mf/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@retarget3mf/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@types/react':
         specifier: 19.3.0
         version: 19.3.0
@@ -96,6 +99,19 @@ importers:
         version: 0.8.3
 
   packages/profiles: {}
+
+  packages/ui:
+    dependencies:
+      '@retarget3mf/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
 
 packages:
 
