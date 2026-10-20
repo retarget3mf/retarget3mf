@@ -1,0 +1,18 @@
+{
+  "name": "retarget3mf",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-or-later",
+  "engines": { "node": ">=22.18" },
+  "packageManager": "pnpm@11.10.0",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -b packages/profiles packages/core",
+    "sync-profiles": "node packages/profiles/scripts/sync-profiles.ts"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "typescript": "7.0.2",
+    "vitest": "5.0.3"
+  }
+}
