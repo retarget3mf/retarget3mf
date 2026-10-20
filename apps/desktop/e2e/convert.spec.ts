@@ -9,9 +9,9 @@ test('onboarding → open → map slots → convert → report', async () => {
   const input = join(dir, 'cube.3mf');
   writeFileSync(input, bambuProject());
   const app = await electron.launch({ args: ['.', `--user-data-dir=${join(dir, 'profile')}`], env: { ...process.env, RETARGET3MF_E2E_HOME: tmpdir() } });
-  // The native file dialog cannot be driven, so it answers with the fixture.
-  await app.evaluate(({ dialog }, path) => { dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [path] }); }, input);
   const page = await app.firstWindow();
+  // The native file dialog cannot be driven, so it answers with the fixture. Evaluating before the window exists races app start-up.
+  await app.evaluate(({ dialog }, path) => { dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [path] }); }, input);
   const shot = (name: string) => page.screenshot({ path: join('e2e/.results', `${name}.png`) });
 
   await expect(page.getByRole('heading', { name: 'Welcome to Retarget3MF' })).toBeVisible();
