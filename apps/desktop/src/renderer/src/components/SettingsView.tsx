@@ -56,13 +56,13 @@ export function SettingsView({ state, onChange, onLocate, onRescan, onBack }: Pr
       </label>
 
       <h3>Browser extension</h3>
-      <p className={styles.muted}>The extension adds an “Open for your printer” button on MakerWorld and hands the project to this app.</p>
-      {state.browsers.length === 0 && <p className={styles.muted}>No supported browser found (Chrome, Edge, Brave, Chromium).</p>}
+      <p className={styles.muted}>The extension adds an “Open for your printer” row to the download menus of MakerWorld, Printables, Creality Cloud and Snapmaker Space and hands the project to this app.</p>
+      {state.browsers.length === 0 && <p className={styles.muted}>No supported browser found (Chrome, Edge, Brave, Arc, Dia, Vivaldi, Opera, Chromium, Firefox).</p>}
       <ul className={styles.browsers}>
         {state.browsers.map((b) => (
           <li key={b.browser}>
             <span>{b.browser}</span>
-            <span className={b.registered ? styles.ok : styles.muted}>{b.registered ? '● Ready for the extension' : 'Not installed'}</span>
+            <span className={b.registered ? styles.ok : styles.muted}>{b.registered ? '● Ready for the extension' : 'Could not connect'}</span>
           </li>
         ))}
       </ul>

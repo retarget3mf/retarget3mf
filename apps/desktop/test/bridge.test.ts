@@ -70,7 +70,9 @@ describe('native host registration', () => {
   it('targets Chrome-family folders on macOS, with Brave reading Chrome’s', () => {
     const t = hostTargets('darwin', '/Users/u');
     expect(t.find((x) => x.browser === 'Chrome')!.location).toBe('/Users/u/Library/Application Support/Google/Chrome/NativeMessagingHosts');
-    expect(t.find((x) => x.browser === 'Brave')!.location).toBe('/Users/u/Library/Application Support/Google/Chrome/NativeMessagingHosts');
+    expect(t.find((x) => x.browser === 'Brave')!.location).toBe('/Users/u/Library/Application Support/BraveSoftware/Brave-Browser/NativeMessagingHosts');
+    expect(t.find((x) => x.browser === 'Dia')!.location).toBe('/Users/u/Library/Application Support/Dia/User Data/NativeMessagingHosts');
+    expect(t.find((x) => x.browser === 'Firefox')).toMatchObject({ location: '/Users/u/Library/Application Support/Mozilla/NativeMessagingHosts', firefox: true });
   });
 
   it('uses HKCU registry keys on Windows', () => {
@@ -78,6 +80,8 @@ describe('native host registration', () => {
   });
 
   it('pins the manifest to our extension and runs the host with plain Node', () => {
+    expect(hostManifest('/h/host', true)).toMatchObject({ allowed_extensions: ['retarget3mf@retarget3mf.app'] });
+    expect(hostManifest('/h/host', true)).not.toHaveProperty('allowed_origins');
     expect(hostManifest('/h/host')).toMatchObject({ type: 'stdio', path: '/h/host', allowed_origins: [expect.stringMatching(/^chrome-extension:\/\/[a-p]{32}\/$/)] });
     const sh = launcherScript({ electron: '/A/Electron', hostScript: '/A/host.js', socket: '/s.sock', appExec: '/A/Electron', appArgs: ['/app'] }, 'darwin');
     expect(sh).toMatch(/^#!\/bin\/sh\nELECTRON_RUN_AS_NODE=1 exec "\/A\/Electron" "\/A\/host.js" --socket "\/s.sock" --app "\/A\/Electron" --app-arg "\/app" "\$@"/);
