@@ -42,6 +42,7 @@ const VALUES: Record<string, Record<string, string>> = {
 const PROJECT_KEYS = new Set([
   'name', 'from', 'version', 'printer_settings_id', 'print_settings_id', 'filament_settings_id', 'filament_ids',
   'inherits_group', 'different_settings_to_system', 'print_compatible_printers', 'filament_colour', 'filament_map',
+  'filament_self_index', 'filament_extruder_variant',
 ]);
 
 export function toBambuKey(key: string): string {
@@ -125,10 +126,6 @@ export function toBambuStudio(input: BambuStudioInput): { config: Config; change
     if (isAccepted(next, info)) { out[target] = next; continue; }
     changes.push({ key: target, outcome: 'replaced', reason: 'value is not accepted by Bambu Studio', from: value, ...(out[target] !== undefined && { to: out[target] }) });
   }
-  const n = input.filamentNames.length;
-  const variant = first(input.native.machine.printer_extruder_variant) ?? 'Direct Drive Standard';
-  out.filament_self_index = Array.from({ length: n }, (_, i) => String(i + 1));
-  out.filament_extruder_variant = Array.from({ length: n }, () => variant);
   out.different_settings_to_system = asList(config.different_settings_to_system).map((list) =>
     list.split(';').filter(Boolean).map(toBambuKey).filter((k) => options[k]).join(';'));
   return { config: out, changes };

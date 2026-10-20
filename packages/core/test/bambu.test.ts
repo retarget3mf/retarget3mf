@@ -39,6 +39,12 @@ describe('Bambu Lab targets', () => {
     expect(settingsOf(output)).toMatchObject({ printer_settings_id: 'Bambu Lab P2S 0.4 nozzle', print_settings_id: '0.20mm Standard @BBL P2S' });
   });
 
+  it('indexes every filament row for OrcaSlicer too (else all filaments read row 1)', async () => {
+    const c = settingsOf((await convert(bambuProject(), { printer: 'bambu-x1c-0.4', slicer: 'orca' })).output);
+    expect(c.filament_self_index).toEqual(['1', '2']);
+    expect(c.filament_extruder_variant).toEqual(['Direct Drive Standard', 'Direct Drive Standard']);
+  });
+
   it('defaults to the printer\'s own slicer and refuses one without its profiles', async () => {
     const { report } = await convert(prusa(), { printer: 'bambu-a1-0.4' });
     expect(report.target.slicer).toBe('Bambu Studio');

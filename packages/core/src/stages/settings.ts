@@ -302,6 +302,12 @@ function setIdentity(ctx: Ctx, processName: string, process: Preset): void {
     print_compatible_printers: asList(process.compatible_printers),
   } satisfies Config);
   if (options.slicer.filament_map) ctx.config.filament_map = names.map((_, i) => (target.printer.slots.kind === 'toolheads' ? String(i + 1) : '1'));
+  // Multi-variant slicers index per-filament rows through these; without them every filament reads row 1.
+  if (options.slicer.filament_self_index) ctx.config.filament_self_index = names.map((_, i) => String(i + 1));
+  if (options.slicer.filament_extruder_variant) {
+    const variant = first(target.machine.printer_extruder_variant) ?? DEFAULT_VARIANT;
+    ctx.config.filament_extruder_variant = names.map(() => variant);
+  }
   const colours = asList(source.filament_colour);
   if (!ctx.config.filament_colour) ctx.config.filament_colour = plan.keep.map((f) => colours[f - 1] ?? '#FFFFFF');
 }
