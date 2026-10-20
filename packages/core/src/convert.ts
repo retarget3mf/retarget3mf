@@ -6,7 +6,7 @@ import { editModelSettings, MODEL_SETTINGS, readModelSettings } from './modelSet
 import { remapPaint } from './paint.ts';
 import type { ConversionReport } from './report.ts';
 import { detectSource, PROJECT_SETTINGS } from './stages/detect.ts';
-import { planFilaments, remapRef } from './stages/filaments.ts';
+import { applyFilamentMap, planFilaments, remapRef, type FilamentMap } from './stages/filaments.ts';
 import { parseBed, planPlacement } from './stages/placement.ts';
 import { buildSettings, type SettingsResult } from './stages/settings.ts';
 
@@ -18,6 +18,8 @@ export interface ConvertOptions {
   printer: PrinterId;
   /** Defaults to Flash Studio, whose stricter rules also load cleanly in OrcaSlicer. */
   slicer?: SlicerId | 'pandaforge';
+  /** Source filament → target filament (1-based); merges colours when the printer has fewer slots. */
+  filamentMap?: FilamentMap;
 }
 
 export interface ConvertResult { output: Uint8Array; report: ConversionReport }
@@ -42,7 +44,8 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
   const options = { orca: getOptions('orca'), slicer: getOptions(slicer) };
   const settings = readModelSettings(readText(archive, MODEL_SETTINGS));
   const geo = readGeometry(archive);
-  const plan = planFilaments(source.config, settings, geo, readText(archive, CUSTOM_GCODE));
+  const used = planFilaments(source.config, settings, geo, readText(archive, CUSTOM_GCODE));
+  const plan = opts.filamentMap ? mapFilaments(used, opts.filamentMap) : used;
 
   const towerWidth = Number(first(source.config.prime_tower_width)) || 35;
   const placement = planPlacement(geo, settings, {
@@ -65,8 +68,10 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
   const warnings = [...result.warnings];
   if (unmappedPaint.size) warnings.push(`Paint for filament(s) ${[...unmappedPaint].join(', ')} is on parts that never print or beyond the filament list; it was cleared.`);
   if (plan.keep.length > printer.slots.count) warnings.unshift(`The project uses ${plan.keep.length} filaments but the ${printer.displayName} has ${printer.slots.count} slot(s). Merge colours before printing.`);
-  const unused = asList(source.config.filament_colour).length - plan.keep.length;
+  const unused = asList(source.config.filament_colour).length - used.keep.length;
   if (unused > 0) warnings.push(`${unused} unused filament(s) were removed and the rest renumbered.`);
+  const merged = used.keep.length - plan.keep.length;
+  if (merged > 0) warnings.push(`${merged} colour(s) were merged onto shared slots as you chose.`);
   for (const p of placement.plates) if (!p.fits) warnings.push(`Plate ${p.id} is larger than the ${printer.displayName} bed; the objects were centred but not scaled.`);
 
   return {
@@ -80,6 +85,14 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
       settings: result.changes,
     },
   };
+}
+
+function mapFilaments(plan: ReturnType<typeof planFilaments>, map: FilamentMap) {
+  try {
+    return applyFilamentMap(plan, map);
+  } catch (cause) {
+    throw new ConversionError('invalid-filament-map', `The slot assignment is incomplete: ${(cause as Error).message}. Assign every colour to a slot and retry.`, { cause });
+  }
 }
 
 /** Returns paint states that had no target filament. */

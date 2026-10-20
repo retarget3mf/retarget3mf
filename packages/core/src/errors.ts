@@ -4,7 +4,7 @@ export type ConversionErrorCode =
   | 'unsupported-source'
   | 'unknown-printer'
   | 'unsupported-slicer'
-  | 'too-many-filaments'
+  | 'invalid-filament-map'
   | 'invalid-project';
 
 /** `message` is written for end users: what happened and what to do next. */

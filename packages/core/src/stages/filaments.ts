@@ -64,3 +64,44 @@ export function remapRef(value: string, map: ReadonlyMap<number, number>): strin
   if (!Number.isInteger(n) || n === 0) return value;
   return String(map.get(n) ?? 1);
 }
+
+/** Source filament (1-based) → target filament (1-based). Several sources may share a target (colour merge). */
+export type FilamentMap = Readonly<Record<number, number>>;
+
+/** Applies a user mapping; targets must be 1..k without gaps and every used filament must be mapped. */
+export function applyFilamentMap(plan: FilamentPlan, user: FilamentMap): FilamentPlan {
+  const targets = plan.keep.map((f) => user[f]);
+  if (targets.some((t) => t === undefined || !Number.isInteger(t) || t < 1)) {
+    throw new Error(`filament map must assign every used filament (${plan.keep.join(', ')}) to a slot`);
+  }
+  const count = Math.max(...(targets as number[]));
+  const representatives: number[] = [];
+  for (let slot = 1; slot <= count; slot++) {
+    const first = plan.keep.find((f) => user[f] === slot);
+    if (first === undefined) throw new Error(`filament map leaves slot ${slot} empty; slots must be filled from 1 without gaps`);
+    representatives.push(first);
+  }
+  return { ...plan, keep: representatives, map: new Map(plan.keep.map((f) => [f, user[f]!])) };
+}
+
+function rgb(hex: string): [number, number, number] {
+  const n = parseInt(hex.replace('#', '').slice(0, 6).padEnd(6, '0'), 16) || 0;
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+/** Merges the closest colours until `slots` remain; filaments listed earlier keep the lower slot. */
+export function suggestFilamentMap(filaments: readonly { index: number; colour: string }[], slots: number): Record<number, number> {
+  const groups = filaments.map((f) => [f]);
+  const distance = (a: string, b: string) => rgb(a).reduce((sum, v, i) => sum + (v - rgb(b)[i]!) ** 2, 0);
+  while (groups.length > Math.max(1, slots)) {
+    let best: [number, number, number] = [0, 1, Infinity];
+    for (let i = 0; i < groups.length; i++) {
+      for (let j = i + 1; j < groups.length; j++) {
+        const d = distance(groups[i]![0]!.colour, groups[j]![0]!.colour);
+        if (d < best[2]) best = [i, j, d];
+      }
+    }
+    groups[best[0]]!.push(...groups.splice(best[1], 1)[0]!);
+  }
+  return Object.fromEntries(groups.flatMap((g, slot) => g.map((f) => [f.index, slot + 1])));
+}
