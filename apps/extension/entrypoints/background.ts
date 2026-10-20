@@ -46,6 +46,12 @@ export default defineBackground(() => {
       void status().then(sendResponse);
       return true;
     }
+    if (message.type === 'convert-in-browser') {
+      if (!isAllowedDownloadUrl(message.url)) return false;
+      const query = new URLSearchParams({ url: message.url, name: message.name, site: message.site, page: message.pageUrl });
+      void browser.tabs.create({ url: `${browser.runtime.getURL('/convert.html')}?${query}` });
+      return false;
+    }
     const tabId = sender.tab?.id;
     if (message.type !== 'open' || tabId === undefined || !isAllowedDownloadUrl(message.url)) return false;
     request({ type: 'open', url: message.url, name: message.name, site: message.site, pageUrl: message.pageUrl } as Omit<BridgeRequest, 'id'>, (r) => {

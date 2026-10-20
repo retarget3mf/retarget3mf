@@ -3,7 +3,8 @@ import type { BridgeResponse, SourceSite } from '@retarget3mf/bridge';
 /** content script → background */
 export type ToBackground =
   | { type: 'open'; url: string; name: string; site: SourceSite; pageUrl: string }
-  | { type: 'status' };
+  | { type: 'status' }
+  | { type: 'convert-in-browser'; url: string; name: string; site: SourceSite; pageUrl: string };
 
 /** background → content script / popup */
 export type ButtonState =

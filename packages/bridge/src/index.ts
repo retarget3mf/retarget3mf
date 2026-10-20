@@ -46,6 +46,9 @@ const DOWNLOAD_HOSTS = new Set([
   'cdn-model.snapmaker.com', 'public.resource.snapmaker.com',
 ]);
 
+/** Host permissions an extension page needs to download projects itself (in-browser conversion). */
+export const DOWNLOAD_HOST_PATTERNS = [...DOWNLOAD_HOSTS].map((h) => `https://${h}/*`).concat('https://*.printables.com/*');
+
 /** Only https downloads from known model-site CDNs, without credentials in the URL. */
 export function isAllowedDownloadUrl(raw: string): boolean {
   let url: URL;

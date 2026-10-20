@@ -5,4 +5,4 @@ const status = (await browser.runtime.sendMessage({ type: 'status' })) as AppSta
 el.className = status.connected ? 'ok' : 'off';
 el.textContent = status.connected
   ? `Desktop app connected: ${status.printer ?? 'no printer chosen'} · ${status.slicer ?? ''}`
-  : 'Desktop app not found. Install and open Retarget3MF once, then reload this page.';
+  : 'Desktop app not found. Install and open Retarget3MF once, then reload this page. Until then, projects can be converted in the browser and downloaded.';

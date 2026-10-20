@@ -13,6 +13,7 @@ const TOAST_STYLE = `
   div[data-kind="error"] { background: #a33; }
   b { font-weight: 700; }
   button { all: unset; margin-left: 6px; cursor: pointer; opacity: 0.8; } button:hover { opacity: 1; }
+  button.action { opacity: 1; padding: 4px 10px; border-radius: 6px; background: #fff; color: #1f1f1f; font-weight: 600; white-space: nowrap; }
 `;
 const BANNER_STYLE = `
   :host { display: block; margin: 0 0 12px; }
@@ -45,7 +46,7 @@ export default defineContentScript({
     // Progress lives in a toast: the site's menu closes as soon as a row is clicked.
     let toast: { host: HTMLElement; box: HTMLDivElement } | undefined;
     let hideTimer: ReturnType<typeof setTimeout> | undefined;
-    const show = (state: ButtonState) => {
+    const show = (state: ButtonState, action?: { label: string; run: () => void }) => {
       if (!toast) {
         const host = document.createElement('div');
         host.setAttribute(MARKER, 'toast');
@@ -64,11 +65,19 @@ export default defineContentScript({
       close.addEventListener('click', () => toast?.host.remove());
       const title = document.createElement('b');
       title.textContent = 'Retarget3MF';
-      toast.box.replaceChildren(title, document.createTextNode(state.label), close);
+      const extra: HTMLElement[] = [];
+      if (action) {
+        const button = document.createElement('button');
+        button.className = 'action';
+        button.textContent = action.label;
+        button.addEventListener('click', () => { toast?.host.remove(); action.run(); });
+        extra.push(button);
+      }
+      toast.box.replaceChildren(title, document.createTextNode(state.label), ...extra, close);
       toast.box.dataset.kind = state.kind;
       if (!toast.host.isConnected) document.body.append(toast.host);
       clearTimeout(hideTimer);
-      if (state.kind !== 'busy') hideTimer = setTimeout(() => toast?.host.remove(), state.kind === 'error' ? 10_000 : 5000);
+      if (state.kind !== 'busy' && !action) hideTimer = setTimeout(() => toast?.host.remove(), state.kind === 'error' ? 10_000 : 5000);
     };
 
     /**
@@ -81,9 +90,10 @@ export default defineContentScript({
       let left = false;
       window.addEventListener('blur', () => { left = true; }, { once: true });
       location.href = buildOpenLink(link);
-      setTimeout(() => show(left
-        ? { kind: 'done', label: 'Continuing in the Retarget3MF app.' }
-        : { kind: 'error', label: 'Nothing opened? Install the Retarget3MF desktop app to open projects for your printer.', installHint: true }), APP_LAUNCH_WAIT_MS);
+      const inBrowser = { label: 'Convert in the browser', run: () => void browser.runtime.sendMessage({ type: 'convert-in-browser', ...link } satisfies ToBackground) };
+      setTimeout(() => (left
+        ? show({ kind: 'done', label: 'Continuing in the Retarget3MF app.' })
+        : show({ kind: 'error', label: 'Nothing opened? Install the Retarget3MF desktop app, or convert here.', installHint: true }, inBrowser)), APP_LAUNCH_WAIT_MS);
     };
 
     browser.runtime.onMessage.addListener((message: { type: string; state?: ButtonState }) => {
