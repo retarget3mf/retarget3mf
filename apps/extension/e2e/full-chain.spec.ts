@@ -4,17 +4,11 @@ import { join, resolve } from 'node:path';
 import { _electron as electron, chromium, expect, test } from '@playwright/test';
 import { EXTENSION_IDS, NATIVE_HOST_NAME } from '@retarget3mf/bridge';
 import { bambuProject } from '../../../packages/core/test/fixtures.ts';
+import { fakeMakerworldPage } from './fakeMakerworld.ts';
 
 const EXTENSION = resolve(import.meta.dirname, '../dist/chrome-mv3');
 const DESKTOP = resolve(import.meta.dirname, '../../desktop');
 const SIGNED = 'https://makerworld.bblmw.com/makerworld/model/X/1/instance/a.3mf?exp=1&key=k';
-const PAGE = `<!doctype html><html><body>
-<div id="studio"><span class="primaryButton"><div><span>Open in Bambu Studio</span></div></span></div>
-<script>document.getElementById('studio').addEventListener('click', () => {
-  const a = document.createElement('a');
-  a.href = 'bambustudio://open?file=' + encodeURIComponent(${JSON.stringify(SIGNED)} + '&name=Test_Cube');
-  document.body.appendChild(a); a.click(); a.remove();
-});</script></body></html>`;
 
 test('MakerWorld button → native host → desktop app → converted project', async () => {
   const root = mkdtempSync(join(tmpdir(), 'chain-'));
@@ -41,13 +35,13 @@ test('MakerWorld button → native host → desktop app → converted project', 
     channel: 'chromium',
     args: [`--disable-extensions-except=${EXTENSION}`, `--load-extension=${EXTENSION}`],
   });
-  await browser.route('https://makerworld.com/**', (route) => route.fulfill({ contentType: 'text/html', body: PAGE }));
+  await browser.route('https://makerworld.com/**', (route) => route.fulfill({ contentType: 'text/html', body: fakeMakerworldPage(SIGNED, true) }));
   const page = await browser.newPage();
   await page.goto('https://makerworld.com/en/models/1-test-cube');
-  const ours = page.locator('[data-retarget3mf]');
-  await expect(ours).toHaveText('Open for AD5X', { timeout: 30_000 });
-  await ours.click();
-  await expect(ours).toHaveText('Converted ✓', { timeout: 45_000 });
+  // The row label comes from the desktop app's status (printer name).
+  await expect.poll(async () => { await page.locator('.icon-box').click(); return page.locator('[data-retarget3mf="row"]').textContent(); }, { timeout: 30_000 }).toBe('Open for AD5X');
+  await page.locator('[data-retarget3mf="row"]').click();
+  await expect(page.getByRole('status')).toContainText('Converted ✓', { timeout: 45_000 });
   await page.screenshot({ path: 'e2e/.results/full-chain-done.png' });
 
   const window = await desktop.firstWindow();
