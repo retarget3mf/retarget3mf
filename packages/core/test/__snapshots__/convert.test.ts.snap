@@ -1,0 +1,83 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`convert: Bambu project → AD5X > produces a stable report (golden) 1`] = `
+"# Conversion report
+
+- Source: bambu (BambuStudio-02.08.04.57), printer "Bambu Lab X1 Carbon 0.4 nozzle"
+- Target: Flashforge AD5X for Flash Studio (profiles OrcaSlicer v2.4.2)
+
+## Warnings
+
+- The author painted supports but had support generation off; supports were turned on so the painted areas print.
+- 2 unused filament(s) were removed and the rest renumbered.
+
+## Filaments
+
+| Source slot | Target slot | Type | Colour | Preset |
+|---|---|---|---|---|
+| 1 | 1 | PLA | #FFFFFF | Flashforge PLA Basic @FF AD5X |
+| 3 | 2 | PLA | #00AE42 | Flashforge PLA Basic @FF AD5X |
+
+## Plates
+
+| Plate | Objects | Fits | Shift (mm) |
+|---|---|---|---|
+| 1 | 1 | yes | 10.0, -30.0 |
+
+## Clamped (1)
+
+| Setting | From | To | Why |
+|---|---|---|---|
+| \`nozzle_temperature\` | 220; 300 | 220; 230 | outside the safe range of the target printer or filament |
+
+## Translated (2)
+
+| Setting | From | To | Why |
+|---|---|---|---|
+| \`wall_filament\` | 1 | 0 | renamed to outer_wall_filament_id |
+| \`wall_filament\` | 1 | 0 | renamed to inner_wall_filament_id |
+
+## Kept (16)
+
+| Setting | From | To | Why |
+|---|---|---|---|
+| \`curr_bed_type\` | Textured PEI Plate | Textured PEI Plate | author setting |
+| \`enable_prime_tower\` | 1 | 1 | author setting |
+| \`filament_colour\` | #FFFFFF; #FF0000; #00AE42; #000000 | #FFFFFF; #00AE42 | author setting |
+| \`filament_type\` | PLA; PETG; PLA; ABS | PLA; PLA | author setting |
+| \`hot_plate_temp\` | 55; 70; 55; 120 | 55; 55 | author setting |
+| \`initial_layer_print_height\` | 0.2 | 0.2 | author setting |
+| \`layer_height\` | 0.16 | 0.16 | author setting |
+| \`nozzle_temperature_initial_layer\` | 220; 255; 225; 270 | 220; 225 | author setting |
+| \`prime_tower_width\` | 35 | 35 | author setting |
+| \`sparse_infill_density\` | 25% | 25% | author setting |
+| \`sparse_infill_pattern\` | grid | grid | author setting |
+| \`support_style\` | organic | organic | author setting |
+| \`support_type\` | tree(auto) | tree(auto) | author setting |
+| \`textured_plate_temp\` | 55; 70; 55; 100 | 55; 55 | author setting |
+| \`top_surface_pattern\` | monotonicline | monotonicline | author setting |
+| \`wall_loops\` | 3 | 3 | author setting |
+
+## Replaced (6)
+
+| Setting | From | To | Why |
+|---|---|---|---|
+| \`filament_flow_ratio\` | 0.98; 0.95; 0.98; 0.95 | 0.98; 0.98 | comes from the target printer profile |
+| \`machine_start_gcode\` | M1002 ; Bambu start | M190 S[bed_temperature_initial_layer_single]↵M109 S[nozzl... | comes from the target printer profile |
+| \`printable_area\` | 0x0; 256x0; 256x256; 0x256 | 0x0; 220x0; 220x220; 0x220 | comes from the target printer profile |
+| \`printable_height\` | 250 | 220 | comes from the target printer profile |
+| \`tree_support_wall_count\` | -1 | 0 | value is not accepted by the target slicer |
+| \`enable_support\` | 0 | 1 | the model has painted supports, which need support generation on |
+
+## Dropped (6)
+
+| Setting | From | To | Why |
+|---|---|---|---|
+| \`ams_drying_temperature\` | 55; 65; 55; 80 |  | not an OrcaSlicer setting |
+| \`default_acceleration\` | 10000 | 10000 | printer-specific tuning; the target profile decides |
+| \`outer_wall_speed\` | 200 | 200 | printer-specific tuning; the target profile decides |
+| \`post_process\` | /usr/bin/evil.sh |  | post-processing scripts are never carried over (they run programs on your computer) |
+| \`outer_wall_filament_id\` | 0 |  | not supported by Flash Studio |
+| \`inner_wall_filament_id\` | 0 |  | not supported by Flash Studio |
+"
+`;

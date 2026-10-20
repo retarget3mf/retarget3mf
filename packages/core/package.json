@@ -1,0 +1,13 @@
+{
+  "name": "@retarget3mf/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-or-later",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@retarget3mf/profiles": "workspace:*",
+    "fast-xml-parser": "5.11.2",
+    "fflate": "0.8.3"
+  }
+}
