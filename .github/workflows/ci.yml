@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - name: Extension builds (Chrome, Firefox) and Firefox lint
+        run: |
+          pnpm -C apps/extension build
+          npx --yes web-ext@8.10.0 lint -s apps/extension/dist/firefox-mv3
+
+  e2e:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -C apps/extension exec playwright install --with-deps chromium
+      # Electron and the extension's Chromium need a display.
+      - run: xvfb-run -a pnpm e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with: { name: e2e-results, path: 'apps/*/e2e/.results', retention-days: 7 }
+
+  # Converted projects must load and slice in the real slicers (docs/research.md §8). Flash Studio has no Linux
+  # build; it is covered by running `pnpm slice-check` on macOS before a release.
+  slicers:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: ~/slicers
+          key: slicers-${{ runner.arch }}-${{ hashFiles('scripts/ci/install-slicers.sh') }}
+      - name: Slicer runtime libraries
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq xvfb libgl1 libegl1 libopengl0 libglu1-mesa libgtk-3-0t64 libwebkit2gtk-4.1-0 libgstreamer1.0-0 libgstreamer-plugins-base1.0-0
+      - run: scripts/ci/install-slicers.sh ~/slicers
+      - run: xvfb-run -a pnpm slice-check
+        env: { LIBGL_ALWAYS_SOFTWARE: '1' }

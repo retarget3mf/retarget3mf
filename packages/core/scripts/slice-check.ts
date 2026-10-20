@@ -16,7 +16,7 @@ const MAC_APPS: Record<SlicerId, string> = {
 };
 const ENV: Record<SlicerId, string> = { orca: 'ORCA_CLI', bambustudio: 'BAMBU_CLI', flashstudio: 'FLASHSTUDIO_CLI' };
 const SLICE_TIMEOUT_MS = 10 * 60_000;
-const PARALLEL = 3;
+const PARALLEL = Number(process.env.SLICE_PARALLEL) || 3;
 // Values every slicer writes into the G-code config block, compared with what the converted project holds.
 const CHECKED_KEYS = ['printer_settings_id', 'print_settings_id', 'layer_height', 'wall_loops', 'sparse_infill_density', 'filament_type', 'nozzle_temperature', 'enable_prime_tower'];
 
@@ -54,9 +54,9 @@ function gcodeConfig(gcode: string): Record<string, string> {
   return out;
 }
 
-function run(bin: string, args: string[]): Promise<{ code: number; log: string }> {
+function run(bin: string, args: string[], cwd: string): Promise<{ code: number; log: string }> {
   return new Promise((resolve) => {
-    execFile(bin, args, { timeout: SLICE_TIMEOUT_MS, maxBuffer: 64 * 1024 * 1024 }, (err, stdout, stderr) =>
+    execFile(bin, args, { cwd, timeout: SLICE_TIMEOUT_MS, maxBuffer: 64 * 1024 * 1024 }, (err, stdout, stderr) =>
       resolve({ code: err ? (typeof err.code === 'number' ? err.code : -1) : 0, log: `${stdout}\n${stderr}` }));
   });
 }
@@ -68,10 +68,14 @@ async function check(c: Case, bin: string, root: string): Promise<string[]> {
   const input = join(dir, 'project.3mf');
   writeFileSync(input, output);
   const project = JSON.parse(strFromU8(unzipSync(output)['Metadata/project_settings.config']!)) as Record<string, string | string[]>;
-  const { code, log } = await run(bin, ['--slice', '0', '--outputdir', dir, input]);
+  // The slicer's working directory is the case folder: some profiles make it write files relative to it.
+  const { code, log } = await run(bin, ['--slice', '0', '--outputdir', dir, input], dir);
   writeFileSync(join(dir, 'slicer.log'), log);
   const gcodes = readdirSync(dir).filter((f) => f.endsWith('.gcode'));
-  if (code !== 0 || gcodes.length === 0) return [`slicer exit ${code}, ${gcodes.length} G-code file(s); see ${dir}/slicer.log`];
+  if (code !== 0 || gcodes.length === 0) {
+    const tail = log.trim().split('\n').slice(-6).map((l) => `  | ${l.slice(0, 200)}`);
+    return [`slicer exit ${code}, ${gcodes.length} G-code file(s); log ${dir}/slicer.log ends with:`, ...tail];
+  }
   const header = gcodeConfig(readFileSync(join(dir, gcodes[0]!), 'utf8'));
   return CHECKED_KEYS.flatMap((k) => {
     if (project[k] === undefined) return [];
