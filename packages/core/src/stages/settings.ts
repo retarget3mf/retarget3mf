@@ -10,6 +10,8 @@ import { remapRef, type FilamentPlan } from './filaments.ts';
 export interface SettingsInput {
   source: Config;
   plan: FilamentPlan;
+  /** Filaments the project prints with; `plan.keep` may be longer (spare toolheads). */
+  usedFilaments: number;
   target: TargetProfiles;
   slicer: SlicerId;
   options: { orca: Readonly<Record<string, OptionInfo>>; slicer: Readonly<Record<string, OptionInfo>> };
@@ -302,7 +304,7 @@ function setIdentity(ctx: Ctx, processName: string, process: Preset): void {
     different_settings_to_system: [[...ctx.kept.print].sort().join(';'), ...names.map(() => filamentList), ''],
     print_compatible_printers: asList(process.compatible_printers),
   } satisfies Config);
-  if (options.slicer.filament_map) ctx.config.filament_map = names.map(() => '1');
+  if (options.slicer.filament_map) ctx.config.filament_map = names.map((_, i) => (target.printer.slots.kind === 'toolheads' ? String(i + 1) : '1'));
   const colours = asList(source.filament_colour);
   if (!ctx.config.filament_colour) ctx.config.filament_colour = plan.keep.map((f) => colours[f - 1] ?? '#FFFFFF');
 }
@@ -320,7 +322,7 @@ export function buildSettings(input: SettingsInput): SettingsResult {
     chosen: chooseFilaments(input, warnings),
     extruder,
     collapse: filamentRows(source, plan, extruder),
-    isMulticolor: plan.keep.length > 1 && target.printer.slots.kind === 'semm',
+    isMulticolor: input.usedFilaments > 1 && target.printer.slots.kind !== 'single',
     sameNozzle: Number(first(source.nozzle_diameter)) === Number(first(target.machine.nozzle_diameter)),
   };
   const [processName, process] = pickProcess(target);
@@ -329,7 +331,7 @@ export function buildSettings(input: SettingsInput): SettingsResult {
   applySpecialCases(ctx);
   setIdentity(ctx, processName, process);
 
-  const filaments = plan.keep.map((f, i) => ({
+  const filaments = plan.keep.slice(0, input.usedFilaments).map((f, i) => ({
     from: f, to: i + 1, type: ctx.chosen[i]!.type, colour: asList(ctx.config.filament_colour)[i] ?? '', preset: ctx.chosen[i]!.name,
   }));
   return { config: ctx.config, changes: ctx.changes, warnings: ctx.warnings, filaments, convertOverride: makeOverrideConverter(ctx) };

@@ -42,9 +42,9 @@ export function ConversionView({ project, state, onConvert, onCancel }: Props) {
         </div>
       )}
 
-      <h3>Filaments → {printer.displayName} {printer.slots.kind === 'semm' ? 'IFS slots' : 'extruder'}</h3>
+      <h3>Filaments → {printer.displayName} {{ semm: 'IFS slots', toolheads: 'toolheads', single: 'extruder' }[printer.slots.kind]}</h3>
       {used.length > printer.slots.count && (
-        <p className={styles.warn}>This project uses {used.length} colours but the printer has {printer.slots.count} slot(s). Similar colours were combined; adjust below.</p>
+        <p className={styles.warn}>This project uses {used.length} colours but the printer has {printer.slots.count} {printer.slots.kind === 'toolheads' ? 'toolhead' : 'slot'}(s). Similar colours were combined; adjust below.</p>
       )}
       <ul className={styles.filaments}>
         {used.map((f) => (
@@ -54,7 +54,7 @@ export function ConversionView({ project, state, onConvert, onCancel }: Props) {
             <label>
               <span className={styles.visuallyHidden}>Slot for filament {f.index}</span>
               <select value={map[f.index]} onChange={(e) => setMap(compactMap({ ...map, [f.index]: Number(e.target.value) }, used))} disabled={slots.length === 1}>
-                {slots.map((s) => <option key={s} value={s}>Slot {s}</option>)}
+                {slots.map((s) => <option key={s} value={s}>{printer.slots.kind === 'toolheads' ? `Toolhead ${s}` : `Slot ${s}`}</option>)}
               </select>
             </label>
           </li>

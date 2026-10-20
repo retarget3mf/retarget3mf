@@ -102,6 +102,6 @@ describe('projectPathsFromArgv', () => {
 
 describe('groupByVendor', () => {
   it('groups printers by brand in data order', () => {
-    expect(groupByVendor(PRINTERS).map(([vendor, list]) => [vendor, list.length])).toEqual([['Flashforge', 3]]);
+    expect(groupByVendor(PRINTERS).map(([vendor, list]) => [vendor, list.length])).toEqual([['Flashforge', 5]]);
   });
 });

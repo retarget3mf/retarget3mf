@@ -1,4 +1,4 @@
-export type PrinterId = 'ad5x-0.4' | 'adventurer-5m-0.4' | 'adventurer-5m-pro-0.4';
+export type PrinterId = 'ad5x-0.4' | 'adventurer-5m-0.4' | 'adventurer-5m-pro-0.4' | 'creator-5-0.4' | 'creator-5-pro-0.4';
 
 export interface PrinterDefinition {
   id: PrinterId;
@@ -39,6 +39,25 @@ export const PRINTERS: readonly PrinterDefinition[] = [
     machinePreset: 'Flashforge Adventurer 5M Pro 0.4 Nozzle',
     slots: { count: 1, kind: 'single' },
     maxNozzleTemp: 280,
+    maxBedTemp: 110,
+  },
+  // Four independent toolheads (toolchanger); every filament has its own nozzle.
+  {
+    id: 'creator-5-0.4',
+    vendor: 'Flashforge',
+    displayName: 'Flashforge Creator 5',
+    machinePreset: 'Flashforge Creator 5 0.4 nozzle',
+    slots: { count: 4, kind: 'toolheads' },
+    maxNozzleTemp: 300,
+    maxBedTemp: 110,
+  },
+  {
+    id: 'creator-5-pro-0.4',
+    vendor: 'Flashforge',
+    displayName: 'Flashforge Creator 5 Pro',
+    machinePreset: 'Flashforge Creator 5 Pro 0.4 nozzle',
+    slots: { count: 4, kind: 'toolheads' },
+    maxNozzleTemp: 300,
     maxBedTemp: 110,
   },
 ];

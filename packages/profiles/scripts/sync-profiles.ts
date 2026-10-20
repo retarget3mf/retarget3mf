@@ -31,8 +31,10 @@ function indexPresets(profilesDir: string, vendors: string[]): Map<string, Json>
       if (e.isDirectory()) { walk(p, type ?? e.name); continue; }
       if (!e.name.endsWith('.json') || !type) continue;
       const json = JSON.parse(readFileSync(p, 'utf8')) as Json;
-      if (typeof json.name !== 'string' || !PRESET_TYPES.includes(type as PresetType)) continue;
-      const key = `${type}|${json.name}`;
+      // A file's own `type` wins: vendors occasionally misfile presets (Flash Studio 1.7.15 has a machine under filament/).
+      const declared = json.type === 'machine' || json.type === 'process' || json.type === 'filament' ? json.type : type;
+      if (typeof json.name !== 'string' || !PRESET_TYPES.includes(declared as PresetType)) continue;
+      const key = `${declared}|${json.name}`;
       if (!idx.has(key)) idx.set(key, json);
     }
   };
@@ -60,7 +62,13 @@ function compatibleWith(idx: Map<string, Json>, type: PresetType, machine: strin
   for (const [key, json] of idx) {
     if (!key.startsWith(`${type}|`) || json.instantiation !== 'true') continue;
     // compatible_printers is often inherited from a hidden base preset.
-    const list = flatten(idx, type, json.name as string).compatible_printers;
+    let list: unknown;
+    try {
+      list = flatten(idx, type, json.name as string).compatible_printers;
+    } catch (error) {
+      console.warn(`skipping ${type} "${String(json.name)}": ${(error as Error).message}`);
+      continue;
+    }
     if (Array.isArray(list) && list.includes(machine)) names.push(json.name as string);
   }
   return names.sort();
@@ -97,7 +105,7 @@ function extractOptions(printConfigCpp: string): Record<string, OptionInfo> {
 }
 
 const orcaDir = arg('--orca', join(ROOT, 'research/OrcaSlicer-v2.4.2'));
-const ffDir = arg('--flashstudio', join(ROOT, 'research/Orca-Flashforge'));
+const ffDir = arg('--flashstudio', join(ROOT, 'research/Orca-Flashforge-1.7.15'));
 const orcaIdx = indexPresets(join(orcaDir, 'resources/profiles'), ['Flashforge', 'OrcaFilamentLibrary']);
 const ffIdx = indexPresets(join(ffDir, 'resources/profiles'), ['Flashforge', 'OrcaFilamentLibrary']);
 

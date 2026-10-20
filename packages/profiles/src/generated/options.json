@@ -4663,19 +4663,37 @@
    "type": "coPoints",
    "nullable": false
   },
+  "extruder_printable_area": {
+   "type": "coPointsGroups",
+   "nullable": false
+  },
+  "support_parallel_printheads": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "parallel_printheads_count": {
+   "type": "coInt",
+   "nullable": false,
+   "min": 1,
+   "max": 4,
+   "default": "1"
+  },
+  "parallel_printheads_bed_exclude_areas": {
+   "type": "coStrings",
+   "nullable": false
+  },
   "bed_exclude_area": {
    "type": "coPoints",
    "nullable": false
   },
   "bed_custom_texture": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "bed_custom_model": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "elefant_foot_compensation": {
    "type": "coFloat",
@@ -4689,11 +4707,17 @@
    "min": 1,
    "default": "1"
   },
+  "elefant_foot_layers_density": {
+   "type": "coPercent",
+   "nullable": false,
+   "min": 50,
+   "max": 100,
+   "default": "100"
+  },
   "layer_height": {
    "type": "coFloat",
    "nullable": false,
-   "min": 0,
-   "default": "0.2"
+   "min": 0
   },
   "printable_height": {
    "type": "coFloat",
@@ -4701,6 +4725,13 @@
    "min": 0,
    "max": 214700,
    "default": "100"
+  },
+  "extruder_printable_height": {
+   "type": "coFloats",
+   "nullable": false,
+   "min": 0,
+   "max": 1000,
+   "default": "0"
   },
   "preferred_orientation": {
    "type": "coFloat",
@@ -4718,40 +4749,42 @@
    "nullable": false,
    "default": "0"
   },
-  "print_host": {
+  "printer_agent": {
    "type": "coString",
    "nullable": false,
    "default": ""
+  },
+  "print_host": {
+   "type": "coString",
+   "nullable": false
   },
   "print_host_webui": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "printhost_apikey": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
+  },
+  "flashforge_serial_number": {
+   "type": "coString",
+   "nullable": false
   },
   "printhost_port": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "printhost_cafile": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "printhost_user": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "printhost_password": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "printhost_ssl_ignore_revoke": {
    "type": "coBool",
@@ -4768,8 +4801,7 @@
   },
   "reduce_crossing_wall": {
    "type": "coBool",
-   "nullable": false,
-   "default": "0"
+   "nullable": false
   },
   "max_travel_detour_distance": {
    "type": "coFloatOrPercent",
@@ -4864,18 +4896,20 @@
    "type": "coEnum",
    "nullable": false
   },
+  "default_bed_type": {
+   "type": "coString",
+   "nullable": false
+  },
   "first_layer_print_sequence": {
    "type": "coInts",
    "nullable": false,
    "min": 0,
-   "max": 16,
    "default": "0"
   },
   "other_layers_print_sequence": {
    "type": "coInts",
    "nullable": false,
    "min": 0,
-   "max": 16,
    "default": "0"
   },
   "other_layers_print_sequence_nums": {
@@ -4893,8 +4927,7 @@
   },
   "before_layer_change_gcode": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "bottom_shell_layers": {
    "type": "coInt",
@@ -4944,7 +4977,7 @@
    "type": "coPercent",
    "nullable": false,
    "min": 10,
-   "max": 100,
+   "max": 120,
    "default": "100"
   },
   "internal_bridge_density": {
@@ -4982,10 +5015,78 @@
    "max": 2,
    "default": "1"
   },
-  "precise_outer_wall": {
+  "set_other_flow_ratios": {
    "type": "coBool",
    "nullable": false,
    "default": "0"
+  },
+  "first_layer_flow_ratio": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 2,
+   "default": "1"
+  },
+  "outer_wall_flow_ratio": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 2,
+   "default": "1"
+  },
+  "inner_wall_flow_ratio": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 2,
+   "default": "1"
+  },
+  "overhang_flow_ratio": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 2,
+   "default": "1"
+  },
+  "sparse_infill_flow_ratio": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 2,
+   "default": "1"
+  },
+  "internal_solid_infill_flow_ratio": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 2,
+   "default": "1"
+  },
+  "gap_fill_flow_ratio": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 2,
+   "default": "1"
+  },
+  "support_flow_ratio": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 2,
+   "default": "1"
+  },
+  "support_interface_flow_ratio": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 2,
+   "default": "1"
+  },
+  "precise_outer_wall": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "1"
   },
   "only_one_wall_top": {
    "type": "coBool",
@@ -5028,11 +5129,6 @@
    "min": 0,
    "default": "50"
   },
-  "overhang_speed_classic": {
-   "type": "coBool",
-   "nullable": false,
-   "default": "0"
-  },
   "enable_overhang_speed": {
    "type": "coBool",
    "nullable": false,
@@ -5041,7 +5137,7 @@
   "slowdown_for_curled_perimeters": {
    "type": "coBool",
    "nullable": false,
-   "default": "1"
+   "default": "0"
   },
   "overhang_1_4_speed": {
    "type": "coFloatOrPercent",
@@ -5095,6 +5191,23 @@
    "nullable": false,
    "min": 0,
    "max": 2,
+   "default": "0"
+  },
+  "brim_flow_ratio": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 2,
+   "default": "1"
+  },
+  "brim_use_efc_outline": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "combine_brims": {
+   "type": "coBool",
+   "nullable": false,
    "default": "0"
   },
   "brim_ears": {
@@ -5183,6 +5296,16 @@
    "nullable": false,
    "default": "0"
   },
+  "activate_air_filtration_during_print": {
+   "type": "coBools",
+   "nullable": false,
+   "default": "1"
+  },
+  "activate_air_filtration_on_completion": {
+   "type": "coBools",
+   "nullable": false,
+   "default": "1"
+  },
   "during_print_exhaust_fan_speed": {
    "type": "coInts",
    "nullable": false,
@@ -5240,8 +5363,7 @@
   },
   "printing_by_object_gcode": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "filament_end_gcode": {
    "type": "coStrings",
@@ -5349,6 +5471,11 @@
    "nullable": false,
    "default": "0"
   },
+  "grab_length": {
+   "type": "coFloats",
+   "nullable": false,
+   "min": 0
+  },
   "extruder_colour": {
    "type": "coStrings",
    "nullable": false,
@@ -5361,6 +5488,7 @@
   "filament_flow_ratio": {
    "type": "coFloats",
    "nullable": false,
+   "min": 0,
    "max": 2,
    "default": "1"
   },
@@ -5437,12 +5565,153 @@
    "nullable": false,
    "default": "#F2754E"
   },
+  "mixed_color_layer_height_a": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "default": "0"
+  },
+  "mixed_color_layer_height_b": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "default": "0"
+  },
+  "mixed_filament_gradient_mode": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "mixed_filament_height_lower_bound": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0.01,
+   "default": "0.04"
+  },
+  "mixed_filament_height_upper_bound": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0.01,
+   "default": "0.16"
+  },
+  "mixed_filament_advanced_dithering": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "mixed_filament_component_bias_enabled": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "mixed_filament_surface_indentation": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": -2,
+   "max": 2,
+   "default": "0"
+  },
+  "mixed_filament_region_collapse": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "1"
+  },
+  "mixed_filament_definitions": {
+   "type": "coString",
+   "nullable": false,
+   "default": ""
+  },
+  "mixed_filament_pointillism_pixel_size": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "default": "0"
+  },
+  "mixed_filament_pointillism_line_gap": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "default": "0"
+  },
+  "dithering_z_step_size": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "default": "0"
+  },
+  "dithering_local_z_mode": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "dithering_local_z_whole_objects": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "dithering_local_z_direct_multicolor": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "dithering_step_painted_zones_only": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "1"
+  },
   "filament_notes": {
+   "type": "coStrings",
+   "nullable": false,
+   "default": ""
+  },
+  "filament_multi_colour": {
+   "type": "coStrings",
+   "nullable": false,
+   "default": ""
+  },
+  "filament_colour_type": {
    "type": "coStrings",
    "nullable": false,
    "min": 0,
    "max": 500,
-   "default": ""
+   "default": "1"
+  },
+  "filament_map": {
+   "type": "coInts",
+   "nullable": false,
+   "default": "1"
+  },
+  "physical_extruder_map": {
+   "type": "coInts",
+   "nullable": false,
+   "default": "0"
+  },
+  "filament_map_mode": {
+   "type": "coEnum",
+   "nullable": false
+  },
+  "enable_filament_dynamic_map": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "has_filament_switcher": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "filament_flush_temp": {
+   "type": "coInts",
+   "nullable": false,
+   "min": 0,
+   "default": "0"
+  },
+  "filament_flush_volumetric_speed": {
+   "type": "coFloats",
+   "nullable": false,
+   "min": 0,
+   "max": 200,
+   "default": "0"
   },
   "filament_max_volumetric_speed": {
    "type": "coFloats",
@@ -5468,6 +5737,20 @@
    "min": 0,
    "default": "0"
   },
+  "support_object_skip_flush": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "bed_temperature_formula": {
+   "type": "coEnum",
+   "nullable": false
+  },
+  "nozzle_flush_dataset": {
+   "type": "coInts",
+   "nullable": false,
+   "default": "0"
+  },
   "filament_diameter": {
    "type": "coFloats",
    "nullable": false,
@@ -5480,17 +5763,35 @@
    "min": 0,
    "default": "0.4157"
   },
+  "filament_adaptive_volumetric_speed": {
+   "type": "coBools",
+   "nullable": false,
+   "default": "0"
+  },
+  "volumetric_speed_coefficients": {
+   "type": "coStrings",
+   "nullable": false,
+   "default": ""
+  },
   "filament_shrink": {
    "type": "coPercents",
    "nullable": false,
-   "min": 10,
+   "min": 50,
+   "max": 150,
    "default": "100"
   },
   "filament_shrinkage_compensation_z": {
    "type": "coPercents",
    "nullable": false,
-   "min": 10,
+   "min": 50,
+   "max": 150,
    "default": "100"
+  },
+  "filament_adhesiveness_category": {
+   "type": "coInts",
+   "nullable": false,
+   "min": 0,
+   "default": "0"
   },
   "filament_loading_speed": {
    "type": "coFloats",
@@ -5525,7 +5826,8 @@
   "filament_cooling_moves": {
    "type": "coInts",
    "nullable": false,
-   "max": 0,
+   "min": 0,
+   "max": 20,
    "default": "4"
   },
   "filament_stamping_loading_speed": {
@@ -5551,6 +5853,41 @@
    "nullable": false,
    "min": 0,
    "default": "15"
+  },
+  "filament_cooling_before_tower": {
+   "type": "coFloats",
+   "nullable": false,
+   "default": "10"
+  },
+  "filament_tower_interface_pre_extrusion_dist": {
+   "type": "coFloats",
+   "nullable": false,
+   "min": 0,
+   "default": "10"
+  },
+  "filament_tower_interface_pre_extrusion_length": {
+   "type": "coFloats",
+   "nullable": false,
+   "min": 0,
+   "default": "0"
+  },
+  "filament_tower_ironing_area": {
+   "type": "coFloats",
+   "nullable": false,
+   "min": 0,
+   "default": "4"
+  },
+  "filament_tower_interface_purge_volume": {
+   "type": "coFloats",
+   "nullable": false,
+   "min": 0,
+   "default": "20"
+  },
+  "filament_tower_interface_print_temp": {
+   "type": "coInts",
+   "nullable": false,
+   "min": -1,
+   "default": "-1"
   },
   "filament_cooling_final_speed": {
    "type": "coFloats",
@@ -5596,10 +5933,21 @@
    "nullable": false,
    "default": "0"
   },
+  "filament_change_length": {
+   "type": "coFloats",
+   "nullable": false,
+   "min": 0,
+   "default": "0"
+  },
   "filament_is_support": {
    "type": "coBools",
    "nullable": false,
    "default": "0"
+  },
+  "filament_printable": {
+   "type": "coInts",
+   "nullable": false,
+   "default": "3"
   },
   "temperature_vitrification": {
    "type": "coInts",
@@ -5639,11 +5987,6 @@
    "max": 360,
    "default": "45"
   },
-  "rotate_solid_infill_direction": {
-   "type": "coBool",
-   "nullable": false,
-   "default": "1"
-  },
   "sparse_infill_density": {
    "type": "coPercent",
    "nullable": false,
@@ -5651,22 +5994,71 @@
    "max": 100,
    "default": "20"
   },
+  "align_infill_direction_to_model": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "extra_solid_infills": {
+   "type": "coString",
+   "nullable": false
+  },
+  "fill_multiline": {
+   "type": "coInt",
+   "nullable": false,
+   "min": 1,
+   "max": 10,
+   "default": "1"
+  },
+  "gyroid_optimized": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
   "sparse_infill_pattern": {
    "type": "coEnum",
    "nullable": false
   },
-  "lattice_angle_1": {
+  "lateral_lattice_angle_1": {
    "type": "coFloat",
    "nullable": false,
    "min": -75,
    "max": 75,
    "default": "-45"
   },
-  "lattice_angle_2": {
+  "lateral_lattice_angle_2": {
    "type": "coFloat",
    "nullable": false,
    "min": -75,
    "max": 75,
+   "default": "45"
+  },
+  "infill_overhang_angle": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 15,
+   "max": 75,
+   "default": "60"
+  },
+  "lightning_overhang_angle": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 5,
+   "max": 85,
+   "default": "45"
+  },
+  "lightning_prune_angle": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 5,
+   "max": 85,
+   "default": "45"
+  },
+  "lightning_straightening_angle": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 5,
+   "max": 85,
    "default": "45"
   },
   "infill_anchor": {
@@ -5678,12 +6070,6 @@
    "type": "coFloatOrPercent",
    "nullable": false,
    "default": "20"
-  },
-  "outer_wall_acceleration": {
-   "type": "coFloat",
-   "nullable": false,
-   "min": 0,
-   "default": "10000"
   },
   "inner_wall_acceleration": {
    "type": "coFloat",
@@ -5698,6 +6084,12 @@
    "default": "10000"
   },
   "top_surface_acceleration": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "default": "500"
+  },
+  "outer_wall_acceleration": {
    "type": "coFloat",
    "nullable": false,
    "min": 0,
@@ -5727,6 +6119,12 @@
    "min": 0,
    "default": "300"
   },
+  "initial_layer_travel_acceleration": {
+   "type": "coFloatOrPercent",
+   "nullable": false,
+   "min": 0,
+   "default": "100"
+  },
   "accel_to_decel_enable": {
    "type": "coBool",
    "nullable": false,
@@ -5743,6 +6141,13 @@
    "type": "coFloat",
    "nullable": false,
    "min": 0,
+   "default": "0"
+  },
+  "default_junction_deviation": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 0.3,
    "default": "0"
   },
   "outer_wall_jerk": {
@@ -5780,6 +6185,12 @@
    "nullable": false,
    "min": 0,
    "default": "12"
+  },
+  "initial_layer_travel_jerk": {
+   "type": "coFloatOrPercent",
+   "nullable": false,
+   "min": 0,
+   "default": "100"
   },
   "initial_layer_line_width": {
    "type": "coFloatOrPercent",
@@ -5850,6 +6261,36 @@
    "max": 100,
    "default": "-1"
   },
+  "ironing_fan_speed": {
+   "type": "coInts",
+   "nullable": false,
+   "min": -1,
+   "max": 100,
+   "default": "-1"
+  },
+  "filament_ironing_flow": {
+   "type": "coPercents",
+   "nullable": false,
+   "min": 0,
+   "max": 100
+  },
+  "filament_ironing_spacing": {
+   "type": "coFloats",
+   "nullable": false,
+   "min": 0,
+   "max": 1
+  },
+  "filament_ironing_inset": {
+   "type": "coFloats",
+   "nullable": false,
+   "min": 0,
+   "max": 100
+  },
+  "filament_ironing_speed": {
+   "type": "coFloats",
+   "nullable": false,
+   "min": 1
+  },
   "fuzzy_skin": {
    "type": "coEnum",
    "nullable": false
@@ -5858,13 +6299,13 @@
    "type": "coFloat",
    "nullable": false,
    "min": 0,
-   "max": 1,
+   "max": 2,
    "default": "0.2"
   },
   "fuzzy_skin_point_distance": {
    "type": "coFloat",
    "nullable": false,
-   "min": 0,
+   "min": 0.01,
    "max": 5,
    "default": "0.3"
   },
@@ -5872,6 +6313,10 @@
    "type": "coBool",
    "nullable": false,
    "default": "0"
+  },
+  "fuzzy_skin_mode": {
+   "type": "coEnum",
+   "nullable": false
   },
   "fuzzy_skin_noise_type": {
    "type": "coEnum",
@@ -5897,6 +6342,25 @@
    "min": 0.01,
    "max": 1,
    "default": "0.5"
+  },
+  "fuzzy_skin_ripples_per_layer": {
+   "type": "coInt",
+   "nullable": false,
+   "min": 1,
+   "default": "15"
+  },
+  "fuzzy_skin_ripple_offset": {
+   "type": "coPercent",
+   "nullable": false,
+   "min": 0,
+   "max": 100,
+   "default": "50"
+  },
+  "fuzzy_skin_layers_between_ripple_offset": {
+   "type": "coInt",
+   "nullable": false,
+   "min": 1,
+   "default": "1"
   },
   "filter_out_gap_fill": {
    "type": "coFloat",
@@ -5929,13 +6393,17 @@
    "nullable": false,
    "default": "0"
   },
+  "enable_power_loss_recovery": {
+   "type": "coEnum",
+   "nullable": false
+  },
   "spaghetti_detector": {
    "type": "coBool",
    "nullable": false,
    "default": "0"
   },
   "nozzle_type": {
-   "type": "coEnum",
+   "type": "coEnums",
    "nullable": false
   },
   "nozzle_hrc": {
@@ -5972,6 +6440,13 @@
    "type": "coFloat",
    "nullable": false,
    "min": 0,
+   "default": "0"
+  },
+  "part_cooling_fan_min_pwm": {
+   "type": "coInt",
+   "nullable": false,
+   "min": 0,
+   "max": 100,
    "default": "0"
   },
   "time_cost": {
@@ -6024,17 +6499,111 @@
    "nullable": false,
    "default": "0"
   },
+  "infill_shift_step": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 10,
+   "default": "0.4"
+  },
+  "sparse_infill_rotate_template": {
+   "type": "coString",
+   "nullable": false,
+   "default": ""
+  },
+  "solid_infill_rotate_template": {
+   "type": "coString",
+   "nullable": false,
+   "default": ""
+  },
+  "skeleton_infill_density": {
+   "type": "coPercent",
+   "nullable": false,
+   "min": 0,
+   "max": 100,
+   "default": "25"
+  },
+  "skin_infill_density": {
+   "type": "coPercent",
+   "nullable": false,
+   "min": 0,
+   "max": 100,
+   "default": "25"
+  },
+  "skin_infill_depth": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 100,
+   "default": "2"
+  },
+  "infill_lock_depth": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 100,
+   "default": "1"
+  },
+  "skin_infill_line_width": {
+   "type": "coFloatOrPercent",
+   "nullable": false,
+   "min": 0,
+   "default": "100"
+  },
+  "skeleton_infill_line_width": {
+   "type": "coFloatOrPercent",
+   "nullable": false,
+   "min": 0,
+   "default": "100"
+  },
+  "symmetric_infill_y_axis": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
   "infill_combination_max_layer_height": {
    "type": "coFloatOrPercent",
    "nullable": false,
    "min": 0,
    "default": "100"
   },
+  "enable_wrapping_detection": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "wrapping_detection_layers": {
+   "type": "coInt",
+   "nullable": false,
+   "min": 0,
+   "default": "20"
+  },
+  "wrapping_exclude_area": {
+   "type": "coPoints",
+   "nullable": false
+  },
   "sparse_infill_filament": {
    "type": "coInt",
    "nullable": false,
-   "min": 1,
-   "default": "1"
+   "min": 0,
+   "default": "0"
+  },
+  "enable_infill_filament_override": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "infill_filament_use_base_first_layers": {
+   "type": "coInt",
+   "nullable": false,
+   "min": 0,
+   "default": "0"
+  },
+  "infill_filament_use_base_last_layers": {
+   "type": "coInt",
+   "nullable": false,
+   "min": 0,
+   "default": "0"
   },
   "sparse_infill_line_width": {
    "type": "coFloatOrPercent",
@@ -6120,6 +6689,11 @@
    "min": 0,
    "default": "2"
   },
+  "calib_flowrate_topinfill_special_order": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
   "ironing_type": {
    "type": "coEnum",
    "nullable": false
@@ -6158,16 +6732,55 @@
   "ironing_angle": {
    "type": "coFloat",
    "nullable": false,
-   "min": -1,
+   "min": 0,
    "max": 359,
-   "default": "-1"
+   "default": "0"
+  },
+  "ironing_angle_fixed": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "ironing_expansion": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": -100,
+   "max": 100,
+   "default": "0"
+  },
+  "zaa_enabled": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "zaa_minimize_perimeter_height": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 90,
+   "default": "35"
+  },
+  "zaa_dont_alternate_fill_direction": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "zaa_min_z": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 100,
+   "default": "0.05"
   },
   "layer_change_gcode": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "time_lapse_gcode": {
+   "type": "coString",
+   "nullable": false
+  },
+  "wrapping_detection_gcode": {
    "type": "coString",
    "nullable": false,
    "default": ""
@@ -6184,13 +6797,11 @@
   },
   "machine_pause_gcode": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "template_custom_gcode": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "small_area_infill_flow_compensation": {
    "type": "coBool",
@@ -6207,6 +6818,13 @@
    "nullable": false,
    "min": 0,
    "default": "0"
+  },
+  "machine_max_junction_deviation": {
+   "type": "coFloats",
+   "nullable": false,
+   "min": 0,
+   "max": 0.3,
+   "default": "0.01"
   },
   "machine_min_extruding_rate": {
    "type": "coFloats",
@@ -6237,6 +6855,60 @@
    "nullable": false,
    "min": 0,
    "default": "0"
+  },
+  "resonance_avoidance": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "min_resonance_avoidance_speed": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "default": "70"
+  },
+  "max_resonance_avoidance_speed": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "default": "120"
+  },
+  "input_shaping_emit": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "input_shaping_type": {
+   "type": "coEnum",
+   "nullable": false
+  },
+  "input_shaping_freq_x": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 1000,
+   "default": "0"
+  },
+  "input_shaping_freq_y": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 1000,
+   "default": "0"
+  },
+  "input_shaping_damp_x": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 1,
+   "default": "0.1"
+  },
+  "input_shaping_damp_y": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 1,
+   "default": "0.1"
   },
   "fan_max_speed": {
    "type": "coFloats",
@@ -6283,6 +6955,27 @@
    "max": 100,
    "default": "0"
   },
+  "close_additional_fan_first_x_layers": {
+   "type": "coInts",
+   "nullable": false,
+   "min": 0,
+   "max": 1000,
+   "default": "1"
+  },
+  "additional_fan_full_speed_layer": {
+   "type": "coInts",
+   "nullable": false,
+   "min": 0,
+   "max": 1000,
+   "default": "0"
+  },
+  "first_x_layer_fan_speed": {
+   "type": "coFloats",
+   "nullable": false,
+   "min": 0,
+   "max": 100,
+   "default": "0"
+  },
   "min_layer_height": {
    "type": "coFloats",
    "nullable": false,
@@ -6303,17 +6996,15 @@
   },
   "notes": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "host_type": {
    "type": "coEnum",
    "nullable": false
   },
   "nozzle_volume": {
-   "type": "coFloat",
-   "nullable": false,
-   "default": "0"
+   "type": "coFloats",
+   "nullable": false
   },
   "cooling_tube_retraction": {
    "type": "coFloat",
@@ -6388,8 +7079,8 @@
   "wall_filament": {
    "type": "coInt",
    "nullable": false,
-   "min": 1,
-   "default": "1"
+   "min": 0,
+   "default": "0"
   },
   "inner_wall_line_width": {
    "type": "coFloatOrPercent",
@@ -6420,14 +7111,17 @@
    "type": "coStrings",
    "nullable": false
   },
+  "process_change_extrusion_role_gcode": {
+   "type": "coString",
+   "nullable": false
+  },
   "printer_model": {
    "type": "coString",
    "nullable": false
   },
   "printer_notes": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "printer_variant": {
    "type": "coString",
@@ -6435,13 +7129,11 @@
   },
   "print_settings_id": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "printer_settings_id": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "raft_contact_distance": {
    "type": "coFloat",
@@ -6472,8 +7164,7 @@
    "type": "coInt",
    "nullable": false,
    "min": 0,
-   "max": 100,
-   "default": "0"
+   "max": 100
   },
   "resolution": {
    "type": "coFloat",
@@ -6496,11 +7187,6 @@
    "nullable": false,
    "default": "0"
   },
-  "retract_on_top_layer": {
-   "type": "coBools",
-   "nullable": false,
-   "default": "1"
-  },
   "retraction_length": {
    "type": "coFloats",
    "nullable": false,
@@ -6522,6 +7208,18 @@
    "min": 10,
    "max": 18,
    "default": "18"
+  },
+  "long_retractions_when_ec": {
+   "type": "coBools",
+   "nullable": false,
+   "default": "0"
+  },
+  "retraction_distances_when_ec": {
+   "type": "coFloats",
+   "nullable": false,
+   "min": 0,
+   "max": 10,
+   "default": "10"
   },
   "retract_length_toolchange": {
    "type": "coFloats",
@@ -6561,6 +7259,67 @@
   "retract_lift_enforce": {
    "type": "coEnums",
    "nullable": false
+  },
+  "extruder_type": {
+   "type": "coEnums",
+   "nullable": false
+  },
+  "nozzle_volume_type": {
+   "type": "coEnums",
+   "nullable": false
+  },
+  "default_nozzle_volume_type": {
+   "type": "coEnums",
+   "nullable": false
+  },
+  "extruder_variant_list": {
+   "type": "coStrings",
+   "nullable": false,
+   "default": "Direct Drive Standard"
+  },
+  "extruder_ams_count": {
+   "type": "coStrings",
+   "nullable": false
+  },
+  "printer_extruder_id": {
+   "type": "coInts",
+   "nullable": false,
+   "default": "1"
+  },
+  "printer_extruder_variant": {
+   "type": "coStrings",
+   "nullable": false,
+   "default": "Direct Drive Standard"
+  },
+  "master_extruder_id": {
+   "type": "coInt",
+   "nullable": false,
+   "default": "1"
+  },
+  "print_extruder_id": {
+   "type": "coInts",
+   "nullable": false,
+   "default": "1"
+  },
+  "print_extruder_variant": {
+   "type": "coStrings",
+   "nullable": false,
+   "default": "Direct Drive Standard"
+  },
+  "filament_extruder_id": {
+   "type": "coInts",
+   "nullable": false,
+   "default": "1"
+  },
+  "filament_extruder_variant": {
+   "type": "coStrings",
+   "nullable": false,
+   "default": "Direct Drive Standard"
+  },
+  "filament_self_index": {
+   "type": "coInts",
+   "nullable": false,
+   "default": "1"
   },
   "retract_restart_extra": {
    "type": "coFloats",
@@ -6643,6 +7402,7 @@
   "scarf_joint_flow_ratio": {
    "type": "coFloat",
    "nullable": false,
+   "min": 0,
    "max": 2,
    "default": "1"
   },
@@ -6763,8 +7523,8 @@
   "solid_infill_filament": {
    "type": "coInt",
    "nullable": false,
-   "min": 1,
-   "default": "1"
+   "min": 0,
+   "default": "0"
   },
   "internal_solid_infill_line_width": {
    "type": "coFloatOrPercent",
@@ -6833,6 +7593,11 @@
    "max": 10,
    "default": "1"
   },
+  "file_start_gcode": {
+   "type": "coString",
+   "nullable": false,
+   "default": ""
+  },
   "machine_start_gcode": {
    "type": "coString",
    "nullable": false,
@@ -6853,6 +7618,10 @@
    "nullable": false,
    "default": "0"
   },
+  "wipe_tower_type": {
+   "type": "coEnum",
+   "nullable": false
+  },
   "purge_in_prime_tower": {
    "type": "coBool",
    "nullable": false,
@@ -6862,6 +7631,11 @@
    "type": "coBool",
    "nullable": false,
    "default": "1"
+  },
+  "tool_change_on_wipe_tower": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
   },
   "wipe_tower_no_sparse_layers": {
    "type": "coBool",
@@ -7100,11 +7874,6 @@
    "min": 5,
    "default": "30"
   },
-  "tree_support_adaptive_layer_height": {
-   "type": "coBool",
-   "nullable": false,
-   "default": "1"
-  },
   "tree_support_auto_brim": {
    "type": "coBool",
    "nullable": false,
@@ -7156,6 +7925,29 @@
    "nullable": false,
    "default": "0"
   },
+  "support_ironing": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "support_ironing_pattern": {
+   "type": "coEnum",
+   "nullable": false
+  },
+  "support_ironing_flow": {
+   "type": "coPercent",
+   "nullable": false,
+   "min": 0,
+   "max": 100,
+   "default": "10"
+  },
+  "support_ironing_spacing": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 1,
+   "default": "0.1"
+  },
   "activate_chamber_temp_control": {
    "type": "coBools",
    "nullable": false,
@@ -7196,11 +7988,14 @@
   },
   "change_filament_gcode": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "change_extrusion_role_gcode": {
    "type": "coString",
+   "nullable": false
+  },
+  "filament_change_extrusion_role_gcode": {
+   "type": "coStrings",
    "nullable": false,
    "default": ""
   },
@@ -7228,6 +8023,20 @@
    "nullable": false,
    "min": 0,
    "default": "0.6"
+  },
+  "top_surface_density": {
+   "type": "coPercent",
+   "nullable": false,
+   "min": 0,
+   "max": 100,
+   "default": "100"
+  },
+  "bottom_surface_density": {
+   "type": "coPercent",
+   "nullable": false,
+   "min": 10,
+   "max": 100,
+   "default": "100"
   },
   "travel_speed": {
    "type": "coFloat",
@@ -7257,6 +8066,11 @@
    "nullable": false,
    "default": "0"
   },
+  "prime_tower_enable_framework": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
   "flush_volumes_vector": {
    "type": "coFloats",
    "nullable": false,
@@ -7268,7 +8082,7 @@
    "default": "0"
   },
   "flush_multiplier": {
-   "type": "coFloat",
+   "type": "coFloats",
    "nullable": false,
    "default": "0.3"
   },
@@ -7302,7 +8116,7 @@
   "prime_tower_brim_width": {
    "type": "coFloat",
    "nullable": false,
-   "min": 0,
+   "min": -1,
    "default": "3"
   },
   "wipe_tower_cone_angle": {
@@ -7310,13 +8124,35 @@
    "nullable": false,
    "min": 0,
    "max": 90,
-   "default": "0"
+   "default": "30"
   },
   "wipe_tower_max_purge_speed": {
    "type": "coFloat",
    "nullable": false,
    "min": 10,
    "default": "90"
+  },
+  "wipe_tower_wall_type": {
+   "type": "coEnum",
+   "nullable": false
+  },
+  "wipe_tower_extra_rib_length": {
+   "type": "coFloat",
+   "nullable": false,
+   "max": 300,
+   "default": "0"
+  },
+  "wipe_tower_rib_width": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0,
+   "max": 300,
+   "default": "8"
+  },
+  "wipe_tower_fillet_wall": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "1"
   },
   "wipe_tower_filament": {
    "type": "coInt",
@@ -7328,6 +8164,32 @@
    "type": "coFloats",
    "nullable": false,
    "default": "70"
+  },
+  "prime_tower_skip_points": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "1"
+  },
+  "prime_tower_flat_ironing": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "enable_tower_interface_features": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "enable_tower_interface_cooldown_during_tower": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
+  "prime_tower_infill_gap": {
+   "type": "coPercent",
+   "nullable": false,
+   "min": 100,
+   "default": "150"
   },
   "flush_into_infill": {
    "type": "coBool",
@@ -7362,6 +8224,12 @@
    "min": 100,
    "max": 300,
    "default": "100"
+  },
+  "local_z_wipe_tower_purge_lines": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 1,
+   "default": "3"
   },
   "idle_temperature": {
    "type": "coInts",
@@ -7449,6 +8317,20 @@
    "min": 0,
    "max": 25,
    "default": "0.5"
+  },
+  "wall_maximum_resolution": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0.005,
+   "max": 0.5,
+   "default": "0.5"
+  },
+  "wall_maximum_deviation": {
+   "type": "coFloat",
+   "nullable": false,
+   "min": 0.005,
+   "max": 0.05,
+   "default": "0.025"
   },
   "initial_layer_min_bead_width": {
    "type": "coPercent",
@@ -7672,8 +8554,7 @@
   },
   "material_vendor": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "default_sla_material_profile": {
    "type": "coString",
@@ -7681,8 +8562,7 @@
   },
   "sla_material_settings_id": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "default_sla_print_profile": {
    "type": "coString",
@@ -7690,8 +8570,7 @@
   },
   "sla_print_settings_id": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "supports_enable": {
    "type": "coBool",
@@ -7986,10 +8865,6 @@
    "nullable": false,
    "default": "0"
   },
-  "downward_check": {
-   "type": "coStrings",
-   "nullable": false
-  },
   "load_defaultfila": {
    "type": "coBool",
    "nullable": false,
@@ -8042,8 +8917,7 @@
   },
   "pipe": {
    "type": "coString",
-   "nullable": false,
-   "default": ""
+   "nullable": false
   },
   "align_xy": {
    "type": "coPoint",
@@ -8177,6 +9051,11 @@
    "type": "coStrings",
    "nullable": false
   },
+  "downward_check": {
+   "type": "coBool",
+   "nullable": false,
+   "default": "0"
+  },
   "downward_settings": {
    "type": "coStrings",
    "nullable": false
@@ -8269,6 +9148,10 @@
    "type": "coBool",
    "nullable": false
   },
+  "allow_mix_temp": {
+   "type": "coBool",
+   "nullable": false
+  },
   "zhop": {
    "type": "coFloat",
    "nullable": false
@@ -8311,6 +9194,10 @@
   },
   "is_extruder_used": {
    "type": "coBools",
+   "nullable": false
+  },
+  "num_extruders": {
+   "type": "coInt",
    "nullable": false
   },
   "initial_filament_type": {
@@ -8383,6 +9270,14 @@
   },
   "used_filament": {
    "type": "coFloat",
+   "nullable": false
+  },
+  "print_time_sec": {
+   "type": "coString",
+   "nullable": false
+  },
+  "used_filament_length": {
+   "type": "coString",
    "nullable": false
   },
   "num_objects": {
@@ -8469,10 +9364,6 @@
    "type": "coString",
    "nullable": false
   },
-  "num_extruders": {
-   "type": "coInt",
-   "nullable": false
-  },
   "layer_num": {
    "type": "coInt",
    "nullable": false
@@ -8483,10 +9374,6 @@
   },
   "max_layer_z": {
    "type": "coFloat",
-   "nullable": false
-  },
-  "filament_extruder_id": {
-   "type": "coInt",
    "nullable": false
   }
  }

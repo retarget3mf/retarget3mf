@@ -6,7 +6,7 @@ import { editModelSettings, MODEL_SETTINGS, readModelSettings } from './modelSet
 import { remapPaint } from './paint.ts';
 import type { ConversionReport } from './report.ts';
 import { detectSource, PROJECT_SETTINGS } from './stages/detect.ts';
-import { applyFilamentMap, planFilaments, remapRef, type FilamentMap } from './stages/filaments.ts';
+import { applyFilamentMap, padToToolheads, planFilaments, remapRef, type FilamentMap } from './stages/filaments.ts';
 import { parseBed, planPlacement } from './stages/placement.ts';
 import { buildSettings, type SettingsResult } from './stages/settings.ts';
 
@@ -45,7 +45,8 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
   const settings = readModelSettings(readText(archive, MODEL_SETTINGS));
   const geo = readGeometry(archive);
   const used = planFilaments(source.config, settings, geo, readText(archive, CUSTOM_GCODE));
-  const plan = opts.filamentMap ? mapFilaments(used, opts.filamentMap) : used;
+  const mapped = opts.filamentMap ? mapFilaments(used, opts.filamentMap) : used;
+  const plan = printer.slots.kind === 'toolheads' ? padToToolheads(mapped, printer.slots.count) : mapped;
 
   const towerWidth = Number(first(source.config.prime_tower_width)) || 35;
   const placement = planPlacement(geo, settings, {
@@ -54,7 +55,7 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
     ...(source.config.wipe_tower_x && source.config.wipe_tower_y && { wipeTower: { x: source.config.wipe_tower_x, y: source.config.wipe_tower_y } }),
   }, parseBed(target.machine.printable_area));
 
-  const result = buildSettings({ source: source.config, plan, target, slicer, options, ...(placement.wipeTower && { wipeTower: placement.wipeTower }) });
+  const result = buildSettings({ source: source.config, plan, usedFilaments: mapped.keep.length, target, slicer, options, ...(placement.wipeTower && { wipeTower: placement.wipeTower }) });
   const problems = validateConfig(result.config, options.slicer);
   if (problems.length) throw new ConversionError('invalid-project', `Internal error while converting (${problems.join('; ')}). Please report this file.`);
 
@@ -62,15 +63,15 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
   for (const [path, data] of archive) if (!STALE.test(path)) output.set(path, data);
   setText(output, PROJECT_SETTINGS, serializeProjectConfig(result.config));
   const unmappedPaint = rewriteModels(output, plan.map, placement.shifts);
-  rewriteModelSettings(output, plan.keep.length, result.convertOverride);
+  rewriteModelSettings(output, plan.keep.length, printer.slots.kind === 'toolheads', result.convertOverride);
   rewriteSideFiles(output, plan.map, result.convertOverride);
 
   const warnings = [...result.warnings];
   if (unmappedPaint.size) warnings.push(`Paint for filament(s) ${[...unmappedPaint].join(', ')} is on parts that never print or beyond the filament list; it was cleared.`);
-  if (plan.keep.length > printer.slots.count) warnings.unshift(`The project uses ${plan.keep.length} filaments but the ${printer.displayName} has ${printer.slots.count} slot(s). Merge colours before printing.`);
+  if (mapped.keep.length > printer.slots.count) warnings.unshift(`The project uses ${mapped.keep.length} filaments but the ${printer.displayName} has ${printer.slots.count} ${printer.slots.kind === 'toolheads' ? 'toolhead' : 'slot'}(s). Merge colours before printing.`);
   const unused = asList(source.config.filament_colour).length - used.keep.length;
   if (unused > 0) warnings.push(`${unused} unused filament(s) were removed and the rest renumbered.`);
-  const merged = used.keep.length - plan.keep.length;
+  const merged = used.keep.length - mapped.keep.length;
   if (merged > 0) warnings.push(`${merged} colour(s) were merged onto shared slots as you chose.`);
   for (const p of placement.plates) if (!p.fits) warnings.push(`Plate ${p.id} is larger than the ${printer.displayName} bed; the objects were centred but not scaled.`);
 
@@ -121,14 +122,15 @@ function rewriteModels(archive: Archive, map: ReadonlyMap<number, number>, shift
   return unmapped;
 }
 
-function rewriteModelSettings(archive: Archive, filaments: number, convertOverride: OverrideConverter): void {
+function rewriteModelSettings(archive: Archive, filaments: number, toolheads: boolean, convertOverride: OverrideConverter): void {
   const text = readText(archive, MODEL_SETTINGS);
   if (!text) return;
   setText(archive, MODEL_SETTINGS, editModelSettings(text, {
     config: (key, value, owner) => convertOverride(key, value, `object "${owner}"`),
     plate: (key, value) => {
       if (STALE_PLATE_KEYS.has(key)) return [];
-      if (key === 'filament_maps') return [[key, Array(filaments).fill('1').join(' ')]];
+      // Filament → nozzle: one shared nozzle (SEMM / single), or filament i on toolhead i.
+      if (key === 'filament_maps') return [[key, Array.from({ length: filaments }, (_, i) => (toolheads ? i + 1 : 1)).join(' ')]];
       return [[key, value]];
     },
   }));

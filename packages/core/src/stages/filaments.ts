@@ -58,6 +58,16 @@ export function planFilaments(config: Config, settings: ModelSettings, geo: Mode
   return { keep, map: new Map(keep.map((n, i) => [n, i + 1])), hasPaintedSupports };
 }
 
+/**
+ * Printers with independent toolheads get one filament per toolhead: OrcaSlicer pads the filament list to the
+ * nozzle count anyway (OrcaSlicer@v2.4.2:src/libslic3r/PresetBundle.cpp:5195-5200). Spare toolheads repeat the first
+ * filament's settings; nothing is assigned to them.
+ */
+export function padToToolheads(plan: FilamentPlan, toolheads: number): FilamentPlan {
+  const spare = Math.max(0, toolheads - plan.keep.length);
+  return spare === 0 ? plan : { ...plan, keep: [...plan.keep, ...Array<number>(spare).fill(plan.keep[0]!)] };
+}
+
 /** Remaps a 1-based filament reference; 0 ("default") stays 0. */
 export function remapRef(value: string, map: ReadonlyMap<number, number>): string {
   const n = Number(value);
