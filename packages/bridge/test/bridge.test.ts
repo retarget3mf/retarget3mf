@@ -13,6 +13,16 @@ describe('parseSlicerLink', () => {
     expect(parseSlicerLink(href)).toEqual({ url: signed, name: 'Carabiner_Heart.3mf' });
   });
 
+  it('reads Creality Cloud links without forwarding the login code', () => {
+    const url = 'https://file2-cdn.creality.com/model/a.3mf?sig=1';
+    expect(parseSlicerLink(`crealityprintlink://open?file=${encodeURIComponent(url)}&name=${encodeURIComponent('Skip Bo')}&code=SECRET&lang=en`)).toEqual({ url, name: 'Skip Bo.3mf' });
+  });
+
+  it('reads Snapmaker Space links', () => {
+    const url = 'https://cdn-model.snapmaker.com/models/x.3mf?token=t';
+    expect(parseSlicerLink(`snapmaker-orca://open?${new URLSearchParams({ file: url, name: 'Jumping Spider' })}`)).toEqual({ url, name: 'Jumping Spider.3mf' });
+  });
+
   it('ignores other links', () => {
     expect(parseSlicerLink('https://makerworld.com')).toBeUndefined();
     expect(parseSlicerLink('bambustudio://open?file=%E0%A4%A')).toBeUndefined();

@@ -2,7 +2,7 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chromium, expect, test } from '@playwright/test';
-import { fakeMakerworldPage } from './fakeMakerworld.ts';
+import { fakeMakerworldPage } from './fakeSites.ts';
 
 const EXTENSION = resolve(import.meta.dirname, '../dist/chrome-mv3');
 const SIGNED = 'https://makerworld.bblmw.com/makerworld/model/X/1/instance/a.3mf?exp=1&key=k';

@@ -1,5 +1,5 @@
 import { isAllowedDownloadUrl, parseSlicerLink } from '@retarget3mf/bridge';
-import { findImportButton, findMenu, findStudioTarget, MARKER } from '../src/makerworld.ts';
+import { findImportButton, findMenu, findSlicerTarget, MARKER, siteFor } from '../src/sites.ts';
 import { idleLabel, type AppStatus, type ButtonState, type ToBackground } from '../src/messages.ts';
 
 const CAPTURE_TIMEOUT_MS = 90_000;
@@ -21,10 +21,12 @@ const BANNER_STYLE = `
 `;
 
 export default defineContentScript({
-  matches: ['https://makerworld.com/*'],
+  matches: ['https://makerworld.com/*', 'https://www.crealitycloud.com/*', 'https://crealitycloud.com/*', 'https://space.snapmaker.com/*'],
   runAt: 'document_idle',
   async main(ctx) {
-    await injectScript('/makerworld-main.js', { keepInDom: true });
+    const site = siteFor(location.hostname);
+    if (!site) return;
+    await injectScript('/page-hook.js', { keepInDom: true });
     let status: AppStatus = { connected: false };
     let waiting = false;
     const rows = new Set<HTMLElement>();
@@ -67,9 +69,9 @@ export default defineContentScript({
       if (message.type === 'button-state' && message.state) show(message.state);
     });
 
-    /** While we wait, MakerWorld may ask to confirm "Import into Bambu Studio"; explain inside its dialog what will happen. */
+    /** While we wait, the site may ask to confirm importing into its slicer; explain inside its dialog what will happen. */
     const annotateImportDialog = () => {
-      const button = findImportButton(document);
+      const button = findImportButton(document, site);
       if (!button || document.querySelector(`[${MARKER}="banner"]`)) return;
       let block = button;
       while (block.parentElement && block.parentElement.childElementCount < 2) block = block.parentElement;
@@ -81,15 +83,15 @@ export default defineContentScript({
       const box = document.createElement('div');
       const name = document.createElement('b');
       name.textContent = 'Retarget3MF: ';
-      box.append(name, `press “Import into Bambu Studio” below. The project opens in Retarget3MF${status.printer ? ` for ${status.printer.replace(/^Flashforge /, '')}` : ''} instead of Bambu Studio.`);
+      box.append(name, `press “${site.importText}” below. The project opens in Retarget3MF${status.printer ? ` for ${status.printer.replace(/^Flashforge /, '')}` : ''} instead of ${site.slicerName}.`);
       shadow.append(style, box);
       block.insertAdjacentElement('beforebegin', host);
       toast?.host.remove();
     };
 
     const start = async (studio: HTMLElement | undefined) => {
-      if (!studio) return show({ kind: 'error', label: 'Could not find MakerWorld’s “Open in Bambu Studio”. Pick a print profile and try again.' });
-      show({ kind: 'busy', label: 'Getting the project from MakerWorld…' });
+      if (!studio) return show({ kind: 'error', label: `Could not find “${site.slicerText}”. Pick a print profile and try again.` });
+      show({ kind: 'busy', label: 'Getting the project…' });
       waiting = true;
       document.documentElement.setAttribute(ARMED, String(Date.now() + CAPTURE_TIMEOUT_MS));
       const href = await new Promise<string | undefined>((resolve) => {
@@ -101,7 +103,7 @@ export default defineContentScript({
           resolve(String(e.data.href));
         };
         window.addEventListener('message', onMessage);
-        // MakerWorld fetches a signed link for the selected print profile; it may first ask to log in or confirm.
+        // The site fetches a signed link for the selected print profile; it may first ask to log in or confirm.
         studio.click();
       });
       waiting = false;
@@ -109,32 +111,32 @@ export default defineContentScript({
       const link = href ? parseSlicerLink(href) : undefined;
       if (!link || !isAllowedDownloadUrl(link.url)) {
         document.documentElement.removeAttribute(ARMED);
-        return show({ kind: 'error', label: href ? 'MakerWorld returned an unexpected link; this page may have changed.' : 'Log in to MakerWorld (or confirm its dialog), then try again.' });
+        return show({ kind: 'error', label: href ? 'The site returned an unexpected link; this page may have changed.' : 'Log in to the site (or confirm its dialog), then try again.' });
       }
-      await browser.runtime.sendMessage({ type: 'open', url: link.url, name: link.name, pageUrl: location.href } satisfies ToBackground);
+      await browser.runtime.sendMessage({ type: 'open', url: link.url, name: link.name, site: site.id, pageUrl: location.href } satisfies ToBackground);
     };
 
     /** Adds our row to MakerWorld's download menu, copied from one of its own rows so it matches the site's style. */
     const attach = () => {
-      const menu = findMenu(document);
+      const menu = findMenu(document, site);
       if (!menu || menu.rows[0]?.parentElement?.querySelector(`[${MARKER}]`)) return;
-      const template = menu.studioRow ?? menu.rows.find((r) => r.childElementCount === 0) ?? menu.rows[0]!;
+      const template = menu.slicerRow ?? menu.rows.find((r) => r.childElementCount === 0) ?? menu.rows[0]!;
       const row = template.cloneNode(false) as HTMLElement;
       row.setAttribute(MARKER, 'row');
       row.setAttribute('role', 'menuitem');
       row.textContent = idleLabel(status.printer);
       row.addEventListener('click', (e) => {
         e.stopPropagation();
-        // Logged in, "Open in Bambu Studio" is a row of this menu and clicking it closes the menu; otherwise it is the
-        // main button and the menu is closed the way a click elsewhere would.
-        const studio = menu.studioRow ?? findStudioTarget(document);
-        if (!menu.studioRow) document.body.click();
+        // The site's slicer control is either a row of this menu (clicking it closes the menu) or the main button,
+        // in which case the menu is closed the way a click elsewhere would.
+        const studio = menu.slicerRow ?? findSlicerTarget(document, site);
+        if (!menu.slicerRow) document.body.click();
         void start(studio);
       });
       rows.add(row);
       void refreshStatus();
-      // Right under "Open in Bambu Studio" when it is a menu row; first otherwise (it is then the main button).
-      if (menu.studioRow) menu.studioRow.insertAdjacentElement('afterend', row);
+      // Right under the site's "Open in <slicer>" row when it is in the menu; first otherwise.
+      if (menu.slicerRow) menu.slicerRow.insertAdjacentElement('afterend', row);
       else menu.rows[0]!.insertAdjacentElement('beforebegin', row);
     };
 

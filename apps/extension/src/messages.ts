@@ -1,8 +1,8 @@
-import type { BridgeResponse } from '@retarget3mf/bridge';
+import type { BridgeResponse, SourceSite } from '@retarget3mf/bridge';
 
 /** content script → background */
 export type ToBackground =
-  | { type: 'open'; url: string; name: string; pageUrl: string }
+  | { type: 'open'; url: string; name: string; site: SourceSite; pageUrl: string }
   | { type: 'status' };
 
 /** background → content script / popup */

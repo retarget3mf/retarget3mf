@@ -48,3 +48,49 @@ export function fakeMakerworldPage(signedUrl: string, loggedIn: boolean, confirm
     document.body.addEventListener('click', closeMenu);
   </script></body></html>`;
 }
+
+/** Creality Cloud (2026-10-20): "Download 3MF" + chevron; the list holds "Open in Creality Print", which clicks a hidden crealityprintlink:// link. */
+export function fakeCrealityPage(signedUrl: string): string {
+  return `<!doctype html><html><head><meta charset="utf-8"></head><body style="background:#fff;font:16px system-ui;padding:24px">
+  <div class="action-btn-box"><div class="all-operate-btn" style="display:flex;width:420px;background:#17cc5f;border-radius:8px">
+    <div class="operate-box" style="flex:1;padding:12px;text-align:center">Download 3MF</div><div class="choose-operate" style="padding:12px;cursor:pointer">▾</div></div></div>
+  <script>
+    document.querySelector('.choose-operate').addEventListener('click', () => {
+      if (document.querySelector('.operate-box-list')) return;
+      const list = document.createElement('div');
+      list.className = 'operate-box-list';
+      for (const t of ['Download 3MF', 'View STL/CAD Files', 'Open in Creality Print']) {
+        const row = document.createElement('div'); row.className = 'open operate-item'; row.style.cssText = 'padding:10px;width:400px;cursor:pointer'; row.textContent = t;
+        if (t === 'Open in Creality Print') row.addEventListener('click', () => {
+          const a = document.createElement('a');
+          a.href = 'crealityprintlink://open?file=' + encodeURIComponent(${JSON.stringify(signedUrl)}) + '&name=' + encodeURIComponent('Skip Bo Case') + '&code=SECRET&lang=en';
+          a.click();
+        });
+        list.append(row);
+      }
+      document.querySelector('.action-btn-box').append(list);
+    });
+  </script></body></html>`;
+}
+
+/** Snapmaker Space (2026-10-20): a role="menu" of icon buttons; "Open in Snapmaker Orca" assigns location.href. */
+export function fakeSnapmakerPage(signedUrl: string): string {
+  return `<!doctype html><html><head><meta charset="utf-8"></head><body style="background:#111;color:#eee;font:16px system-ui;padding:24px">
+  <div style="display:flex;width:420px"><button type="button" style="flex:1">Download 3MF</button><button type="button" aria-haspopup="menu" id="more">▾</button></div>
+  <div id="mount"></div>
+  <script>
+    document.getElementById('more').addEventListener('click', () => {
+      const menu = document.createElement('div'); menu.setAttribute('role', 'menu');
+      for (const t of ['Download 3MF', 'Open in Snapmaker Orca']) {
+        const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'menuitem'); b.style.cssText = 'display:block;width:420px;padding:10px';
+        b.innerHTML = '<svg width="12" height="12"></svg>' + t;
+        if (t === 'Open in Snapmaker Orca') b.addEventListener('click', async () => {
+          await new Promise((r) => setTimeout(r, 30));
+          window.location.href = 'snapmaker-orca://open?' + new URLSearchParams({ file: ${JSON.stringify(signedUrl)}, name: 'Jumping Spider' });
+        });
+        menu.append(b);
+      }
+      document.getElementById('mount').replaceChildren(menu);
+    });
+  </script></body></html>`;
+}

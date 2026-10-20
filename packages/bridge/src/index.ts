@@ -4,7 +4,7 @@ export const NATIVE_HOST_NAME = 'app.retarget3mf.bridge';
 /** Fixed by the `key` in the extension manifest (apps/extension/.keys); store IDs are added when published. */
 export const EXTENSION_IDS = ['gkpcbbjkoifgehdhgdbegojpjaaplfgp'];
 
-export type SourceSite = 'makerworld';
+export type SourceSite = 'makerworld' | 'crealitycloud' | 'snapmaker';
 
 export type BridgeRequest =
   | { id: number; type: 'ping' }
@@ -16,10 +16,14 @@ export type BridgeResponse =
   | { id: number; type: 'done'; outcome: 'opened' | 'converted' | 'review'; message: string }
   | { id: number; type: 'error'; message: string };
 
-// Hosts BambuStudio itself trusts for "Open in Bambu Studio" downloads (BambuStudio GUI_App.cpp is_trusted_model_download_url).
-const MAKERWORLD_HOSTS = new Set([
+// File hosts of the supported model sites. MakerWorld: the hosts BambuStudio itself trusts (GUI_App.cpp
+// is_trusted_model_download_url). Creality Cloud and Snapmaker Space: file CDNs referenced by their site code
+// (2026-10-20) plus the Creality bucket reported by mbv06/slicer-uri-bridge.
+const DOWNLOAD_HOSTS = new Set([
   'makerworld.bblmw.com', 'public-cdn.bblmw.com', 'makerworld.bblmw.cn',
   'or-cloud-makerlab-prod.s3-accelerate.amazonaws.com', 'sh-makerlab-prod.oss-cn-shanghai.aliyuncs.com',
+  'file-cdn.creality.com', 'file2-cdn.creality.com', 'internal-creality-usa.oss-accelerate.aliyuncs.com',
+  'cdn-model.snapmaker.com', 'public.resource.snapmaker.com',
 ]);
 
 /** Only https downloads from known model-site CDNs, without credentials in the URL. */
@@ -30,28 +34,41 @@ export function isAllowedDownloadUrl(raw: string): boolean {
   } catch {
     return false;
   }
-  return url.protocol === 'https:' && !url.username && !url.password && MAKERWORLD_HOSTS.has(url.hostname);
+  return url.protocol === 'https:' && !url.username && !url.password && DOWNLOAD_HOSTS.has(url.hostname);
 }
 
 export interface SlicerLink { url: string; name: string }
 
+export const SLICER_SCHEMES = /^(bambustudio|bambustudioopen|bambusuite|crealityprintlink|snapmaker-orca):\/\//i;
+
 /**
- * The project URL inside a slicer deep link: `bambustudio://open?file=<enc>`, `bambustudioopen://<enc>` (macOS) or
- * `bambusuite://open?file=<enc>[&openMode=...]`. MakerWorld appends `&name=<file name>` inside the encoded URL.
+ * The project URL inside a slicer deep link:
+ * - MakerWorld: `bambustudio://open?file=<enc url&name=…>`, `bambustudioopen://<enc>` (macOS), `bambusuite://open?file=…`;
+ *   the name sits inside the encoded URL.
+ * - Creality Cloud: `crealityprintlink://open?file=<enc>&name=<enc>&code=…&lang=…` (the login `code` is ignored).
+ * - Snapmaker Space: `snapmaker-orca://open?file=<enc>&name=<enc>`.
  */
 export function parseSlicerLink(href: string): SlicerLink | undefined {
-  const m = href.match(/^(?:bambustudio|bambusuite):\/\/open\/?\?file=([^&]+)/i) ?? href.match(/^bambustudioopen:\/\/(.+)$/i);
-  if (!m) return undefined;
-  let decoded: string;
+  if (!SLICER_SCHEMES.test(href)) return undefined;
+  let file: string | undefined;
+  let name: string | undefined;
   try {
-    decoded = decodeURIComponent(m[1]!);
+    const mac = href.match(/^bambustudioopen:\/\/(.+)$/i);
+    if (mac) file = decodeURIComponent(mac[1]!);
+    else {
+      const query = new URLSearchParams(href.slice(href.indexOf('?') + 1));
+      file = query.get('file') ?? undefined;
+      name = query.get('name') ?? undefined;
+    }
   } catch {
     return undefined;
   }
-  const at = decoded.lastIndexOf('&name=');
-  const url = at >= 0 ? decoded.slice(0, at) : decoded;
-  const name = at >= 0 ? decoded.slice(at + 6) : (url.split('?')[0]!.split('/').pop() ?? 'model.3mf');
-  return { url, name: name.toLowerCase().endsWith('.3mf') ? name : `${name}.3mf` };
+  // Malformed escapes decode to U+FFFD; anything that is not a plain https URL is not a project link.
+  if (!file || !/^https:\/\/[^\uFFFD]+$/.test(file)) return undefined;
+  const at = file.lastIndexOf('&name=');
+  const url = at >= 0 ? file.slice(0, at) : file;
+  const base = name ?? (at >= 0 ? file.slice(at + 6) : (url.split('?')[0]!.split('/').pop() ?? 'model'));
+  return { url, name: base.toLowerCase().endsWith('.3mf') ? base : `${base}.3mf` };
 }
 
 /** Native messaging framing: 32-bit little-endian length, then UTF-8 JSON. */

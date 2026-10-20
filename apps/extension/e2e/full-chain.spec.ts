@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path';
 import { _electron as electron, chromium, expect, test } from '@playwright/test';
 import { EXTENSION_IDS, NATIVE_HOST_NAME } from '@retarget3mf/bridge';
 import { bambuProject } from '../../../packages/core/test/fixtures.ts';
-import { fakeMakerworldPage } from './fakeMakerworld.ts';
+import { fakeMakerworldPage } from './fakeSites.ts';
 
 const EXTENSION = resolve(import.meta.dirname, '../dist/chrome-mv3');
 const DESKTOP = resolve(import.meta.dirname, '../../desktop');

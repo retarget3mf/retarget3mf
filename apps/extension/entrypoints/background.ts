@@ -48,7 +48,7 @@ export default defineBackground(() => {
     }
     const tabId = sender.tab?.id;
     if (message.type !== 'open' || tabId === undefined || !isAllowedDownloadUrl(message.url)) return false;
-    request({ type: 'open', url: message.url, name: message.name, site: 'makerworld', pageUrl: message.pageUrl } as Omit<BridgeRequest, 'id'>, (r) => {
+    request({ type: 'open', url: message.url, name: message.name, site: message.site, pageUrl: message.pageUrl } as Omit<BridgeRequest, 'id'>, (r) => {
       const state = stateFor(r);
       void browser.tabs.sendMessage(tabId, { type: 'button-state', state }).catch(() => {});
       if (state.kind !== 'busy') pending.forEach((fn, id) => fn === undefined && pending.delete(id));
