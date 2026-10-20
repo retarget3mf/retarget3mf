@@ -15,10 +15,12 @@ type Stage =
   | { kind: 'busy'; message: string }
   | { kind: 'review'; project: InspectResult }
   | { kind: 'done'; project: InspectResult; result: ConvertResult; launchError?: string }
-  | { kind: 'report'; project?: InspectResult; result: ConvertResult }
+  | { kind: 'report'; project?: InspectResult; result: ConvertResult; backTo?: 'history' }
+  | { kind: 'history' }
   | { kind: 'settings' };
 
 const api = window.desktop;
+const HOME_HISTORY = 5;
 
 export function App() {
   const [state, setState] = useState<AppState>();
@@ -29,7 +31,7 @@ export function App() {
 
   useEffect(() => { void api.getState().then(setState); }, []);
   // Conversions can also finish outside this window (Finder, browser extension); refresh whenever the home screen shows.
-  useEffect(() => { if (stage.kind === 'idle' || stage.kind === 'done') void api.listHistory().then(setHistory); }, [stage]);
+  useEffect(() => { if (stage.kind === 'idle' || stage.kind === 'done' || stage.kind === 'history') void api.listHistory().then(setHistory); }, [stage]);
   useEffect(() => api.onEvent((event) => setPending((queue) => [...queue, event])), []);
   // Events from the OS fast path wait until onboarding is done.
   useEffect(() => {
@@ -46,6 +48,18 @@ export function App() {
   const save = async (patch: Partial<Settings>) => setState(await api.saveSettings(patch));
   const locate = async (kind: Settings['slicer']) => setState(await api.pickSlicer(kind));
   if (!state.settings.printer) return <Onboarding state={state} onDone={save} onPickSlicer={locate} />;
+
+  const historyActions = (backTo: 'history' | undefined) => ({
+    onOpen: async (e: HistoryEntry) => { const r = await api.openInSlicer(e.outputPath, state.settings.slicer); if (!r.ok) setError(r.error); },
+    onShow: (e: HistoryEntry) => api.showInFolder(e.outputPath),
+    onReport: async (e: HistoryEntry) => {
+      const result = await api.historyReport(e.id);
+      if (result) setStage({ kind: 'report', result, ...(backTo && { backTo }) });
+      else setError('The report for this conversion is no longer available.');
+    },
+    onSource: (e: HistoryEntry) => api.openSourcePage(e.id),
+    onRemove: async (e: HistoryEntry, trash: boolean) => setHistory(await api.removeHistory(e.id, trash)),
+  });
 
   async function open(path: string) {
     setError(undefined);
@@ -71,20 +85,21 @@ export function App() {
 
   return (
     <div className={styles.app}>
-      <Header state={state} onChange={save} onSettings={() => setStage({ kind: 'settings' })} />
+      <Header state={state} onChange={save} onSettings={() => setStage({ kind: 'settings' })} onHistory={() => setStage({ kind: 'history' })} />
       <main className={styles.main}>
         {error && <div role="alert" className={styles.error}>{error}</div>}
         {stage.kind === 'idle' && (
           <>
             <DropZone onFile={open} />
-            <HistoryList
-              entries={history}
-              onOpen={async (e) => { const r = await api.openInSlicer(e.outputPath, state.settings.slicer); if (!r.ok) setError(r.error); }}
-              onShow={(e) => api.showInFolder(e.outputPath)}
-              onReport={async (e) => { const result = await api.historyReport(e.id); if (result) setStage({ kind: 'report', result }); else setError('The report for this conversion is no longer available.'); }}
-              onSource={(e) => api.openSourcePage(e.id)}
-              onRemove={async (e, trash) => setHistory(await api.removeHistory(e.id, trash))}
-            />
+            <HistoryList title="Recent conversions" limit={HOME_HISTORY} onShowAll={() => setStage({ kind: 'history' })} entries={history} {...historyActions(undefined)} />
+          </>
+        )}
+        {stage.kind === 'history' && (
+          <>
+            <div className={styles.pageHead}>
+              <button type="button" onClick={() => setStage({ kind: 'idle' })}>← Back</button>
+            </div>
+            <HistoryList title="History" entries={history} emptyText="No conversions yet. Projects you convert, from here, Finder or the browser extension, appear here." {...historyActions('history')} />
           </>
         )}
         {stage.kind === 'busy' && <p className={styles.busy} aria-live="polite">{stage.message}</p>}
@@ -122,7 +137,7 @@ export function App() {
         {stage.kind === 'report' && (
           <ReportView
             result={stage.result}
-            onBack={() => setStage(stage.project ? { kind: 'done', project: stage.project, result: stage.result } : { kind: 'idle' })}
+            onBack={() => setStage(stage.project ? { kind: 'done', project: stage.project, result: stage.result } : { kind: stage.backTo ?? 'idle' })}
             onExport={(format) => api.exportReport(stage.result, format)}
           />
         )}

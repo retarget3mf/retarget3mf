@@ -4,6 +4,12 @@ import styles from './HistoryList.module.css';
 
 interface Props {
   entries: HistoryEntry[];
+  title: string;
+  /** Show only the newest entries, with a link to the full history. */
+  limit?: number;
+  onShowAll?: () => void;
+  /** Shown when there are no entries; without it the section is hidden. */
+  emptyText?: string;
   onOpen: (entry: HistoryEntry) => void;
   onShow: (entry: HistoryEntry) => void;
   onReport: (entry: HistoryEntry) => void;
@@ -13,14 +19,19 @@ interface Props {
 
 const when = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 
-export function HistoryList({ entries, onOpen, onShow, onReport, onSource, onRemove }: Props) {
+export function HistoryList({ entries, title, limit, onShowAll, emptyText, onOpen, onShow, onReport, onSource, onRemove }: Props) {
   const [confirming, setConfirming] = useState<string>();
-  if (entries.length === 0) return null;
+  if (entries.length === 0 && !emptyText) return null;
+  const shown = limit ? entries.slice(0, limit) : entries;
   return (
     <section className={styles.history} aria-labelledby="history-title">
-      <h2 id="history-title">Recent conversions</h2>
+      <div className={styles.head}>
+        <h2 id="history-title">{title}</h2>
+        {onShowAll && entries.length > shown.length && <button type="button" className={styles.link} onClick={onShowAll}>See all ({entries.length})</button>}
+      </div>
+      {entries.length === 0 && <p className={styles.empty}>{emptyText}</p>}
       <ul>
-        {entries.map((e) => (
+        {shown.map((e) => (
           <li key={e.id} className={e.exists ? undefined : styles.missing}>
             {e.thumbnail ? <img src={e.thumbnail} alt="" width={56} height={56} /> : <span className={styles.noThumb} aria-hidden>3MF</span>}
             <div className={styles.info}>

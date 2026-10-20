@@ -13,3 +13,6 @@
 .actions button { padding: 6px 10px; font-size: 13px; }
 .danger { color: var(--error-text); border-color: var(--error-text); }
 .missing { opacity: 0.6; }
+.head { display: flex; justify-content: space-between; align-items: baseline; }
+.head .link { font-size: 13px; }
+.empty { color: var(--muted); margin: 0; padding: 24px; text-align: center; border: 1px dashed var(--border); border-radius: 12px; }

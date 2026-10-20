@@ -19,6 +19,11 @@ test('onboarding → open → map slots → convert → report', async () => {
   await page.getByLabel('Flashforge AD5X').check();
   await page.getByRole('button', { name: 'Start' }).click();
 
+  // History is reachable from the header and explains itself while empty.
+  await page.getByRole('button', { name: 'History' }).click();
+  await expect(page.getByText(/No conversions yet/)).toBeVisible();
+  await page.getByRole('button', { name: '← Back' }).click();
+
   await page.getByRole('button', { name: 'Open file…' }).click();
   await expect(page.getByRole('heading', { name: 'Test cube' })).toBeVisible();
   await expect(page.getByText('not used by any object, will be removed')).toHaveCount(2);
@@ -43,13 +48,16 @@ test('onboarding → open → map slots → convert → report', async () => {
   await page.getByRole('button', { name: 'Convert another' }).click();
   await expect(page.getByRole('heading', { name: 'Recent conversions' })).toBeVisible();
   await expect(page.getByText('Test cube')).toBeVisible();
+  await page.getByRole('button', { name: 'History' }).click();
+  await expect(page.getByRole('heading', { name: 'History', exact: true })).toBeVisible();
   await shot('5-history');
   await page.getByRole('button', { name: 'Report' }).click();
   await expect(page.getByRole('heading', { name: 'Conversion report' })).toBeVisible();
   await page.getByRole('button', { name: 'Back' }).click();
+  await expect(page.getByRole('heading', { name: 'History', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Remove Test cube' }).click();
   await page.getByRole('button', { name: 'Remove from list' }).click();
-  await expect(page.getByRole('heading', { name: 'Recent conversions' })).toHaveCount(0);
+  await expect(page.getByText(/No conversions yet/)).toBeVisible();
   expect(existsSync(join(dir, 'cube - AD5X.3mf'))).toBe(true);
   await app.close();
 });
