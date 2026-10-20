@@ -8,8 +8,8 @@ export function validateConfig(config: Config, options: Readonly<Record<string, 
   const problems: string[] = [];
   if (n === 0) problems.push('filament_colour is empty');
   for (const [key, value] of Object.entries(config)) {
-    if (ruleFor(key)?.section === 'filament' && typeof value !== 'string' && value.length !== n) {
-      problems.push(`${key} has ${value.length} values for ${n} filaments`);
+    if (ruleFor(key)?.section === 'filament' && /s$/.test(options[key]?.type ?? '') && asList(value).length !== n) {
+      problems.push(`${key} has ${asList(value).length} values for ${n} filaments`);
     }
     if (!options[key] && !['name', 'from', 'version'].includes(key)) problems.push(`${key} is not a setting of the target slicer`);
   }

@@ -66,7 +66,18 @@ function compatibleWith(idx: Map<string, Json>, type: PresetType, machine: strin
   return names.sort();
 }
 
-interface OptionInfo { type: string; nullable: boolean; min?: number; max?: number }
+interface OptionInfo { type: string; nullable: boolean; min?: number; max?: number; default?: string }
+
+// First element of `set_default_value(new ConfigOptionXs { a, b })`, as the string a project file would hold.
+function defaultValue(body: string): string | undefined {
+  const m = body.match(/set_default_value\(\s*new ConfigOption\w+\s*[({]\s*([^)}]*)[)}]/);
+  if (!m) return undefined;
+  const first = m[1]!.split(',')[0]!.trim();
+  if (first === 'true' || first === 'false') return first === 'true' ? '1' : '0';
+  if (/^"/.test(first)) return first.replace(/^"|"$/g, '');
+  if (/^-?[\d.]+(e-?\d+)?f?$/.test(first)) return String(Number(first.replace(/f$/, '')));
+  return undefined;
+}
 
 // `this->add("key", coType)` / `add_nullable(...)` followed by `def->min = x;`; loop-generated keys are not covered.
 function extractOptions(printConfigCpp: string): Record<string, OptionInfo> {
@@ -79,7 +90,8 @@ function extractOptions(printConfigCpp: string): Record<string, OptionInfo> {
     const num = (field: string) => body.match(new RegExp(`def->${field}\\s*=\\s*(-?[\\d.]+)`))?.[1];
     const min = num('min');
     const max = num('max');
-    out[m[2]!] = { type: m[3]!, nullable: Boolean(m[1]), ...(min && { min: Number(min) }), ...(max && { max: Number(max) }) };
+    const def = defaultValue(body);
+    out[m[2]!] = { type: m[3]!, nullable: Boolean(m[1]), ...(min && { min: Number(min) }), ...(max && { max: Number(max) }), ...(def !== undefined && { default: def }) };
   });
   return out;
 }

@@ -136,7 +136,8 @@ describe('convert: errors explain what to do', () => {
 
   it('rejects non-zip input', () => expectCode(strToU8('hello'), 'not-a-zip'));
   it('rejects geometry-only 3MF', () => expectCode(zipSync({ '3D/3dmodel.model': strToU8('<model/>') }), 'not-a-project'));
-  it('rejects PrusaSlicer projects for now', () => expectCode(zipSync({ '3D/3dmodel.model': strToU8('<model/>'), 'Metadata/Slic3r_PE.config': strToU8('') }), 'unsupported-source'));
+  it('rejects PrusaSlicer 3.0 projects for now', () => expectCode(zipSync({ '3D/3dmodel.model': strToU8('<model/>'), 'Metadata/PrusaSlicer3_project.json': strToU8('{}') }), 'unsupported-source'));
+  it('explains a project without a bed size', () => expectCode(zipSync({ '3D/3dmodel.model': strToU8('<model/>'), 'Metadata/Slic3r_PE.config': strToU8('') }), 'invalid-project'));
   it('rejects unknown printers', () => expect(convert(bambuProject(), { printer: 'x' as never })).rejects.toThrow(/Unknown printer/));
 });
 

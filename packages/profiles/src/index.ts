@@ -7,7 +7,7 @@ export { PRINTERS, type PrinterDefinition, type PrinterId };
 /** Flattened preset: every key a vendor JSON sets along the inherits chain. Values are strings or string arrays. */
 export type Preset = Readonly<Record<string, string | readonly string[]>>;
 export type SlicerId = 'orca' | 'flashstudio';
-export interface OptionInfo { type: string; nullable: boolean; min?: number; max?: number }
+export interface OptionInfo { type: string; nullable: boolean; min?: number; max?: number; /** First element of the slicer's default value. */ default?: string }
 
 export interface TargetProfiles {
   printer: PrinterDefinition;

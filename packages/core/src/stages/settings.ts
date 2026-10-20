@@ -146,22 +146,29 @@ const supported = (ctx: Ctx, key: string) => !PRESET_META.has(key) && ctx.input.
 function chooseFilaments(input: SettingsInput, warnings: string[]): ChosenFilament[] {
   const { source, plan, target, slicer } = input;
   const types = asList(source.filament_type);
-  return plan.keep.map((f, i) => {
+  const fallbacks = new Map<string, { preset: string; slots: number[] }>();
+  const chosen = plan.keep.map((f, i) => {
     const type = types[f - 1] ?? 'PLA';
     const pick = pickFilament(type, target, slicer);
-    if (!pick.exact) warnings.push(`Filament ${i + 1} is ${type}, which has no ${target.printer.displayName} profile in this slicer; using "${pick.name}". Check its temperatures before printing.`);
+    if (!pick.exact) fallbacks.set(type, { preset: pick.name, slots: [...(fallbacks.get(type)?.slots ?? []), i + 1] });
     return { name: pick.name, preset: target.filaments[pick.name]!, type };
   });
+  for (const [type, { preset, slots }] of fallbacks) {
+    warnings.push(`${type} (filament ${slots.join(', ')}) has no ${target.printer.displayName} profile in this slicer; "${preset}" is used instead. Check its temperatures before printing.`);
+  }
+  return chosen;
 }
 
 /** Target profile values first; author intent is layered on top. */
 function baseline(ctx: Ctx, process: Preset): void {
   for (const [k, v] of Object.entries(ctx.input.target.machine)) if (supported(ctx, k)) ctx.config[k] = v;
   for (const [k, v] of Object.entries(process)) if (supported(ctx, k)) ctx.config[k] = v;
-  for (const k of new Set(ctx.chosen.flatMap((c) => Object.keys(c.preset)))) {
-    // A key some slot presets lack is left out: the slicer fills each slot from its own preset.
-    if (!supported(ctx, k) || !ctx.chosen.every((c) => c.preset[k] !== undefined)) continue;
-    ctx.config[k] = ctx.chosen.map((c) => first(c.preset[k]) ?? '');
+  // Every per-filament option gets one value per slot (preset value, else the slicer default):
+  // the slicer's CLI rejects per-filament vectors shorter than filament_colour.
+  for (const [k, info] of Object.entries(ctx.input.options.slicer)) {
+    if (!supported(ctx, k) || ruleFor(k)?.section !== 'filament' || !isVectorType(info)) continue;
+    const values = ctx.chosen.map((c) => first(c.preset[k]) ?? info.default);
+    if (values.every((v): v is string => v !== undefined)) ctx.config[k] = values;
   }
 }
 

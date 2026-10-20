@@ -14,7 +14,7 @@ export interface FilamentSummary { from: number; to: number; type: string; colou
 export interface PlateSummary { id: number; objects: number; fits: boolean; shift: [number, number] }
 
 export interface ConversionReport {
-  source: { kind: 'bambu'; application: string; printer: string };
+  source: { kind: 'bambu' | 'prusa'; application: string; printer: string };
   target: { printer: string; slicer: string; profiles: string };
   warnings: string[];
   filaments: FilamentSummary[];

@@ -38,8 +38,8 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
   const slicer = opts.slicer ?? 'flashstudio';
   if (slicer === 'pandaforge') throw new ConversionError('unsupported-slicer', 'PandaForge output is not supported yet; choose OrcaSlicer or Flash Studio.');
 
-  const archive = readArchive(input);
-  const source = detectSource(archive);
+  const source = detectSource(readArchive(input));
+  const { archive } = source;
   const target = getTargetProfiles(printer.id);
   const options = { orca: getOptions('orca'), slicer: getOptions(slicer) };
   const settings = readModelSettings(readText(archive, MODEL_SETTINGS));
@@ -49,7 +49,7 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
 
   const towerWidth = Number(first(source.config.prime_tower_width)) || 35;
   const placement = planPlacement(geo, settings, {
-    bed: parseBed(source.config.printable_area),
+    bed: sourceBed(source.config.printable_area),
     towerWidth,
     ...(source.config.wipe_tower_x && source.config.wipe_tower_y && { wipeTower: { x: source.config.wipe_tower_x, y: source.config.wipe_tower_y } }),
   }, parseBed(target.machine.printable_area));
@@ -85,6 +85,14 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
       settings: result.changes,
     },
   };
+}
+
+function sourceBed(printableArea: Parameters<typeof parseBed>[0]) {
+  try {
+    return parseBed(printableArea);
+  } catch (cause) {
+    throw new ConversionError('invalid-project', 'The project does not say which printer bed it was made for, so the objects cannot be placed. Re-save it in its slicer and try again.', { cause });
+  }
 }
 
 function mapFilaments(plan: ReturnType<typeof planFilaments>, map: FilamentMap) {
