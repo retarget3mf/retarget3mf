@@ -9,7 +9,8 @@ const OPTIONS = {
   parseTagValue: false,
   trimValues: false,
   suppressEmptyNode: true,
-  processEntities: true,
+  // Attribute text passes through raw: the parser leaves &#NN; references undecoded but the builder would re-escape them.
+  processEntities: false,
 } as const;
 
 export interface XmlNode {

@@ -139,3 +139,47 @@ describe('convert: errors explain what to do', () => {
   it('rejects PrusaSlicer projects for now', () => expectCode(zipSync({ '3D/3dmodel.model': strToU8('<model/>'), 'Metadata/Slic3r_PE.config': strToU8('') }), 'unsupported-source'));
   it('rejects unknown printers', () => expect(convert(bambuProject(), { printer: 'x' as never })).rejects.toThrow(/Unknown printer/));
 });
+
+describe('convert: review regressions', () => {
+  it('keeps numeric character references in object names intact', async () => {
+    const name = 'Ben&apos;s &#10; caf&#233;';
+    const input = bambuProject({}, {});
+    const files = unzipSync(input);
+    files['Metadata/model_settings.config'] = strToU8(strFromU8(files['Metadata/model_settings.config']!).replace('value="Cube"/>', `value="${name}"/>`));
+    const { output } = await convert(zipSync(files), { printer: 'ad5x-0.4' });
+    expect(strFromU8(unzipSync(output)['Metadata/model_settings.config']!)).toContain(`value="${name}"`);
+  });
+
+  it('applies slicer value fixes and translations to per-object overrides', async () => {
+    const files = unzipSync(bambuProject());
+    files['Metadata/model_settings.config'] = strToU8(strFromU8(files['Metadata/model_settings.config']!)
+      .replace('<metadata key="wall_loops" value="4"/>', '<metadata key="wall_loops" value="4"/><metadata key="sparse_infill_pattern" value="rectilinear"/><metadata key="support_style" value="tree_organic"/>'));
+    const { output, report } = await convert(zipSync(files), { printer: 'ad5x-0.4' });
+    const ms = strFromU8(unzipSync(output)['Metadata/model_settings.config']!);
+    expect(ms).toContain('key="sparse_infill_pattern" value="zig-zag"');
+    expect(ms).toContain('key="support_style" value="organic"');
+    expect(report.settings.some((s) => s.key === 'object "Cube": outer_wall_speed' && s.outcome === 'dropped')).toBe(true);
+  });
+
+  it('does not force supports on for empty paint_supports attributes', async () => {
+    const files = unzipSync(bambuProject());
+    files['3D/Objects/object_1.model'] = strToU8(strFromU8(files['3D/Objects/object_1.model']!).replace('paint_supports="4"', 'paint_supports=""'));
+    const { output } = await convert(zipSync(files), { printer: 'ad5x-0.4' });
+    const config = JSON.parse(strFromU8(unzipSync(output)['Metadata/project_settings.config']!)) as Config;
+    expect(config.enable_support).toBe('0');
+  });
+
+  it('clears paint for filaments the project never prints with, instead of failing', async () => {
+    const files = unzipSync(bambuProject());
+    // A support blocker painted with filament 4: it never prints, so filament 4 is dropped.
+    files['Metadata/model_settings.config'] = strToU8(strFromU8(files['Metadata/model_settings.config']!)
+      .replace('</part>', '</part><part id="9" subtype="support_blocker"><metadata key="name" value="b"/></part>'));
+    files['3D/Objects/object_1.model'] = strToU8(strFromU8(files['3D/Objects/object_1.model']!)
+      .replace('</resources>', '<object id="9" type="other"><mesh><vertices><vertex x="0" y="0" z="0"/><vertex x="1" y="0" z="0"/><vertex x="0" y="1" z="0"/></vertices><triangles><triangle v1="0" v2="1" v3="2" paint_color="1C"/></triangles></mesh></object></resources>'));
+    files['3D/3dmodel.model'] = strToU8(strFromU8(files['3D/3dmodel.model']!)
+      .replace('</components>', '<component p:path="/3D/Objects/object_1.model" objectid="9" transform="1 0 0 0 1 0 0 0 1 0 0 0"/></components>'));
+    const { output, report } = await convert(zipSync(files), { printer: 'ad5x-0.4' });
+    expect(strFromU8(unzipSync(output)['3D/Objects/object_1.model']!)).toContain('paint_color="0"');
+    expect(report.warnings.join(' ')).toMatch(/Paint for filament\(s\) 4/);
+  });
+});

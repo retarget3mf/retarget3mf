@@ -5,11 +5,12 @@ import { MAIN_MODEL, moveItems, readGeometry, remapPaintInText, setModelMetadata
 import { editModelSettings, MODEL_SETTINGS, readModelSettings } from './modelSettings.ts';
 import { remapPaint } from './paint.ts';
 import type { ConversionReport } from './report.ts';
-import { FILAMENT_REF_KEYS, ruleFor } from './rules/index.ts';
 import { detectSource, PROJECT_SETTINGS } from './stages/detect.ts';
 import { planFilaments, remapRef } from './stages/filaments.ts';
 import { parseBed, planPlacement } from './stages/placement.ts';
-import { buildSettings } from './stages/settings.ts';
+import { buildSettings, type SettingsResult } from './stages/settings.ts';
+
+type OverrideConverter = SettingsResult['convertOverride'];
 import { validateConfig } from './stages/validate.ts';
 import { readArchive, readText, setText, writeArchive, type Archive } from './zip.ts';
 
@@ -57,11 +58,12 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
   const output: Archive = new Map();
   for (const [path, data] of archive) if (!STALE.test(path)) output.set(path, data);
   setText(output, PROJECT_SETTINGS, serializeProjectConfig(result.config));
-  rewriteModels(output, plan.map, placement.shifts);
-  rewriteModelSettings(output, plan.map, plan.keep.length);
-  rewriteSideFiles(output, plan.map);
+  const unmappedPaint = rewriteModels(output, plan.map, placement.shifts);
+  rewriteModelSettings(output, plan.keep.length, result.convertOverride);
+  rewriteSideFiles(output, plan.map, result.convertOverride);
 
   const warnings = [...result.warnings];
+  if (unmappedPaint.size) warnings.push(`Paint for filament(s) ${[...unmappedPaint].join(', ')} is on parts that never print or beyond the filament list; it was cleared.`);
   if (plan.keep.length > printer.slots.count) warnings.unshift(`The project uses ${plan.keep.length} filaments but the ${printer.displayName} has ${printer.slots.count} slot(s). Merge colours before printing.`);
   const unused = asList(source.config.filament_colour).length - plan.keep.length;
   if (unused > 0) warnings.push(`${unused} unused filament(s) were removed and the rest renumbered.`);
@@ -80,12 +82,14 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
   };
 }
 
-function rewriteModels(archive: Archive, map: ReadonlyMap<number, number>, shifts: readonly [number, number][]): void {
+/** Returns paint states that had no target filament. */
+function rewriteModels(archive: Archive, map: ReadonlyMap<number, number>, shifts: readonly [number, number][]): Set<number> {
   const identity = [...map].every(([from, to]) => from === to);
+  const unmapped = new Set<number>();
   for (const path of archive.keys()) {
     if (!path.startsWith('3D/') || !path.endsWith('.model')) continue;
     let text = readText(archive, path)!;
-    if (!identity) text = remapPaintInText(text, (hex) => remapPaint(hex, map));
+    if (!identity) text = remapPaintInText(text, (hex) => remapPaint(hex, map, (s) => unmapped.add(s)));
     if (path === MAIN_MODEL) {
       text = moveItems(text, shifts);
       text = setModelMetadata(text, 'Application', APPLICATION);
@@ -93,34 +97,27 @@ function rewriteModels(archive: Archive, map: ReadonlyMap<number, number>, shift
     }
     setText(archive, path, text);
   }
+  return unmapped;
 }
 
-function rewriteModelSettings(archive: Archive, map: ReadonlyMap<number, number>, filaments: number): void {
+function rewriteModelSettings(archive: Archive, filaments: number, convertOverride: OverrideConverter): void {
   const text = readText(archive, MODEL_SETTINGS);
   if (!text) return;
   setText(archive, MODEL_SETTINGS, editModelSettings(text, {
-    config: (key, value) => {
-      if ((FILAMENT_REF_KEYS as readonly string[]).includes(key)) return remapRef(value, map);
-      const rule = ruleFor(key);
-      return rule && rule.action !== 'drop' && rule.action !== 'replace' ? value : undefined;
-    },
+    config: (key, value, owner) => convertOverride(key, value, `object "${owner}"`),
     plate: (key, value) => {
-      if (STALE_PLATE_KEYS.has(key)) return undefined;
-      if (key === 'filament_maps') return Array(filaments).fill('1').join(' ');
-      return value;
+      if (STALE_PLATE_KEYS.has(key)) return [];
+      if (key === 'filament_maps') return [[key, Array(filaments).fill('1').join(' ')]];
+      return [[key, value]];
     },
   }));
 }
 
-function rewriteSideFiles(archive: Archive, map: ReadonlyMap<number, number>): void {
+function rewriteSideFiles(archive: Archive, map: ReadonlyMap<number, number>, convertOverride: OverrideConverter): void {
   const gcode = readText(archive, CUSTOM_GCODE);
   if (gcode) setText(archive, CUSTOM_GCODE, gcode.replace(/\bextruder="(\d+)"/g, (_, n: string) => `extruder="${remapRef(n, map)}"`));
   const ranges = readText(archive, LAYER_RANGES);
-  if (ranges) {
-    setText(archive, LAYER_RANGES, ranges.replace(/<option opt_key="([^"]+)">([^<]*)<\/option>\s*/g, (all, key: string, value: string) => {
-      if (key === 'extruder') return all.replace(`>${value}<`, `>${remapRef(value, map)}<`);
-      const rule = ruleFor(key);
-      return rule && rule.action !== 'drop' && rule.action !== 'replace' ? all : '';
-    }));
-  }
+  if (!ranges) return;
+  setText(archive, LAYER_RANGES, ranges.replace(/<option opt_key="([^"]+)">([^<]*)<\/option>/g, (_, key: string, value: string) =>
+    convertOverride(key, value, 'height range').map(([k, v]) => `<option opt_key="${k}">${v}</option>`).join('')));
 }

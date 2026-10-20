@@ -64,12 +64,15 @@ export function paintStates(hex: string): Set<number> {
   return states;
 }
 
-/** `map[old] = new` for filament states (1-based); state 0 (unpainted) is kept. */
-export function remapPaint(hex: string, map: ReadonlyMap<number, number>): string {
+/**
+ * `map[old] = new` for filament states (1-based); state 0 (unpainted) is kept.
+ * States with no mapping (paint on parts that never print, or beyond the filament list) become 0 and are reported via `onUnmapped`.
+ */
+export function remapPaint(hex: string, map: ReadonlyMap<number, number>, onUnmapped: (state: number) => void = () => {}): string {
   return rewrite(hex, (s) => {
     if (s === 0) return 0;
     const to = map.get(s);
-    if (to === undefined) throw new Error(`paint state ${s} has no mapping`);
+    if (to === undefined) { onUnmapped(s); return 0; }
     return to;
   });
 }

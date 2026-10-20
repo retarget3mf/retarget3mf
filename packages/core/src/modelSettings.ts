@@ -36,11 +36,11 @@ export function readModelSettings(text: string | undefined): ModelSettings {
       parts: elements(kids, 'part').map((p) => ({ id: attrs(p).id ?? '', subtype: attrs(p).subtype ?? 'normal_part', config: metadataConfig(childrenOf(p)) })),
     };
   });
-  const plates = elements(nodes, 'plate').map((p) => {
+  const plates = elements(nodes, 'plate').map((p, index) => {
     const kids = childrenOf(p);
     const id = elements(kids, 'metadata').find((m) => attrs(m).key === 'plater_id');
     return {
-      id: Number((id && attrs(id).value) ?? 0),
+      id: Number(id && attrs(id).value) || index + 1,
       instances: elements(kids, 'model_instance').map((mi) => {
         const meta = metadataConfig(childrenOf(mi));
         return { objectId: meta.object_id ?? '', instanceId: Number(meta.instance_id ?? 0) };
@@ -50,21 +50,22 @@ export function readModelSettings(text: string | undefined): ModelSettings {
   return { objects, plates };
 }
 
+/** Replacement entries for one metadata key/value; [] removes it. */
+export type MetadataEdit = (key: string, value: string) => [string, string][];
+
 export interface ModelSettingsEdit {
-  /** Return the new value, or undefined to remove the key. Called for per-object and per-part config keys. */
-  config: (key: string, value: string) => string | undefined;
-  /** Plate-level metadata, e.g. filament_maps. Same contract as `config`. */
-  plate: (key: string, value: string) => string | undefined;
+  /** Per-object and per-part config keys; `context` is the object's name. */
+  config: (key: string, value: string, context: string) => [string, string][];
+  /** Plate-level metadata, e.g. filament_maps. */
+  plate: MetadataEdit;
 }
 
-function editMetadata(nodes: XmlNode[], edit: (key: string, value: string) => string | undefined): XmlNode[] {
+function editMetadata(nodes: XmlNode[], edit: MetadataEdit): XmlNode[] {
   return nodes.flatMap((n) => {
     if (tagOf(n) !== 'metadata') return [n];
     const { key, value } = attrs(n);
     if (!key || value === undefined || SPECIAL_META.has(key) || key.startsWith('source_')) return [n];
-    const next = edit(key, value);
-    if (next === undefined) return [];
-    return [{ ...n, ':@': { ...attrs(n), value: next } }];
+    return edit(key, value).map(([k, v]) => ({ ...n, ':@': { ...attrs(n), key: k, value: v } }));
   });
 }
 
@@ -75,9 +76,12 @@ export function editModelSettings(text: string, edit: ModelSettingsEdit): string
     if (tagOf(top) !== 'config') return top;
     return withChildren(top, childrenOf(top).map((n) => {
       switch (tagOf(n)) {
-        case 'object':
-          return withChildren(n, editMetadata(childrenOf(n), edit.config).map((k) =>
-            tagOf(k) === 'part' ? withChildren(k, editMetadata(childrenOf(k), edit.config)) : k));
+        case 'object': {
+          const name = attrs(elements(childrenOf(n), 'metadata').find((m) => attrs(m).key === 'name') ?? {}).value ?? attrs(n).id ?? '';
+          const objectEdit: MetadataEdit = (k, v) => edit.config(k, v, name);
+          return withChildren(n, editMetadata(childrenOf(n), objectEdit).map((k) =>
+            tagOf(k) === 'part' ? withChildren(k, editMetadata(childrenOf(k), objectEdit)) : k));
+        }
         case 'plate':
           return withChildren(n, editMetadata(childrenOf(n), edit.plate));
         default:

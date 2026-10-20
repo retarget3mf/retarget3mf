@@ -72,7 +72,7 @@ function scanMeshes(path: string, text: string, into: Map<string, MeshInfo>): vo
       }
     }
     for (const tri of body.matchAll(/<triangle\b[^>]*>/g)) {
-      if (tri[0].includes(' paint_supports="')) info.hasSupportPaint = true;
+      if (/ paint_supports="[0-9A-Fa-f]+"/.test(tri[0])) info.hasSupportPaint = true;
       const paint = attr(tri[0], 'paint_color');
       if (!paint) { info.usesBase = true; continue; }
       for (const s of paintStates(paint)) s === 0 ? (info.usesBase = true) : info.paintStates.add(s);

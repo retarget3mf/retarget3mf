@@ -24,7 +24,9 @@ describe('paint codec', () => {
     expect(remapPaint('0', new Map())).toBe('0');
   });
 
-  it('rejects a state that has no mapping instead of corrupting paint', () => {
-    expect(() => remapPaint('8', new Map([[1, 1]]))).toThrow(/no mapping/);
+  it('clears states with no mapping to the base filament and reports them', () => {
+    const unmapped: number[] = [];
+    expect(remapPaint('8', new Map([[1, 1]]), (s) => unmapped.push(s))).toBe('0');
+    expect(unmapped).toEqual([2]);
   });
 });

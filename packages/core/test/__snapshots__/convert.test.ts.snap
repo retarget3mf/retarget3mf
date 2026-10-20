@@ -69,7 +69,7 @@ exports[`convert: Bambu project → AD5X > produces a stable report (golden) 1`]
 | \`tree_support_wall_count\` | -1 | 0 | value is not accepted by the target slicer |
 | \`enable_support\` | 0 | 1 | the model has painted supports, which need support generation on |
 
-## Dropped (6)
+## Dropped (7)
 
 | Setting | From | To | Why |
 |---|---|---|---|
@@ -79,5 +79,6 @@ exports[`convert: Bambu project → AD5X > produces a stable report (golden) 1`]
 | \`post_process\` | /usr/bin/evil.sh |  | post-processing scripts are never carried over (they run programs on your computer) |
 | \`outer_wall_filament_id\` | 0 |  | not supported by Flash Studio |
 | \`inner_wall_filament_id\` | 0 |  | not supported by Flash Studio |
+| \`object "Cube": outer_wall_speed\` | 150 |  | per-object override not carried over; the target profile decides |
 "
 `;

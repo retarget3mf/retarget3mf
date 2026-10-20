@@ -21,6 +21,8 @@ export interface SettingsResult {
   changes: SettingChange[];
   warnings: string[];
   filaments: FilamentSummary[];
+  /** Same rules for one per-object / per-part / height-range override; returns the entries to write. */
+  convertOverride: (key: string, value: string, owner: string) => [string, string][];
 }
 
 // Preset bookkeeping that is not a slicer setting of the project.
@@ -239,6 +241,10 @@ function applySpecialCases(ctx: Ctx): void {
   }
   if (!ctx.isMulticolor) config.enable_prime_tower = '0';
   const flush = flushMatrix(input.source, input.plan, ctx.extruder);
+  if (!flush.matrix) {
+    // Wrong-sized matrices fail G-code export; without one the slicer computes defaults for the filament count.
+    for (const k of ['flush_volumes_matrix', 'flush_volumes_vector', 'flush_multiplier']) delete config[k];
+  }
   if (flush.matrix) config.flush_volumes_matrix = flush.matrix;
   if (flush.vector) config.flush_volumes_vector = flush.vector;
   if (flush.multiplier) config.flush_multiplier = flush.multiplier;
@@ -246,6 +252,30 @@ function applySpecialCases(ctx: Ctx): void {
     config.wipe_tower_x = input.wipeTower.x;
     config.wipe_tower_y = input.wipeTower.y;
   }
+}
+
+function makeOverrideConverter(ctx: Ctx): SettingsResult['convertOverride'] {
+  const { plan, slicer, options } = ctx.input;
+  return (rawKey, rawValue, owner) => {
+    const translate = BAMBU_TRANSLATIONS[rawKey];
+    const pairs = translate ? translate(rawValue) : [[rawKey, rawValue] as [string, ConfigValue]];
+    const out: [string, string][] = [];
+    for (const [key, value] of pairs) {
+      const label = `${owner}: ${key}`;
+      if (typeof value !== 'string') continue;
+      if ((FILAMENT_REF_KEYS as readonly string[]).includes(key)) { out.push([key, remapRef(value, plan.map)]); continue; }
+      const rule = ruleFor(key);
+      const keep = rule && options.slicer[key] && (rule.action === 'keep'
+        || (rule.action === 'keep-if-same-nozzle' && ctx.sameNozzle)
+        || (rule.action === 'keep-if-multicolor' && ctx.isMulticolor));
+      if (!keep) { record(ctx, label, 'dropped', 'per-object override not carried over; the target profile decides', value); continue; }
+      const fixed = (slicer === 'flashstudio' ? FLASHSTUDIO_VALUES : ORCA_VALUES)[key]?.[value] ?? value;
+      if (!isValid(fixed, options.slicer[key])) { record(ctx, label, 'dropped', 'value is not accepted by the target slicer', value); continue; }
+      if (fixed !== value || key !== rawKey) record(ctx, label, 'translated', `written as ${key}=${fixed}`, value, fixed);
+      out.push([key, fixed]);
+    }
+    return out;
+  };
 }
 
 function setIdentity(ctx: Ctx, processName: string, process: Preset): void {
@@ -295,5 +325,5 @@ export function buildSettings(input: SettingsInput): SettingsResult {
   const filaments = plan.keep.map((f, i) => ({
     from: f, to: i + 1, type: ctx.chosen[i]!.type, colour: asList(ctx.config.filament_colour)[i] ?? '', preset: ctx.chosen[i]!.name,
   }));
-  return { config: ctx.config, changes: ctx.changes, warnings: ctx.warnings, filaments };
+  return { config: ctx.config, changes: ctx.changes, warnings: ctx.warnings, filaments, convertOverride: makeOverrideConverter(ctx) };
 }
