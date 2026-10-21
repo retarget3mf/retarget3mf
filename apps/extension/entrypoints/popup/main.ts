@@ -1,3 +1,5 @@
+import '@retarget3mf/ui/tokens.css';
+import './popup.css';
 import { WATCH_PERMISSIONS } from '../../src/downloads.ts';
 import type { AppStatus, ToBackground } from '../../src/messages.ts';
 import { fillPrinters, fillSlicers, storedTarget, storeTarget } from '../../src/target.ts';
@@ -6,10 +8,11 @@ const el = document.getElementById('status')!;
 const printerSelect = document.getElementById('printer') as HTMLSelectElement;
 const slicerSelect = document.getElementById('slicer') as HTMLSelectElement;
 let status = (await browser.runtime.sendMessage({ type: 'status' } satisfies ToBackground)) as AppStatus;
-el.className = status.connected ? 'ok' : 'off';
-el.textContent = status.connected
-  ? 'Connected to the desktop app; changes here apply there too.'
-  : 'Desktop app not found. Install and open Retarget3MF once, then reload this page. Until then, projects are converted in the browser and downloaded.';
+el.className = `pill ${status.connected ? 'ok' : 'off'}`;
+el.textContent = status.connected ? 'Connected' : 'Desktop app not found';
+document.getElementById('sync')!.textContent = status.connected
+  ? 'Synced with the desktop app.'
+  : 'Used for converting in the browser. Install and open the Retarget3MF desktop app once to convert and open your slicer in one click.';
 
 // With the app connected its settings are the source of truth; the extension's copy follows for in-browser conversion.
 const initial = status.connected ? { printer: status.printerId, slicer: status.slicerId } : await storedTarget();

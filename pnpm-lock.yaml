@@ -80,6 +80,9 @@ importers:
       '@retarget3mf/profiles':
         specifier: workspace:*
         version: link:../../packages/profiles
+      '@retarget3mf/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       typescript:
         specifier: 7.0.2
         version: 7.0.2

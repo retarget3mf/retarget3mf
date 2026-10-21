@@ -3,25 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <title>Retarget3MF</title>
-    <style>
-      :root { color-scheme: light dark; font: 14px/1.4 system-ui, sans-serif; }
-      body { margin: 0; padding: 16px; width: 280px; }
-      h1 { display: flex; align-items: center; gap: 6px; font-size: 16px; letter-spacing: -0.01em; margin: 0 0 12px; }
-      .accent { color: #0b66d0; } @media (prefers-color-scheme: dark) { .accent { color: #5fa0f2; } }
-      .ok { color: #1a7f37; } .off { color: #a33; }
-      p { margin: 6px 0; } small { color: GrayText; }
-      label { display: flex; gap: 6px; align-items: flex-start; margin: 10px 0; }
-      label.field { flex-direction: column; gap: 4px; margin: 0 0 10px; font-weight: 600; }
-      select { font: inherit; font-weight: 400; padding: 6px 8px; border-radius: 8px; width: 100%; }
-    </style>
   </head>
   <body>
-    <h1><img src="/icon/32.png" width="24" height="24" alt="" />Retarget<span class="accent">3MF</span></h1>
-    <label class="field">Printer <select id="printer"></select></label>
-    <label class="field">Slicer <select id="slicer"></select></label>
-    <p id="status">Checking the desktop app…</p>
-    <label id="watch-row" hidden><input type="checkbox" id="watch" /> Offer to open 3MF downloads from model sites</label>
-    <p><small>On MakerWorld, Printables, Creality Cloud and Snapmaker Space, open the site's download or slicer menu and pick “Open for …”.</small></p>
+    <header class="top">
+      <span class="logo"><img src="/icon/32.png" width="26" height="26" alt="" /><span class="word">Retarget<span class="accent">3MF</span></span></span>
+      <span id="status" class="pill">Checking…</span>
+    </header>
+
+    <section class="card" aria-labelledby="target-title">
+      <h2 id="target-title">Converting for</h2>
+      <label class="field"><span>Printer</span><select id="printer"></select></label>
+      <label class="field"><span>Slicer</span><select id="slicer"></select></label>
+      <p id="sync" class="caption"></p>
+    </section>
+
+    <label id="watch-row" class="toggle" hidden>
+      <span>
+        <strong>Offer to open 3MF downloads</strong>
+        <small>When a project from a model site finishes downloading</small>
+      </span>
+      <input type="checkbox" id="watch" role="switch" />
+    </label>
+
+    <p class="hint">On MakerWorld, Printables, Creality Cloud and Snapmaker Space, open the site's download or slicer menu and pick <b>Open for …</b></p>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>

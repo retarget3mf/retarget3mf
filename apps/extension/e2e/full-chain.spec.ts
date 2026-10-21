@@ -84,7 +84,7 @@ test('popup printer and slicer menus change the desktop app', async () => {
   const { desktop, browser } = await startChain('ad5x-0.4');
   const popup = await browser.newPage();
   await popup.goto(`chrome-extension://${EXTENSION_IDS[0]}/popup.html`);
-  await expect(popup.getByText('Connected to the desktop app')).toBeVisible({ timeout: 30_000 });
+  await expect(popup.getByText('Connected', { exact: true })).toBeVisible({ timeout: 30_000 });
   await expect(popup.getByLabel('Printer')).toHaveValue('ad5x-0.4');
   await expect(popup.getByLabel('Slicer')).toHaveValue('flashstudio');
 
@@ -94,7 +94,10 @@ test('popup printer and slicer menus change the desktop app', async () => {
   const window = await desktop.firstWindow();
   await expect(window.getByRole('button', { name: /^Printer: X1 Carbon/ })).toBeVisible();
   await expect(window.getByRole('button', { name: /^Slicer: Bambu Studio/ })).toBeVisible();
-  await popup.screenshot({ path: 'e2e/.results/popup.png' });
+  await popup.setViewportSize({ width: 348, height: 400 });
+  await popup.screenshot({ path: 'e2e/.results/popup-light.png' });
+  await popup.emulateMedia({ colorScheme: 'dark' });
+  await popup.screenshot({ path: 'e2e/.results/popup-dark.png' });
   await browser.close();
   await desktop.close();
 });
