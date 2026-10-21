@@ -51,14 +51,17 @@ export function toBambuKey(key: string): string {
 
 /**
  * OrcaSlicer's option table restricted to keys the target slicer has (under its own name), with the target's limits
- * and accepted values: a value OrcaSlicer allows can still be out of range there (wipe_tower_extra_flow in Creality Print).
+ * accepted values and number types: a value OrcaSlicer allows can still be invalid there (wipe_tower_extra_flow above
+ * 200 % in Creality Print, a percentage line width in QIDI Studio).
  */
 export function optionsInOrcaSpace(orca: Options, target: Options): Options {
   return Object.fromEntries(Object.entries(orca).flatMap(([k, info]) => {
     const own = target[k] ?? target[toBambuKey(k)];
     if (!own) return [];
     const { min: _min, max: _max, values: _values, ...base } = info;
-    return [[k, { ...base, nullable: own.nullable, ...(own.min !== undefined && { min: own.min }), ...(own.max !== undefined && { max: own.max }), ...(own.values && { values: own.values }) }]];
+    // A percentage OrcaSlicer allows (line widths) is read as millimetres where the target only takes numbers.
+    const type = info.type.includes('OrPercent') && !own.type.includes('OrPercent') ? own.type.replace(/s$/, info.type.endsWith('s') ? 's' : '') : info.type;
+    return [[k, { ...base, type, nullable: own.nullable, ...(own.min !== undefined && { min: own.min }), ...(own.max !== undefined && { max: own.max }), ...(own.values && { values: own.values }) }]];
   }));
 }
 

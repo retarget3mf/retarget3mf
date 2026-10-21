@@ -14,8 +14,10 @@ const MAC_APPS: Record<SlicerId, string> = {
   bambustudio: '/Applications/BambuStudio.app/Contents/MacOS/BambuStudio',
   flashstudio: '/Applications/Flash Studio.app/Contents/MacOS/Flash Studio',
   crealityprint: '/Applications/Creality Print.app/Contents/MacOS/CrealityPrint',
+  qidistudio: '/Applications/QIDIStudio.app/Contents/MacOS/QIDIStudio',
+  elegooslicer: '/Applications/ElegooSlicer.app/Contents/MacOS/ElegooSlicer',
 };
-const ENV: Record<SlicerId, string> = { orca: 'ORCA_CLI', bambustudio: 'BAMBU_CLI', flashstudio: 'FLASHSTUDIO_CLI', crealityprint: 'CREALITY_CLI' };
+const ENV: Record<SlicerId, string> = { orca: 'ORCA_CLI', bambustudio: 'BAMBU_CLI', flashstudio: 'FLASHSTUDIO_CLI', crealityprint: 'CREALITY_CLI', qidistudio: 'QIDI_CLI', elegooslicer: 'ELEGOO_CLI' };
 // Creality Print opens its GUI unless told otherwise, and keeps G-code in a temp folder unless asked to write it.
 const EXTRA_ARGS: Partial<Record<SlicerId, string[]>> = { crealityprint: ['--cli', '--need-gcode-file'] };
 const SLICE_TIMEOUT_MS = 10 * 60_000;
@@ -32,7 +34,7 @@ const FIXTURES: Record<string, () => Uint8Array> = {
 };
 const quick = process.argv.includes('--quick');
 // Every printer with the small cube; the heavier fixtures on one printer of each kind.
-const REPRESENTATIVE = ['ad5x-0.4', 'adventurer-5m-pro-0.4', 'creator-5-0.4', 'bambu-a1-mini-0.4', 'bambu-x1c-0.4', 'creality-k2-plus-0.4', 'anycubic-kobra-s1-0.4', 'prusa-mk4s-0.4', 'elegoo-centauri-carbon-0.4'];
+const REPRESENTATIVE = ['ad5x-0.4', 'adventurer-5m-pro-0.4', 'creator-5-0.4', 'bambu-a1-mini-0.4', 'bambu-x1c-0.4', 'creality-k2-plus-0.4', 'anycubic-kobra-s1-0.4', 'prusa-mk4s-0.4', 'elegoo-centauri-carbon-0.4', 'qidi-plus4-0.4'];
 
 interface Case { fixture: string; printer: string; slicer: SlicerId }
 function cases(available: SlicerId[]): Case[] {

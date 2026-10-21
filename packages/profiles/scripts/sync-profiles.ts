@@ -176,12 +176,18 @@ const orcaDir = arg('--orca', join(ROOT, 'research/OrcaSlicer-v2.4.2'));
 const ffDir = arg('--flashstudio', join(ROOT, 'research/Orca-Flashforge-1.7.15'));
 const bambuDir = arg('--bambustudio', join(ROOT, 'research/BambuStudio'));
 const crealityDir = arg('--crealityprint', join(ROOT, 'research/CrealityPrint-7.3.0'));
+const qidiDir = arg('--qidistudio', join(ROOT, 'research/QIDIStudio-2.07.02.73'));
+const elegooDir = arg('--elegooslicer', join(ROOT, 'research/ElegooSlicer-1.5.3.5'));
 const profilesOf = (dir: string, vendors: string[]) => indexPresets(join(dir, 'resources/profiles'), vendors);
 
-type SlicerId = 'orca' | 'flashstudio' | 'bambustudio' | 'crealityprint';
+type SlicerId = 'orca' | 'flashstudio' | 'bambustudio' | 'crealityprint' | 'qidistudio' | 'elegooslicer';
 
 /** OrcaSlicer-based vendor slicers whose own presets (names and values) are used for their printers. */
-const OWN_SLICERS: Partial<Record<SlicerId, Map<string, Json>>> = { crealityprint: profilesOf(crealityDir, ['Creality']) };
+const OWN_SLICERS: Partial<Record<SlicerId, { dir: string; presets: Map<string, Json> }>> = {
+  crealityprint: { dir: crealityDir, presets: profilesOf(crealityDir, ['Creality']) },
+  qidistudio: { dir: qidiDir, presets: profilesOf(qidiDir, ['Q Series', 'X 4 Series']) },
+  elegooslicer: { dir: elegooDir, presets: profilesOf(elegooDir, ['Elegoo', 'OrcaFilamentLibrary']) },
+};
 
 const orcaFlashforge = profilesOf(orcaDir, ['Flashforge', 'OrcaFilamentLibrary']);
 const orcaBambu = profilesOf(orcaDir, ['BBL', 'OrcaFilamentLibrary']);
@@ -208,7 +214,7 @@ const processes: Record<string, Json> = {};
 const filaments: Record<string, Json> = {};
 const compat: Record<string, { processes: string[]; filaments: Partial<Record<SlicerId, string[]>> }> = {};
 const native: Record<'machines' | 'processes' | 'filaments', Record<string, Json>> = { machines: {}, processes: {}, filaments: {} };
-const crealityOptions = extractOptions(join(crealityDir, 'src/libslic3r/PrintConfig.cpp'));
+const ownOptions = Object.fromEntries(Object.entries(OWN_SLICERS).map(([id, s]) => [id, extractOptions(join(s!.dir, 'src/libslic3r/PrintConfig.cpp'))]));
 
 /** Creality Print writes some vectors as one comma-separated string; its loader splits them, and so does this. */
 function splitVectors(preset: Json, options: Record<string, OptionInfo>): Json {
@@ -235,14 +241,15 @@ for (const printer of PRINTERS) {
   for (const n of new Set(Object.values(names).flat())) filaments[n] = lean(flatten(vendor.presets, 'filament', n));
   compat[m] = { processes: proc, filaments: names };
   for (const [slicer, name] of Object.entries(printer.ownSlicerPresets ?? {}) as [SlicerId, string][]) {
-    const idx = OWN_SLICERS[slicer];
-    if (!idx) throw new Error(`No presets for ${slicer}`);
+    const idx = OWN_SLICERS[slicer]?.presets;
+    const options = ownOptions[slicer];
+    if (!idx || !options) throw new Error(`No presets for ${slicer}`);
     const set = (own[slicer] ??= { compat: {}, machines: {}, processes: {}, filaments: {} });
-    const machine = (set.machines[name] = splitVectors(flatten(idx, 'machine', name), crealityOptions));
+    const machine = (set.machines[name] = splitVectors(flatten(idx, 'machine', name), options));
     const process = pinnedProcess(idx, compatibleWith(idx, 'process', name, machine), name);
     const names = bestPerType(idx, withLibraryFallback(idx, compatibleWith(idx, 'filament', name, machine)));
-    set.processes[process] = splitVectors(flatten(idx, 'process', process), crealityOptions);
-    for (const n of names) set.filaments[n] = splitVectors(lean(flatten(idx, 'filament', n)), crealityOptions);
+    set.processes[process] = splitVectors(flatten(idx, 'process', process), options);
+    for (const n of names) set.filaments[n] = splitVectors(lean(flatten(idx, 'filament', n)), options);
     set.compat[m] = { machine: name, process, filaments: names };
   }
   if (!vendor.native) continue;
@@ -253,11 +260,11 @@ for (const printer of PRINTERS) {
 
 mkdirSync(OUT, { recursive: true });
 const write = (file: string, data: unknown) => writeFileSync(join(OUT, file), JSON.stringify(data, null, 1) + '\n');
-write('profiles.json', { source: { orca: gitInfo(orcaDir), flashStudio: gitInfo(ffDir), bambuStudio: gitInfo(bambuDir), crealityPrint: gitInfo(crealityDir) }, compat, machines, processes, filaments, native, own });
+write('profiles.json', { source: { orca: gitInfo(orcaDir), flashStudio: gitInfo(ffDir), bambuStudio: gitInfo(bambuDir), ...Object.fromEntries(Object.entries(OWN_SLICERS).map(([id, s]) => [id, gitInfo(s!.dir)])) }, compat, machines, processes, filaments, native, own });
 write('options.json', {
   orca: extractOptions(join(orcaDir, 'src/libslic3r/PrintConfig.cpp')),
   flashstudio: extractOptions(join(ffDir, 'src/libslic3r/PrintConfig.cpp')),
   bambustudio: extractOptions(join(bambuDir, 'src/libslic3r/PrintConfig.cpp')),
-  crealityprint: crealityOptions,
+  ...ownOptions,
 });
 console.log(`machines ${Object.keys(machines).length}, processes ${Object.keys(processes).length}, filaments ${Object.keys(filaments).length}`);

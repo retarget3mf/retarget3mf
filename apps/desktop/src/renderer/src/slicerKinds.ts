@@ -5,6 +5,8 @@ export const SLICER_KINDS: Record<SlicerKind, { name: string; blurb: string }> =
   flashstudio: { name: 'Flash Studio', blurb: "Flashforge's own slicer" },
   bambustudio: { name: 'Bambu Studio', blurb: "Bambu Lab's own slicer" },
   crealityprint: { name: 'Creality Print', blurb: "Creality's own slicer" },
+  qidistudio: { name: 'QIDI Studio', blurb: "Qidi's own slicer" },
+  elegooslicer: { name: 'ElegooSlicer', blurb: "Elegoo's own slicer" },
   orca: { name: 'OrcaSlicer', blurb: 'Open-source, all brands' },
 };
 

@@ -32,9 +32,11 @@ const LAYER_RANGES = 'Metadata/layer_config_ranges.xml';
 const STALE = /^Metadata\/(plate_\d+\.gcode(\.md5)?|plate_\d+\.json|slice_info\.config|filament_sequence\.json|_rels\/model_settings\.config\.rels)$/;
 const STALE_PLATE_KEYS = new Set(['gcode_file', 'pattern_bbox_file', 'filament_volume_maps']);
 const APPLICATION = 'BambuStudio-2.3.0';
-// Creality Print only accepts its own stamp for a current file; the version is that of the synced profiles.
+// Vendor slicers that only accept their own stamp for a current file; versions are those of the synced profiles.
 const OWN_STAMPS: Partial<Record<SlicerId, { application: string; version: string }>> = {
   crealityprint: { application: 'Creality_Print V7.3.0.0', version: '7.3.0.0' },
+  // ElegooSlicer is at 1.x: a BambuStudio-2.3 stamp reads as a newer file and its CLI refuses it.
+  elegooslicer: { application: 'ElegooSlicer-1.5.3.5', version: '1.5.3.5' },
 };
 const ORCA_TAG = '2.4.2';
 
@@ -101,7 +103,7 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
       target: {
         printer: printer.displayName, slicer: SLICER_NAMES[slicer],
         profiles: slicer === 'bambustudio' ? `Bambu Studio ${PROFILE_SOURCE.bambuStudio.tag}`
-          : slicer === 'crealityprint' ? `Creality Print ${PROFILE_SOURCE.crealityPrint.tag}` : `OrcaSlicer ${PROFILE_SOURCE.orca.tag}`,
+          : writer === 'own' ? `${SLICER_NAMES[slicer]} ${(PROFILE_SOURCE as Record<string, { tag: string }>)[slicer]!.tag}` : `OrcaSlicer ${PROFILE_SOURCE.orca.tag}`,
       },
       warnings,
       filaments: result.filaments,

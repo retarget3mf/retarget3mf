@@ -1,6 +1,8 @@
-export type SlicerId = 'orca' | 'flashstudio' | 'bambustudio' | 'crealityprint';
+export type SlicerId = 'orca' | 'flashstudio' | 'bambustudio' | 'crealityprint' | 'qidistudio' | 'elegooslicer';
 
-export const SLICER_NAMES: Record<SlicerId, string> = { flashstudio: 'Flash Studio', orca: 'OrcaSlicer', bambustudio: 'Bambu Studio', crealityprint: 'Creality Print' };
+export const SLICER_NAMES: Record<SlicerId, string> = {
+  flashstudio: 'Flash Studio', orca: 'OrcaSlicer', bambustudio: 'Bambu Studio', crealityprint: 'Creality Print', qidistudio: 'QIDI Studio', elegooslicer: 'ElegooSlicer',
+};
 
 export type PrinterId =
   | 'ad5x-0.4' | 'adventurer-5m-0.4' | 'adventurer-5m-pro-0.4' | 'creator-5-0.4' | 'creator-5-pro-0.4'
@@ -130,15 +132,15 @@ export const PRINTERS: readonly PrinterDefinition[] = [
   orca('creality-hi-0.4', 'Creality', 'Hi', 'Creality Hi 0.4 nozzle', 4, 'semm', 300, 100, { slicer: 'crealityprint', machinePreset: 'Creality Hi 0.4 nozzle' }),
   orca('creality-ender-3-v3-ke-0.4', 'Creality', 'Ender-3 V3 KE', 'Creality Ender-3 V3 KE 0.4 nozzle', 1, 'single', 300, 100, { slicer: 'crealityprint', machinePreset: 'Creality Ender-3 V3 KE 0.4 nozzle' }),
   orca('creality-ender-3-v3-se-0.4', 'Creality', 'Ender-3 V3 SE', 'Creality Ender-3 V3 SE 0.4 nozzle', 1, 'single', 260, 100, { slicer: 'crealityprint', machinePreset: 'Creality Ender-3 V3 SE 0.4 nozzle' }),
-  orca('elegoo-centauri-carbon-0.4', 'Elegoo', 'Centauri Carbon', 'Elegoo Centauri Carbon 0.4 nozzle', 1, 'single', 320, 110),
-  orca('elegoo-neptune-4-pro-0.4', 'Elegoo', 'Neptune 4 Pro', 'Elegoo Neptune 4 Pro 0.4 nozzle', 1, 'single', 300, 110),
-  orca('elegoo-neptune-4-max-0.4', 'Elegoo', 'Neptune 4 Max', 'Elegoo Neptune 4 Max 0.4 nozzle', 1, 'single', 300, 95),
+  orca('elegoo-centauri-carbon-0.4', 'Elegoo', 'Centauri Carbon', 'Elegoo Centauri Carbon 0.4 nozzle', 1, 'single', 320, 110, { slicer: 'elegooslicer', machinePreset: 'Elegoo Centauri Carbon 0.4 nozzle' }),
+  orca('elegoo-neptune-4-pro-0.4', 'Elegoo', 'Neptune 4 Pro', 'Elegoo Neptune 4 Pro 0.4 nozzle', 1, 'single', 300, 110, { slicer: 'elegooslicer', machinePreset: 'Elegoo Neptune 4 Pro 0.4 nozzle' }),
+  orca('elegoo-neptune-4-max-0.4', 'Elegoo', 'Neptune 4 Max', 'Elegoo Neptune 4 Max 0.4 nozzle', 1, 'single', 300, 95, { slicer: 'elegooslicer', machinePreset: 'Elegoo Neptune 4 Max 0.4 nozzle' }),
   orca('anycubic-kobra-s1-0.4', 'Anycubic', 'Kobra S1', 'Anycubic Kobra S1 0.4 nozzle', 8, 'semm', 320, 120),
   orca('anycubic-kobra-3-0.4', 'Anycubic', 'Kobra 3', 'Anycubic Kobra 3 0.4 nozzle', 8, 'semm', 300, 110),
   orca('anycubic-kobra-2-neo-0.4', 'Anycubic', 'Kobra 2 Neo', 'Anycubic Kobra 2 Neo 0.4 nozzle', 1, 'single', 260, 110),
-  orca('qidi-q1-pro-0.4', 'Qidi', 'Q1 Pro', 'Qidi Q1 Pro 0.4 nozzle', 1, 'single', 350, 120),
-  orca('qidi-plus4-0.4', 'Qidi', 'Plus4', 'Qidi X-Plus 4 0.4 nozzle', 1, 'single', 370, 120),
-  orca('qidi-q2-0.4', 'Qidi', 'Q2', 'Qidi Q2 0.4 nozzle', 1, 'single', 370, 120),
+  orca('qidi-q1-pro-0.4', 'Qidi', 'Q1 Pro', 'Qidi Q1 Pro 0.4 nozzle', 1, 'single', 350, 120, { slicer: 'qidistudio', machinePreset: 'Q1 Pro 0.4 nozzle' }),
+  orca('qidi-plus4-0.4', 'Qidi', 'Plus4', 'Qidi X-Plus 4 0.4 nozzle', 1, 'single', 370, 120, { slicer: 'qidistudio', machinePreset: 'X-Plus 4 0.4 nozzle' }),
+  orca('qidi-q2-0.4', 'Qidi', 'Q2', 'Qidi Q2 0.4 nozzle', 1, 'single', 370, 120, { slicer: 'qidistudio', machinePreset: 'Q2 0.4 nozzle' }),
   orca('sovol-sv06-0.4', 'Sovol', 'SV06', 'Sovol SV06 0.4 nozzle', 1, 'single', 300, 100),
   orca('sovol-sv08-0.4', 'Sovol', 'SV08', 'Sovol SV08 0.4 nozzle', 1, 'single', 300, 100),
 ];

@@ -104,6 +104,7 @@ function isValid(value: ConfigValue, info: OptionInfo | undefined): boolean {
   return asList(value).every((v) => {
     if (v === 'nil') return info.nullable;
     if (!/^co(Float|Int|Percent|FloatOrPercent)s?$/.test(info.type)) return true;
+    if (v.endsWith('%') && !info.type.includes('Percent')) return false;
     const n = Number(v.replace(/%$/, ''));
     if (!Number.isFinite(n)) return false;
     return (info.min === undefined || n >= info.min) && (info.max === undefined || n <= info.max);

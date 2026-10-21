@@ -55,6 +55,25 @@ export const SLICERS: Record<SlicerKind, SlicerSpec> = {
     flatpakIds: [],
     appImage: /^creality[_-]?print.*\.appimage$/i,
   },
+  // Bundle ids from the installed QIDI Studio 02.07.02.73 and ElegooSlicer 1.5.3.5; other names from their release assets.
+  qidistudio: {
+    name: 'QIDI Studio',
+    macBundleIds: ['com.qiditech.qidi-studio'],
+    winDisplayName: /^QIDI ?Studio\b/i,
+    winExe: 'QIDIStudio.exe',
+    linuxBins: ['QIDIStudio', 'qidi-studio'],
+    flatpakIds: [],
+    appImage: /^qidi[_-]?studio.*\.appimage$/i,
+  },
+  elegooslicer: {
+    name: 'ElegooSlicer',
+    macBundleIds: ['com.elegoo3d.elegoo-slicer'],
+    winDisplayName: /^Elegoo ?Slicer\b/i,
+    winExe: 'ElegooSlicer.exe',
+    linuxBins: ['ElegooSlicer', 'elegoo-slicer'],
+    flatpakIds: [],
+    appImage: /^elegoo[_-]?slicer.*\.appimage$/i,
+  },
 };
 export const SLICER_NAMES = Object.fromEntries(Object.entries(SLICERS).map(([k, s]) => [k, s.name])) as Record<SlicerKind, string>;
 const FLATPAK = 'flatpak:';
