@@ -5,6 +5,7 @@ import { readdirSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PRINTERS } from '../src/printers.ts';
+import { matchesCondition } from './condition.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../../..');
 const OUT = join(ROOT, 'packages/profiles/src/generated');
@@ -64,19 +65,23 @@ function flatten(idx: Map<string, Json>, type: PresetType, name: string): Json {
   return flat;
 }
 
-function compatibleWith(idx: Map<string, Json>, type: PresetType, machine: string): string[] {
+/** Presets listing the machine in compatible_printers, or whose condition holds for it (Prusa's profiles). */
+function compatibleWith(idx: Map<string, Json>, type: PresetType, machine: string, machineJson: Json): string[] {
   const names: string[] = [];
   for (const [key, json] of idx) {
     if (!key.startsWith(`${type}|`) || json.instantiation !== 'true') continue;
-    // compatible_printers is often inherited from a hidden base preset.
-    let list: unknown;
+    // Both fields are often inherited from a hidden base preset.
+    let flat: Json;
     try {
-      list = flatten(idx, type, json.name as string).compatible_printers;
+      flat = flatten(idx, type, json.name as string);
     } catch (error) {
       console.warn(`skipping ${type} "${String(json.name)}": ${(error as Error).message}`);
       continue;
     }
-    if (Array.isArray(list) && list.includes(machine)) names.push(json.name as string);
+    const list = flat.compatible_printers;
+    const condition = typeof flat.compatible_printers_condition === 'string' ? flat.compatible_printers_condition : '';
+    const listed = Array.isArray(list) && list.length > 0;
+    if (listed ? list.includes(machine) : condition !== '' && matchesCondition(condition, machineJson)) names.push(json.name as string);
   }
   return names.sort();
 }
@@ -86,6 +91,26 @@ function rankFilament(name: string): number {
   if (/\bPro\b/.test(name)) return 1;
   if (/\bGeneric\b/.test(name)) return 2;
   return 3;
+}
+
+const typeOf = (idx: Map<string, Json>, name: string) => {
+  const type = flatten(idx, 'filament', name).filament_type;
+  return String(Array.isArray(type) ? type[0] : type).toUpperCase();
+};
+
+/**
+ * Generic library filaments ("@System", no compatibility limits: the slicer offers them for every printer) for the
+ * types a printer's own presets do not cover. Printers with few or no presets of their own (Sovol SV06) need them.
+ */
+function withLibraryFallback(idx: Map<string, Json>, names: string[]): string[] {
+  const covered = new Set(names.map((n) => typeOf(idx, n)));
+  const generic = [...idx.entries()].filter(([key, json]) => key.startsWith('filament|') && json.instantiation === 'true' && /@System$/.test(String(json.name)))
+    .map(([, json]) => String(json.name))
+    .filter((n) => {
+      const flat = flatten(idx, 'filament', n);
+      return !(Array.isArray(flat.compatible_printers) && flat.compatible_printers.length) && !flat.compatible_printers_condition;
+    });
+  return [...names, ...generic.filter((n) => !covered.has(typeOf(idx, n)))];
 }
 
 /** The converter picks one preset per filament type, so only each type's best-ranked preset is shipped. */
@@ -103,7 +128,9 @@ function bestPerType(idx: Map<string, Json>, names: string[]): string[] {
 /** Conversions pin the 0.20 mm standard process (docs/research.md §1), so only that one ships. */
 function pinnedProcess(idx: Map<string, Json>, names: string[], machine: string): string {
   const at020 = names.filter((n) => Number([flatten(idx, 'process', n).layer_height].flat()[0]) === 0.2);
-  const pick = at020.find((n) => /Standard/.test(n)) ?? at020[0];
+  // Prusa names its everyday profiles SPEED / STRUCTURAL / QUALITY; SOLUBLE ones assume soluble supports.
+  const everyday = at020.filter((n) => !/SOLUBLE/i.test(n));
+  const pick = [/Standard/i, /SPEED/i, /STRUCTURAL/i, /QUALITY/i].map((re) => everyday.find((n) => re.test(n))).find(Boolean) ?? everyday[0] ?? at020[0];
   if (!pick) throw new Error(`No 0.20 mm process for ${machine}`);
   return pick;
 }
@@ -166,6 +193,10 @@ const VENDORS: Record<string, { presets: Map<string, Json>; native?: Map<string,
     slicers: { orca: orcaFlashforge, flashstudio: profilesOf(ffDir, ['Flashforge', 'OrcaFilamentLibrary']) },
   },
   'Bambu Lab': { presets: orcaBambu, native: bambuStudio, slicers: { bambustudio: bambuStudio, orca: orcaBambu } },
+  ...Object.fromEntries(['Prusa', 'Creality', 'Elegoo', 'Anycubic', 'Qidi', 'Sovol'].map((vendor) => {
+    const presets = profilesOf(orcaDir, [vendor, 'OrcaFilamentLibrary']);
+    return [vendor, { presets, slicers: { orca: presets } }];
+  })),
 };
 
 const machines: Record<string, Json> = {};
@@ -179,9 +210,9 @@ for (const printer of PRINTERS) {
   if (!vendor) throw new Error(`No profile source for vendor ${printer.vendor}`);
   const m = printer.machinePreset;
   machines[m] = flatten(vendor.presets, 'machine', m);
-  const proc = [pinnedProcess(vendor.presets, compatibleWith(vendor.presets, 'process', m), m)];
+  const proc = [pinnedProcess(vendor.presets, compatibleWith(vendor.presets, 'process', m, machines[m]!), m)];
   // Values always come from `presets`, so a slicer's name list only offers presets that exist there too.
-  const names = Object.fromEntries(printer.slicers.map((id) => [id, bestPerType(vendor.presets, compatibleWith(vendor.slicers[id]!, 'filament', m))]));
+  const names = Object.fromEntries(printer.slicers.map((id) => [id, bestPerType(vendor.presets, withLibraryFallback(vendor.slicers[id]!, compatibleWith(vendor.slicers[id]!, 'filament', m, machines[m]!)))]));
   for (const n of proc) processes[n] = flatten(vendor.presets, 'process', n);
   for (const n of new Set(Object.values(names).flat())) filaments[n] = lean(flatten(vendor.presets, 'filament', n));
   compat[m] = { processes: proc, filaments: names };

@@ -92,6 +92,9 @@ importers:
 
   apps/site:
     devDependencies:
+      '@retarget3mf/profiles':
+        specifier: workspace:*
+        version: link:../../packages/profiles
       '@retarget3mf/ui':
         specifier: workspace:*
         version: link:../../packages/ui

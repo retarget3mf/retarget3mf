@@ -15,9 +15,12 @@ Everything runs on your computer. Nothing is uploaded, there is no account and n
 | **Sources** | Bambu Studio projects (MakerWorld), PrusaSlicer 2.x (Printables), Creality Print (Creality Cloud), Snapmaker Orca (Snapmaker Space), OrcaSlicer, Anycubic Slicer Next. PrusaSlicer 3.0 projects are not supported yet. |
 | **Flashforge printers** | AD5X (4-slot IFS), Adventurer 5M, Adventurer 5M Pro, Creator 5, Creator 5 Pro (4 toolheads) |
 | **Bambu Lab printers** | A1 mini, A1, P1P, P1S, P2S, X1, X1 Carbon, X1E, H2S |
-| **Target slicers** | Flash Studio and OrcaSlicer for Flashforge; Bambu Studio and OrcaSlicer for Bambu Lab |
+| **Prusa** | MK4S, MK3S, MINI, CORE One, XL (single tool) |
+| **Creality** | K1C, K1 Max, K2 Plus (CFS), Hi (CFS), Ender-3 V3 KE, Ender-3 V3 SE |
+| **Elegoo, Anycubic, Qidi, Sovol** | Centauri Carbon, Neptune 4 Pro / 4 Max · Kobra S1 and Kobra 3 (ACE Pro), Kobra 2 Neo · Q1 Pro, Plus4, Q2 · SV06, SV08 |
+| **Target slicers** | Flash Studio and OrcaSlicer for Flashforge; Bambu Studio and OrcaSlicer for Bambu Lab; OrcaSlicer for the other brands |
 
-Profiles come from OrcaSlicer v2.4.2, Flash Studio 1.7.15 and Bambu Studio 02.08.04.57. Every release is checked by slicing converted projects with the real slicers.
+Profiles come from OrcaSlicer v2.4.2, Flash Studio 1.7.15 and Bambu Studio 02.08.04.57. Every release is checked by slicing converted projects for every printer with the real slicers.
 
 ## What happens to the settings
 

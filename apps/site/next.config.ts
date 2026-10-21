@@ -11,7 +11,7 @@ const config: NextConfig = {
   env: { NEXT_PUBLIC_BASE_PATH: basePath },
   trailingSlash: true,
   images: { unoptimized: true },
-  transpilePackages: ['@retarget3mf/ui'],
+  transpilePackages: ['@retarget3mf/ui', '@retarget3mf/profiles'],
 };
 
 export default config;

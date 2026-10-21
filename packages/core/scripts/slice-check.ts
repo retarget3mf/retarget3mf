@@ -29,7 +29,7 @@ const FIXTURES: Record<string, () => Uint8Array> = {
 };
 const quick = process.argv.includes('--quick');
 // Every printer with the small cube; the heavier fixtures on one printer of each kind.
-const REPRESENTATIVE = ['ad5x-0.4', 'adventurer-5m-pro-0.4', 'creator-5-0.4', 'bambu-a1-mini-0.4', 'bambu-x1c-0.4'];
+const REPRESENTATIVE = ['ad5x-0.4', 'adventurer-5m-pro-0.4', 'creator-5-0.4', 'bambu-a1-mini-0.4', 'bambu-x1c-0.4', 'creality-k2-plus-0.4', 'anycubic-kobra-s1-0.4', 'prusa-mk4s-0.4', 'elegoo-centauri-carbon-0.4'];
 
 interface Case { fixture: string; printer: string; slicer: SlicerId }
 function cases(available: SlicerId[]): Case[] {

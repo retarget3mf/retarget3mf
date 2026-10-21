@@ -60,9 +60,14 @@
 .features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
 .feature h3::before { content: ''; display: block; width: 28px; height: 4px; border-radius: 2px; background: var(--brand-accent); margin-bottom: 16px; }
 
-.supportGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
-.supportGrid ul { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-direction: column; gap: 8px; color: var(--muted); }
-.supportGrid h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text); }
+.supported { display: grid; grid-template-columns: 1fr 2.4fr; gap: 48px; }
+.supported h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 14px; }
+.sourceList { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; color: var(--muted); }
+.brands { margin: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px 32px; }
+.brands > div { padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.brands dt { font-weight: 700; margin-bottom: 4px; }
+.brands dd { margin: 0; color: var(--muted); }
+.brands small { display: block; margin-top: 4px; font-size: 12px; color: var(--brand-accent); font-weight: 600; }
 
 .outcomes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .outcome { padding: 20px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); }
@@ -89,13 +94,14 @@
 
 @media (max-width: 900px) {
   .heroGrid, .howGrid { grid-template-columns: 1fr; }
-  .features, .supportGrid, .outcomes { grid-template-columns: repeat(2, 1fr); }
+  .features, .outcomes { grid-template-columns: repeat(2, 1fr); }
+  .supported { grid-template-columns: 1fr; }
   .getGrid { grid-template-columns: 1fr; }
   .links a:not(:last-child) { display: none; }
   .supportUs { flex-direction: column; align-items: flex-start; }
 }
 @media (max-width: 560px) {
-  .features, .supportGrid, .outcomes { grid-template-columns: 1fr; }
+  .features, .outcomes, .brands { grid-template-columns: 1fr; }
   .hero { padding: 56px 0 64px; }
   .section { padding: 64px 0; }
 }

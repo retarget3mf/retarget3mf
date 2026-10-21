@@ -9,6 +9,7 @@
     "build": "next build"
   },
   "devDependencies": {
+    "@retarget3mf/profiles": "workspace:*",
     "@retarget3mf/ui": "workspace:*",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
