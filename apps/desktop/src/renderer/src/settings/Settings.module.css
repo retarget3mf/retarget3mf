@@ -37,9 +37,10 @@
 
 .badge { font: 500 10px var(--font-mono); padding: 2px 6px; border-radius: 4px; background: var(--accent-soft); color: var(--accent-ink); }
 .nameLine { display: flex; gap: 8px; align-items: center; }
-.field { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
+.field { flex: none; width: 160px; display: flex; flex-direction: column; gap: 2px; }
 .fieldLabel { font: 500 10px var(--font-mono); color: var(--muted); }
-.field select { padding: 3px 8px; }
+/* A fixed width keeps the slicer column aligned whatever each printer's slicer is called. */
+.field select { width: 100%; padding: 3px 8px; }
 .key { font: 12px var(--font-mono); color: var(--muted); width: 28px; text-align: right; }
 .more { border: none; background: none; padding: 0 4px; color: var(--muted); }
 .menu { margin: 4px 0 0; padding: 4px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: var(--shadow-menu); position-area: bottom span-left; }
