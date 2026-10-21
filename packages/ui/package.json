@@ -8,9 +8,12 @@
     ".": "./src/index.ts",
     "./tokens.css": "./src/tokens.css",
     "./icon.svg": "./src/brand/icon.svg",
-    "./logo": "./src/Logo.tsx"
+    "./logo": "./src/Logo.tsx",
+    "./accent": "./src/accent.ts"
   },
   "dependencies": {
+    "@fontsource-variable/geist": "5.3.0",
+    "@fontsource-variable/geist-mono": "5.3.0",
     "@retarget3mf/core": "workspace:*"
   },
   "peerDependencies": {

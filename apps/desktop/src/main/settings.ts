@@ -2,9 +2,10 @@ import { readFileSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PRINTERS } from '@retarget3mf/core';
-import type { OpenMode, Settings, SlicerKind, Theme } from '../shared/api.ts';
+import { ACCENTS } from '@retarget3mf/ui/accent';
+import type { Accent, OpenMode, Settings, SlicerKind, Theme } from '../shared/api.ts';
 
-export const DEFAULT_SETTINGS: Settings = { slicer: 'flashstudio', slicerPaths: {}, output: 'next-to-original', openAfterConvert: true, theme: 'system', openMode: 'auto' };
+export const DEFAULT_SETTINGS: Settings = { slicer: 'flashstudio', slicerPaths: {}, output: 'next-to-original', openAfterConvert: true, theme: 'system', accent: 'lime', openMode: 'auto' };
 const SLICERS: readonly SlicerKind[] = ['flashstudio', 'orca', 'bambustudio', 'crealityprint', 'qidistudio', 'elegooslicer', 'prusaslicer'];
 const THEMES: readonly Theme[] = ['system', 'light', 'dark'];
 const OPEN_MODES: readonly OpenMode[] = ['auto', 'review'];
@@ -23,6 +24,7 @@ export function sanitizeSettings(raw: unknown, base: Settings = DEFAULT_SETTINGS
     output: r.output === 'app-folder' || r.output === 'next-to-original' ? r.output : base.output,
     openAfterConvert: typeof r.openAfterConvert === 'boolean' ? r.openAfterConvert : base.openAfterConvert,
     theme: THEMES.includes(r.theme as Theme) ? (r.theme as Theme) : base.theme,
+    accent: ACCENTS.includes(r.accent as Accent) ? (r.accent as Accent) : base.accent,
     openMode: OPEN_MODES.includes(r.openMode as OpenMode) ? (r.openMode as OpenMode) : base.openMode,
   };
 }

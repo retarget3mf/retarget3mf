@@ -19,6 +19,11 @@ describe('sanitizeSettings', () => {
     expect(s).toEqual({ ...DEFAULT_SETTINGS, printer: 'ad5x-0.4', slicer: 'orca', slicerPaths: { orca: '/x' } });
   });
 
+  it('keeps a known accent and falls back to lime', () => {
+    expect(sanitizeSettings({ accent: 'violet' }).accent).toBe('violet');
+    expect(sanitizeSettings({ accent: 'teal' }).accent).toBe('lime');
+  });
+
   it('ignores unknown printers', () => {
     expect(sanitizeSettings({ printer: 'bambu-x9' }).printer).toBeUndefined();
   });

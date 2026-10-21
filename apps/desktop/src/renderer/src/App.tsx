@@ -4,7 +4,7 @@ import { HistoryList } from './components/HistoryList.tsx';
 import { Header } from './components/Header.tsx';
 import { Onboarding } from './components/Onboarding.tsx';
 import { ResultView } from './components/ResultView.tsx';
-import { ConversionView, DropZone, I18nProvider, ReportView } from '@retarget3mf/ui';
+import { applyAccent, ConversionView, DropZone, I18nProvider, ReportView } from '@retarget3mf/ui';
 import { SettingsView } from './components/SettingsView.tsx';
 import styles from './App.module.css';
 
@@ -28,6 +28,7 @@ export function App() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
 
   useEffect(() => { void api.getState().then(setState); }, []);
+  useEffect(() => { if (state) applyAccent(state.settings.accent); }, [state?.settings.accent]);
   // Conversions can also finish outside this window (Finder, browser extension); refresh whenever the home screen shows.
   useEffect(() => { if (stage.kind === 'idle' || stage.kind === 'done' || stage.kind === 'history') void api.listHistory().then(setHistory); }, [stage]);
   useEffect(() => api.onEvent((event) => setPending((queue) => [...queue, event])), []);

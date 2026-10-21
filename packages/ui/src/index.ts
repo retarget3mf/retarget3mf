@@ -8,3 +8,4 @@ export { UI_MESSAGES, type UiMessages } from './messages.ts';
 export { PrinterPicker, PrinterSelect, groupByVendor, modelName } from './PrinterPicker.tsx';
 export { ReportView } from './ReportView.tsx';
 export { ThemeSwitch, type Theme } from './ThemeSwitch.tsx';
+export { ACCENTS, applyAccent, type Accent } from './accent.ts';

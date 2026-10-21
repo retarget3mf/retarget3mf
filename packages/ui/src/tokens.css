@@ -1,68 +1,148 @@
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
+
+/*
+ * Neutrals are fixed per theme; an accent set (data-accent on <html>, lime when absent) only swaps accent colours.
+ * Each set declares its light (-l) and dark (-d) values once; the theme blocks below pick one side.
+ */
 :root {
-  --bg: #f6f7f9;
-  --surface: #ffffff;
-  --text: #1c2024;
-  --muted: #5f6b7a;
-  --border: #dde1e6;
-  --accent: #0b6bcb;
-  --accent-text: #ffffff;
-  --warn-bg: #fff6e0;
-  --warn-text: #7a4b00;
-  --error-bg: #fdecec;
-  --error-text: #8a1c1c;
-  --ok: #1a7f37;
-  --brand-accent: #0b66d0;
-  /* The icon's near-black tile vanishes on dark surfaces; a faint ring traces its outline there. */
-  --icon-ring: none;
+  --font-sans: 'Geist Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, Menlo, monospace;
+
+  --accent-d: oklch(0.87 0.18 125);
+  --on-accent-d: #10160a;
+  --accent-ink-d: oklch(0.87 0.18 125);
+  --accent-soft-d: oklch(0.87 0.18 125 / 0.13);
+  --accent-l: oklch(0.86 0.18 125);
+  --on-accent-l: #10160a;
+  --accent-ink-l: oklch(0.5 0.13 130);
+  --accent-soft-l: oklch(0.86 0.18 125 / 0.16);
+  --warning-d: oklch(0.82 0.12 80);
+  --warning-soft-d: oklch(0.82 0.12 80 / 0.1);
+  --warning-l: oklch(0.5 0.11 65);
+  --warning-soft-l: oklch(0.95 0.05 85);
+
   --radius: 10px;
   color-scheme: light dark;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: var(--font-sans);
 }
-/* Dark tokens: follow the OS unless the page sets data-theme (the web app's theme switch). */
+
+:root[data-accent='mint'] {
+  --accent-d: oklch(0.82 0.12 170); --on-accent-d: #06201a; --accent-ink-d: oklch(0.82 0.12 170); --accent-soft-d: oklch(0.82 0.12 170 / 0.13);
+  --accent-l: oklch(0.55 0.1 175); --on-accent-l: #fff; --accent-ink-l: oklch(0.55 0.1 175); --accent-soft-l: oklch(0.55 0.1 175 / 0.13);
+}
+:root[data-accent='magenta'] {
+  --accent-d: oklch(0.72 0.2 350); --on-accent-d: #22040f; --accent-ink-d: oklch(0.72 0.2 350); --accent-soft-d: oklch(0.72 0.2 350 / 0.13);
+  --accent-l: oklch(0.57 0.21 355); --on-accent-l: #fff; --accent-ink-l: oklch(0.57 0.21 355); --accent-soft-l: oklch(0.57 0.21 355 / 0.13);
+}
+:root[data-accent='violet'] {
+  --accent-d: oklch(0.73 0.15 295); --on-accent-d: #120a24; --accent-ink-d: oklch(0.73 0.15 295); --accent-soft-d: oklch(0.73 0.15 295 / 0.13);
+  --accent-l: oklch(0.52 0.18 290); --on-accent-l: #fff; --accent-ink-l: oklch(0.52 0.18 290); --accent-soft-l: oklch(0.52 0.18 290 / 0.13);
+}
+/* Yellow is close to the amber warning, so warnings turn red with it. */
+:root[data-accent='yellow'] {
+  --accent-d: oklch(0.89 0.16 95); --on-accent-d: #1a1600; --accent-ink-d: oklch(0.89 0.16 95); --accent-soft-d: oklch(0.89 0.16 95 / 0.13);
+  --accent-l: oklch(0.87 0.16 95); --on-accent-l: #1a1600; --accent-ink-l: oklch(0.52 0.11 85); --accent-soft-l: oklch(0.87 0.16 95 / 0.13);
+  --warning-d: oklch(0.7 0.19 25); --warning-soft-d: oklch(0.7 0.19 25 / 0.1);
+  --warning-l: oklch(0.52 0.2 25); --warning-soft-l: oklch(0.95 0.04 25);
+}
+:root[data-accent='amber'] {
+  --accent-d: oklch(0.8 0.14 70); --on-accent-d: #1a1204; --accent-ink-d: oklch(0.8 0.14 70); --accent-soft-d: oklch(0.8 0.14 70 / 0.13);
+  --accent-l: oklch(0.6 0.15 55); --on-accent-l: #fff; --accent-ink-l: oklch(0.6 0.15 55); --accent-soft-l: oklch(0.6 0.15 55 / 0.13);
+}
+:root[data-accent='mono'] {
+  --accent-d: #f0f0f0; --on-accent-d: #111; --accent-ink-d: #f0f0f0; --accent-soft-d: rgba(255, 255, 255, 0.08);
+  --accent-l: #161616; --on-accent-l: #fff; --accent-ink-l: #161616; --accent-soft-l: rgba(0, 0, 0, 0.06);
+}
+
+:root {
+  --bg: #f4f4f2;
+  --panel: #ffffff;
+  --line: #dcdcd8;
+  --text: #161616;
+  --muted: #626468;
+  --success: oklch(0.52 0.13 150);
+  --danger: oklch(0.52 0.2 25);
+  --danger-soft: oklch(0.95 0.04 25);
+  /* Outline that keeps a swatch in the background's colour visible. */
+  --edge: rgba(0, 0, 0, 0.12);
+  --stripe: rgba(0, 0, 0, 0.045);
+  --shadow-window: 0 24px 60px rgba(0, 0, 0, 0.3);
+  --shadow-menu: 0 18px 50px rgba(0, 0, 0, 0.35);
+  --accent: var(--accent-l);
+  --on-accent: var(--on-accent-l);
+  --accent-ink: var(--accent-ink-l);
+  --accent-soft: var(--accent-soft-l);
+  --warning: var(--warning-l);
+  --warning-soft: var(--warning-soft-l);
+  /* The icon's near-black tile vanishes on dark surfaces; a faint ring traces its outline there. */
+  --icon-ring: none;
+}
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #16181b;
-    --surface: #1f2226;
-    --text: #e8eaed;
-    --muted: #9aa4b1;
-    --border: #33383e;
-    --accent: #4c9dff;
-    --accent-text: #0b0d10;
-    --warn-bg: #3a2e12;
-    --warn-text: #f3d28a;
-    --error-bg: #3d1a1a;
-    --error-text: #f5b4b4;
-    --ok: #4ac26b;
-    --brand-accent: #5fa0f2;
+    --bg: #121314;
+    --panel: #1a1b1d;
+    --line: #2b2c2f;
+    --text: #e9e9ea;
+    --muted: #92949a;
+    --success: oklch(0.76 0.14 150);
+    --danger: oklch(0.7 0.19 25);
+    --danger-soft: oklch(0.7 0.19 25 / 0.12);
+    --edge: rgba(255, 255, 255, 0.22);
+    --stripe: rgba(255, 255, 255, 0.045);
+    --accent: var(--accent-d);
+    --on-accent: var(--on-accent-d);
+    --accent-ink: var(--accent-ink-d);
+    --accent-soft: var(--accent-soft-d);
+    --warning: var(--warning-d);
+    --warning-soft: var(--warning-soft-d);
     --icon-ring: drop-shadow(0 0 0.75px rgb(255 255 255 / 0.55));
   }
 }
 :root[data-theme='dark'] {
-  --bg: #16181b;
-  --surface: #1f2226;
-  --text: #e8eaed;
-  --muted: #9aa4b1;
-  --border: #33383e;
-  --accent: #4c9dff;
-  --accent-text: #0b0d10;
-  --warn-bg: #3a2e12;
-  --warn-text: #f3d28a;
-  --error-bg: #3d1a1a;
-  --error-text: #f5b4b4;
-  --ok: #4ac26b;
-  --brand-accent: #5fa0f2;
+  --bg: #121314;
+  --panel: #1a1b1d;
+  --line: #2b2c2f;
+  --text: #e9e9ea;
+  --muted: #92949a;
+  --success: oklch(0.76 0.14 150);
+  --danger: oklch(0.7 0.19 25);
+  --danger-soft: oklch(0.7 0.19 25 / 0.12);
+  --edge: rgba(255, 255, 255, 0.22);
+  --stripe: rgba(255, 255, 255, 0.045);
+  --accent: var(--accent-d);
+  --on-accent: var(--on-accent-d);
+  --accent-ink: var(--accent-ink-d);
+  --accent-soft: var(--accent-soft-d);
+  --warning: var(--warning-d);
+  --warning-soft: var(--warning-soft-d);
   --icon-ring: drop-shadow(0 0 0.75px rgb(255 255 255 / 0.55));
 }
 :root[data-theme='light'] { color-scheme: light; }
 :root[data-theme='dark'] { color-scheme: dark; }
+
+/* Names the current components still use; they map onto the new tokens until each surface is redesigned. */
+:root {
+  --surface: var(--panel);
+  --border: var(--line);
+  --accent-text: var(--on-accent);
+  --warn-bg: var(--warning-soft);
+  --warn-text: var(--warning);
+  --error-bg: var(--danger-soft);
+  --error-text: var(--danger);
+  --ok: var(--success);
+  --brand-accent: var(--accent-ink);
+}
+
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text); font-size: 14px; }
+a { color: var(--accent-ink); }
 button {
-  font: inherit; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  font: inherit; border-radius: 7px; border: 1px solid var(--line); background: var(--panel); color: var(--text);
   padding: 8px 14px; cursor: pointer;
 }
-button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
+button.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
 button:disabled { opacity: 0.5; cursor: default; }
-button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-select, input { font: inherit; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+select, input { font: inherit; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--text); }
 h1, h2, h3 { margin: 0 0 8px; }

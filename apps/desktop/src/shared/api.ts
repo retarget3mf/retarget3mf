@@ -1,12 +1,12 @@
 import type { ConversionReport, FilamentMap, PrinterDefinition, PrinterId, ProjectFilament } from '@retarget3mf/core';
 import type { SourceSite } from '@retarget3mf/bridge';
-import type { Theme } from '@retarget3mf/ui';
+import type { Accent, Theme } from '@retarget3mf/ui';
 
 export type SlicerKind = 'flashstudio' | 'orca' | 'bambustudio' | 'crealityprint' | 'qidistudio' | 'elegooslicer' | 'prusaslicer';
 
 export interface SlicerInstall { kind: SlicerKind; name: string; path: string; /** App icon as a data URL, read from the installed app. */ icon?: string }
 
-export type { Theme };
+export type { Accent, Theme };
 /** What happens when a .3mf is opened from the OS (double-click, "Open with"). */
 export type OpenMode = 'auto' | 'review';
 
@@ -18,6 +18,7 @@ export interface Settings {
   output: 'next-to-original' | 'app-folder';
   openAfterConvert: boolean;
   theme: Theme;
+  accent: Accent;
   openMode: OpenMode;
 }
 
