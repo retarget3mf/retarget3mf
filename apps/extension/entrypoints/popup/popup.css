@@ -1,6 +1,7 @@
 body { width: 320px; padding: 14px; display: flex; flex-direction: column; gap: 12px; font-size: 13px; }
 .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .logo { display: inline-flex; align-items: center; gap: 8px; }
+.logo img { filter: var(--icon-ring); }
 .word { font-weight: 700; font-size: 16px; letter-spacing: -0.01em; }
 .accent { color: var(--brand-accent); }
 

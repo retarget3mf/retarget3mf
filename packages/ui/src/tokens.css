@@ -12,6 +12,8 @@
   --error-text: #8a1c1c;
   --ok: #1a7f37;
   --brand-accent: #0b66d0;
+  /* The icon's near-black tile vanishes on dark surfaces; a faint ring traces its outline there. */
+  --icon-ring: none;
   --radius: 10px;
   color-scheme: light dark;
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -32,6 +34,7 @@
     --error-text: #f5b4b4;
     --ok: #4ac26b;
     --brand-accent: #5fa0f2;
+    --icon-ring: drop-shadow(0 0 0.75px rgb(255 255 255 / 0.55));
   }
 }
 :root[data-theme='dark'] {
@@ -48,6 +51,7 @@
   --error-text: #f5b4b4;
   --ok: #4ac26b;
   --brand-accent: #5fa0f2;
+  --icon-ring: drop-shadow(0 0 0.75px rgb(255 255 255 / 0.55));
 }
 :root[data-theme='light'] { color-scheme: light; }
 :root[data-theme='dark'] { color-scheme: dark; }

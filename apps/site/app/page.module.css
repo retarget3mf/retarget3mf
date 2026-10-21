@@ -54,6 +54,7 @@
 .menuButton { display: flex; justify-content: space-between; padding: 13px 16px; border-radius: 10px 10px 0 0; background: #3aa856; color: #0b1a10; font-weight: 700; }
 .menuList { border: 1px solid var(--border); border-top: none; border-radius: 0 0 10px 10px; background: var(--bg); padding: 6px; box-shadow: 0 20px 50px rgb(0 0 0 / 0.12); }
 .menuList > div { padding: 11px 12px; border-radius: 8px; color: var(--muted); }
+.menuList .menuOurs img { filter: var(--icon-ring); }
 .menuList .menuOurs { display: flex; align-items: center; gap: 10px; color: var(--text); font-weight: 650; background: color-mix(in srgb, var(--brand-accent) 14%, transparent); outline: 1.5px solid color-mix(in srgb, var(--brand-accent) 55%, transparent); }
 
 .features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
