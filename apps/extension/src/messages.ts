@@ -4,6 +4,7 @@ import type { BridgeResponse, SourceSite } from '@retarget3mf/bridge';
 export type ToBackground =
   | { type: 'open'; url: string; name: string; site: SourceSite; pageUrl: string }
   | { type: 'status' }
+  | { type: 'set-target'; printer: string; slicer: string }
   | { type: 'convert-in-browser'; url: string; name: string; site: SourceSite; pageUrl: string };
 
 /** background → content script / popup */
@@ -13,7 +14,7 @@ export type ButtonState =
   | { kind: 'done'; label: string }
   | { kind: 'error'; label: string; installHint?: boolean };
 
-export interface AppStatus { connected: boolean; printer?: string; vendor?: string; slicer?: string; version?: string }
+export interface AppStatus { connected: boolean; printer?: string; vendor?: string; slicer?: string; printerId?: string; slicerId?: string; version?: string }
 
 /** What the button says for a bridge response; `printer` personalises the idle label. */
 export function stateFor(response: BridgeResponse | { type: 'no-app' }): ButtonState {

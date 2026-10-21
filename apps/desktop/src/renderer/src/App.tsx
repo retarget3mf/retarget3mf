@@ -38,6 +38,7 @@ export function App() {
     setPending((queue) => queue.slice(1));
     if (event.kind === 'open-project') void open(event.path);
     else if (event.kind === 'show-result') setStage({ kind: 'done', project: event.project, result: event.result, ...(event.launchError && { launchError: event.launchError }) });
+    else if (event.kind === 'settings-changed') void api.getState().then(setState);
     else setError(event.message);
   }, [pending, state]);
 

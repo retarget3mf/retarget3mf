@@ -10,7 +10,9 @@ import type { AppContext } from './context.ts';
 import { DownloadError, downloadProject } from './download.ts';
 import { openFromOs, showError } from './fastPath.ts';
 import { registerNativeHost } from './nativeHost.ts';
+import { sanitizeSettings } from './settings.ts';
 import { SLICER_NAMES } from './slicers.ts';
+import type { Settings } from '../shared/api.ts';
 
 /** Script paths outside the asar archive, so the browser-started host can run them with plain Node. */
 function hostScriptPath(): string {
@@ -35,7 +37,15 @@ function bridgeDeps(ctx: AppContext): BridgeDeps {
     version: app.getVersion(),
     status: () => {
       const printer = PRINTERS.find((p) => p.id === ctx.settings.printer);
-      return { ...(printer && { printer: printer.displayName, vendor: printer.vendor }), slicer: SLICER_NAMES[ctx.settings.slicer] };
+      return {
+        ...(printer && { printer: printer.displayName, vendor: printer.vendor, printerId: printer.id }),
+        slicer: SLICER_NAMES[ctx.settings.slicer], slicerId: ctx.settings.slicer,
+      };
+    },
+    // Same validation as the settings screen: unknown printers are ignored, a slicer without the printer's profiles is replaced.
+    setTarget: async (printer, slicer) => {
+      await ctx.update({ printer, slicer } as Partial<Settings>, sanitizeSettings);
+      ctx.emit({ kind: 'settings-changed' });
     },
     download: (url, name) => downloadProject(url, name, testHome() ?? app.getPath('downloads'), testFetch() ?? fetch),
     open: (path, origin) => {

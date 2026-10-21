@@ -77,6 +77,9 @@ importers:
       '@retarget3mf/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@retarget3mf/profiles':
+        specifier: workspace:*
+        version: link:../../packages/profiles
       typescript:
         specifier: 7.0.2
         version: 7.0.2

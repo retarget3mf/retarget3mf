@@ -1,8 +1,9 @@
 import { isAllowedDownloadUrl, isSitePageUrl, SITE_INFO, type SourceSite } from '@retarget3mf/bridge';
-import { ConversionError, PRINTERS, type SlicerId } from '@retarget3mf/core';
+import { ConversionError, type SlicerId } from '@retarget3mf/core';
+import { SLICER_NAMES } from '@retarget3mf/profiles/printers';
+import { fillPrinters, fillSlicers, storedTarget, storeTarget } from '../../src/target.ts';
 import { convertInBrowser, downloadProject, InBrowserError } from '../../src/inBrowser.ts';
 
-const SLICER_NAMES: Record<SlicerId, string> = { flashstudio: 'Flash Studio', orca: 'OrcaSlicer', bambustudio: 'Bambu Studio' };
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 const query = new URLSearchParams(location.search);
@@ -28,22 +29,6 @@ function describeProject(): void {
     link.textContent = SITE_INFO[site].name;
     el.append(' from ', link);
   }
-}
-
-function fillPrinters(selected: string | undefined): void {
-  const vendors = [...new Set(PRINTERS.map((p) => p.vendor))];
-  for (const vendor of vendors) {
-    const group = document.createElement('optgroup');
-    group.label = vendor;
-    for (const p of PRINTERS.filter((x) => x.vendor === vendor)) group.append(new Option(p.displayName, p.id, false, p.id === selected));
-    printerSelect.append(group);
-  }
-}
-
-function fillSlicers(selected: string | undefined): void {
-  const printer = PRINTERS.find((p) => p.id === printerSelect.value) ?? PRINTERS[0]!;
-  const keep = printer.slicers.includes(selected as SlicerId) ? selected : printer.slicers[0];
-  slicerSelect.replaceChildren(...printer.slicers.map((s) => new Option(SLICER_NAMES[s], s, false, s === keep)));
 }
 
 function showResult(result: Awaited<ReturnType<typeof convertInBrowser>>): void {
@@ -73,7 +58,7 @@ async function run(): Promise<void> {
   error.hidden = true;
   $('result').hidden = true;
   try {
-    await browser.storage.local.set({ printer: printerSelect.value, slicer: slicerSelect.value });
+    await storeTarget({ printer: printerSelect.value, slicer: slicerSelect.value });
     status.textContent = 'Downloading…';
     const bytes = await downloadProject(url);
     status.textContent = 'Converting…';
@@ -90,10 +75,10 @@ async function run(): Promise<void> {
 }
 
 describeProject();
-const saved = (await browser.storage.local.get(['printer', 'slicer'])) as { printer?: string; slicer?: string };
-fillPrinters(saved.printer);
-fillSlicers(saved.slicer);
-printerSelect.addEventListener('change', () => fillSlicers(slicerSelect.value));
+const saved = await storedTarget();
+fillPrinters(printerSelect, saved.printer);
+fillSlicers(slicerSelect, printerSelect.value, saved.slicer);
+printerSelect.addEventListener('change', () => fillSlicers(slicerSelect, printerSelect.value, slicerSelect.value));
 button.addEventListener('click', () => void run());
 if (!isAllowedDownloadUrl(url)) {
   button.disabled = true;

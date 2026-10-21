@@ -7,7 +7,8 @@ import type { FastPathOutcome } from './fastPath.ts';
 
 export interface BridgeDeps {
   version: string;
-  status: () => { printer?: string; vendor?: string; slicer?: string };
+  status: () => { printer?: string; vendor?: string; slicer?: string; printerId?: string; slicerId?: string };
+  setTarget: (printer: string, slicer: string) => Promise<void>;
   download: (url: string, name: string) => Promise<string>;
   open: (path: string, origin?: { site: SourceSite; pageUrl: string }) => Promise<FastPathOutcome>;
 }
@@ -23,6 +24,11 @@ export async function handleRequest(request: BridgeRequest, deps: BridgeDeps, se
     : { id, type: 'done', outcome: outcome.kind, message: outcome.message });
   try {
     if (request.type === 'ping') {
+      send({ id, type: 'pong', version: deps.version, ...deps.status() });
+      return;
+    }
+    if (request.type === 'set-target') {
+      if (typeof request.printer === 'string' && typeof request.slicer === 'string') await deps.setTarget(request.printer, request.slicer);
       send({ id, type: 'pong', version: deps.version, ...deps.status() });
       return;
     }

@@ -1,5 +1,7 @@
 export type SlicerId = 'orca' | 'flashstudio' | 'bambustudio';
 
+export const SLICER_NAMES: Record<SlicerId, string> = { flashstudio: 'Flash Studio', orca: 'OrcaSlicer', bambustudio: 'Bambu Studio' };
+
 export type PrinterId =
   | 'ad5x-0.4' | 'adventurer-5m-0.4' | 'adventurer-5m-pro-0.4' | 'creator-5-0.4' | 'creator-5-pro-0.4'
   | 'bambu-a1-mini-0.4' | 'bambu-a1-0.4' | 'bambu-p1p-0.4' | 'bambu-p1s-0.4' | 'bambu-p2s-0.4'

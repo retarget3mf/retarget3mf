@@ -3,6 +3,8 @@ import { NOTIFICATION_PREFIX, projectDownload } from '../src/downloads.ts';
 import { idleLabel, stateFor, type AppStatus, type ToBackground } from '../src/messages.ts';
 
 type Pending = (response: BridgeResponse | { type: 'no-app' }) => void;
+/** A request without its id; distributes over the union so each request type keeps its own fields. */
+type RequestBody = BridgeRequest extends infer R ? (R extends BridgeRequest ? Omit<R, 'id'> : never) : never;
 
 export default defineBackground(() => {
   let port: Browser.runtime.Port | undefined;
@@ -23,7 +25,7 @@ export default defineBackground(() => {
     return p;
   }
 
-  function request(body: Omit<BridgeRequest, 'id'>, onReply: Pending): void {
+  function request(body: RequestBody, onReply: Pending): void {
     const id = nextId++;
     pending.set(id, onReply);
     try {
@@ -34,11 +36,13 @@ export default defineBackground(() => {
     }
   }
 
-  const status = () => new Promise<AppStatus>((resolve) => {
+  const status = (body: RequestBody = { type: 'ping' }) => new Promise<AppStatus>((resolve) => {
     const timer = setTimeout(() => resolve({ connected: false }), 25_000);
-    request({ type: 'ping' }, (r) => {
+    request(body, (r) => {
       clearTimeout(timer);
-      resolve(r.type === 'pong' ? { connected: true, version: r.version, ...(r.printer && { printer: r.printer }), ...(r.vendor && { vendor: r.vendor }), ...(r.slicer && { slicer: r.slicer }) } : { connected: false });
+      if (r.type !== 'pong') return resolve({ connected: false });
+      const { id: _id, type: _type, ...fields } = r;
+      resolve({ connected: true, ...fields });
     });
   });
 
@@ -88,6 +92,10 @@ export default defineBackground(() => {
       void status().then(sendResponse);
       return true;
     }
+    if (message.type === 'set-target') {
+      void status({ type: 'set-target', printer: message.printer, slicer: message.slicer }).then(sendResponse);
+      return true;
+    }
     if (message.type === 'convert-in-browser') {
       if (!isAllowedDownloadUrl(message.url)) return false;
       const query = new URLSearchParams({ url: message.url, name: message.name, site: message.site, page: message.pageUrl });
@@ -96,7 +104,7 @@ export default defineBackground(() => {
     }
     const tabId = sender.tab?.id;
     if (message.type !== 'open' || tabId === undefined || !isAllowedDownloadUrl(message.url)) return false;
-    request({ type: 'open', url: message.url, name: message.name, site: message.site, pageUrl: message.pageUrl } as Omit<BridgeRequest, 'id'>, (r) => {
+    request({ type: 'open', url: message.url, name: message.name, site: message.site, pageUrl: message.pageUrl }, (r) => {
       const state = stateFor(r);
       void browser.tabs.sendMessage(tabId, { type: 'button-state', state }).catch(() => {});
       if (state.kind !== 'busy') pending.forEach((fn, id) => fn === undefined && pending.delete(id));

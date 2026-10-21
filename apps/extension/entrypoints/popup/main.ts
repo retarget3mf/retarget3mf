@@ -1,12 +1,34 @@
 import { WATCH_PERMISSIONS } from '../../src/downloads.ts';
-import type { AppStatus } from '../../src/messages.ts';
+import type { AppStatus, ToBackground } from '../../src/messages.ts';
+import { fillPrinters, fillSlicers, storedTarget, storeTarget } from '../../src/target.ts';
 
 const el = document.getElementById('status')!;
-const status = (await browser.runtime.sendMessage({ type: 'status' })) as AppStatus;
+const printerSelect = document.getElementById('printer') as HTMLSelectElement;
+const slicerSelect = document.getElementById('slicer') as HTMLSelectElement;
+let status = (await browser.runtime.sendMessage({ type: 'status' } satisfies ToBackground)) as AppStatus;
 el.className = status.connected ? 'ok' : 'off';
 el.textContent = status.connected
-  ? `Desktop app connected: ${status.printer ?? 'no printer chosen'} · ${status.slicer ?? ''}`
-  : 'Desktop app not found. Install and open Retarget3MF once, then reload this page. Until then, projects can be converted in the browser and downloaded.';
+  ? 'Connected to the desktop app; changes here apply there too.'
+  : 'Desktop app not found. Install and open Retarget3MF once, then reload this page. Until then, projects are converted in the browser and downloaded.';
+
+// With the app connected its settings are the source of truth; the extension's copy follows for in-browser conversion.
+const initial = status.connected ? { printer: status.printerId, slicer: status.slicerId } : await storedTarget();
+fillPrinters(printerSelect, initial.printer, 'Choose your printer');
+fillSlicers(slicerSelect, printerSelect.value, initial.slicer);
+
+async function save(): Promise<void> {
+  if (!printerSelect.value) return;
+  await storeTarget({ printer: printerSelect.value, slicer: slicerSelect.value });
+  if (!status.connected) return;
+  status = (await browser.runtime.sendMessage({ type: 'set-target', printer: printerSelect.value, slicer: slicerSelect.value } satisfies ToBackground)) as AppStatus;
+  if (status.slicerId && status.slicerId !== slicerSelect.value) fillSlicers(slicerSelect, printerSelect.value, status.slicerId);
+}
+printerSelect.addEventListener('change', () => {
+  printerSelect.querySelector('option[value=""]')?.remove();
+  fillSlicers(slicerSelect, printerSelect.value, slicerSelect.value);
+  void save();
+});
+slicerSelect.addEventListener('change', () => void save());
 
 // Passive mode needs the desktop app to hand files to, so it is offered only when the app is connected.
 const watch = document.getElementById('watch') as HTMLInputElement;

@@ -68,7 +68,9 @@ export interface HistoryEntry {
 export type AppEvent =
   | { kind: 'open-project'; path: string }
   | { kind: 'show-result'; project: InspectResult; result: ConvertResult; launchError?: string }
-  | { kind: 'error'; message: string };
+  | { kind: 'error'; message: string }
+  /** Printer or slicer changed from outside the window (the extension popup). */
+  | { kind: 'settings-changed' };
 
 export type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 

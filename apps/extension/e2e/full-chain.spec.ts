@@ -79,3 +79,22 @@ test('no row on MakerWorld when a Bambu Lab printer is chosen (the site already 
   await browser.close();
   await desktop.close();
 });
+
+test('popup printer and slicer menus change the desktop app', async () => {
+  const { desktop, browser } = await startChain('ad5x-0.4');
+  const popup = await browser.newPage();
+  await popup.goto(`chrome-extension://${EXTENSION_IDS[0]}/popup.html`);
+  await expect(popup.getByText('Connected to the desktop app')).toBeVisible({ timeout: 30_000 });
+  await expect(popup.getByLabel('Printer')).toHaveValue('ad5x-0.4');
+  await expect(popup.getByLabel('Slicer')).toHaveValue('flashstudio');
+
+  await popup.getByLabel('Printer').selectOption('bambu-x1c-0.4');
+  // Flash Studio has no Bambu profiles, so the slicer follows the printer.
+  await expect(popup.getByLabel('Slicer')).toHaveValue('bambustudio');
+  const window = await desktop.firstWindow();
+  await expect(window.getByRole('button', { name: /^Printer: X1 Carbon/ })).toBeVisible();
+  await expect(window.getByRole('button', { name: /^Slicer: Bambu Studio/ })).toBeVisible();
+  await popup.screenshot({ path: 'e2e/.results/popup.png' });
+  await browser.close();
+  await desktop.close();
+});

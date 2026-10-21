@@ -29,11 +29,13 @@ export function isSitePageUrl(raw: string, site: SourceSite): boolean {
 export type BridgeRequest =
   | { id: number; type: 'ping' }
   | { id: number; type: 'open'; url: string; name: string; site: SourceSite; pageUrl: string }
+  /** Printer and slicer chosen in the extension popup; answered with a pong carrying the new status. */
+  | { id: number; type: 'set-target'; printer: string; slicer: string }
   /** A .3mf the browser already downloaded (passive mode); `site`/`pageUrl` only when the download came from a model page. */
   | { id: number; type: 'open-file'; path: string; site?: SourceSite; pageUrl?: string };
 
 export type BridgeResponse =
-  | { id: number; type: 'pong'; version: string; printer?: string; vendor?: string; slicer?: string }
+  | { id: number; type: 'pong'; version: string; printer?: string; vendor?: string; slicer?: string; printerId?: string; slicerId?: string }
   | { id: number; type: 'progress'; stage: 'downloading' | 'converting' | 'opening' }
   | { id: number; type: 'done'; outcome: 'opened' | 'converted' | 'review'; message: string }
   | { id: number; type: 'error'; message: string };

@@ -16,6 +16,7 @@ const deps = (over: Partial<BridgeDeps> = {}): BridgeDeps => ({
   status: () => ({ printer: 'Flashforge AD5X', slicer: 'Flash Studio' }),
   download: async () => '/tmp/a.3mf',
   open: async () => ({ kind: 'opened', message: 'Opened', outputPath: '/tmp/a - AD5X.3mf' }),
+  setTarget: async () => {},
   ...over,
 });
 const collect = async (request: Parameters<typeof handleRequest>[0], d: BridgeDeps) => {
@@ -47,6 +48,13 @@ describe('bridge requests', () => {
     expect((await collect({ id: 4, type: 'open-file', path, site: 'printables', pageUrl: 'https://www.printables.com/model/1' }, d)).at(-1)).toMatchObject({ type: 'done' });
     await collect({ id: 5, type: 'open-file', path, site: 'printables', pageUrl: 'https://evil.example/' }, d);
     expect(seen).toEqual([[path, { site: 'printables', pageUrl: 'https://www.printables.com/model/1' }], [path, undefined]]);
+  });
+
+  it('applies a printer and slicer chosen in the extension and answers with the new status', async () => {
+    const seen: string[][] = [];
+    const out = await collect({ id: 7, type: 'set-target', printer: 'bambu-x1c-0.4', slicer: 'bambustudio' }, deps({ setTarget: async (p, s) => { seen.push([p, s]); } }));
+    expect(seen).toEqual([['bambu-x1c-0.4', 'bambustudio']]);
+    expect(out).toEqual([expect.objectContaining({ id: 7, type: 'pong' })]);
   });
 
   it('refuses paths that are not existing .3mf files', async () => {
