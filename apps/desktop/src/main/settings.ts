@@ -1,14 +1,23 @@
 import { readFileSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { isAbsolute, join } from 'node:path';
 import { PRINTERS, type PrinterId } from '@retarget3mf/core';
 import { ACCENTS } from '@retarget3mf/ui/accent';
-import type { Accent, DropTarget, OpenMode, SavedPrinter, Settings, SlicerKind, Theme } from '../shared/api.ts';
+import { DEFAULT_FILE_NAME, HISTORY_RETENTION, type Accent, type DropTarget, type HistoryRetention, type OpenMode, type SavedPrinter, type Settings, type SlicerKind, type Theme } from '../shared/api.ts';
 
 export const DEFAULT_SETTINGS: Settings = {
   slicer: 'flashstudio', printers: [], dropTarget: 'last', autoCombine: false,
-  slicerPaths: {}, output: 'next-to-original', openAfterConvert: true, theme: 'system', accent: 'lime', openMode: 'auto',
+  slicerPaths: {}, output: 'next-to-original', fileNamePattern: DEFAULT_FILE_NAME, removeUnused: true, openAfterConvert: true,
+  theme: 'system', accent: 'lime', openMode: 'auto', extensionMode: 'auto', autoUpdate: true, historyRetention: 'forever',
 };
+const MAX_PATTERN = 120;
+
+/** A file name pattern must name the project and cannot reach into other folders. */
+function fileNamePattern(raw: unknown, base: string): string {
+  if (typeof raw !== 'string') return base;
+  const value = raw.trim().replace(/\.3mf$/i, '');
+  return value.includes('{name}') && value.length <= MAX_PATTERN && !/[\\/:*?"<>|\u0000-\u001f]/.test(value.replace(/\{\w+\}/g, '')) ? value : base;
+}
 const SLICERS: readonly SlicerKind[] = ['flashstudio', 'orca', 'bambustudio', 'crealityprint', 'qidistudio', 'elegooslicer', 'prusaslicer'];
 const THEMES: readonly Theme[] = ['system', 'light', 'dark'];
 const OPEN_MODES: readonly OpenMode[] = ['auto', 'review'];
@@ -54,6 +63,12 @@ export function sanitizeSettings(raw: unknown, base: Settings = DEFAULT_SETTINGS
     autoCombine: typeof r.autoCombine === 'boolean' ? r.autoCombine : base.autoCombine,
     slicerPaths: Object.fromEntries(SLICERS.flatMap((k) => (typeof paths[k] === 'string' ? [[k, paths[k]]] : base.slicerPaths[k] ? [[k, base.slicerPaths[k]]] : []))),
     output: r.output === 'app-folder' || r.output === 'next-to-original' ? r.output : base.output,
+    ...(typeof (r.outputDir ?? base.outputDir) === 'string' && isAbsolute(String(r.outputDir ?? base.outputDir)) && { outputDir: String(r.outputDir ?? base.outputDir) }),
+    fileNamePattern: fileNamePattern(r.fileNamePattern, base.fileNamePattern),
+    removeUnused: typeof r.removeUnused === 'boolean' ? r.removeUnused : base.removeUnused,
+    extensionMode: OPEN_MODES.includes(r.extensionMode as OpenMode) ? (r.extensionMode as OpenMode) : base.extensionMode,
+    autoUpdate: typeof r.autoUpdate === 'boolean' ? r.autoUpdate : base.autoUpdate,
+    historyRetention: HISTORY_RETENTION.includes(r.historyRetention as HistoryRetention) ? (r.historyRetention as HistoryRetention) : base.historyRetention,
     openAfterConvert: typeof r.openAfterConvert === 'boolean' ? r.openAfterConvert : base.openAfterConvert,
     theme: THEMES.includes(r.theme as Theme) ? (r.theme as Theme) : base.theme,
     accent: ACCENTS.includes(r.accent as Accent) ? (r.accent as Accent) : base.accent,

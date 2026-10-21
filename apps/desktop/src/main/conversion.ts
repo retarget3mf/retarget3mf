@@ -29,7 +29,8 @@ export async function convertProject(ctx: AppContext, request: ConvertRequest): 
     mkdirSync(folder, { recursive: true });
   }
   const shortName = printer.displayName.replace(new RegExp(`^${printer.vendor} `), '');
-  const result = await runWorker<ConvertResult>({ kind: 'convert', request: { ...request, path }, outputPath: outputPathFor(path, shortName, folder) });
+  const outputPath = outputPathFor(path, { printer: shortName, slicer: SLICER_NAMES[request.slicer] }, folder, ctx.settings.fileNamePattern);
+  const result = await runWorker<ConvertResult>({ kind: 'convert', request: { ...request, path }, outputPath, keepUnused: !ctx.settings.removeUnused });
   if (result.ok) await recordHistory(ctx, path, printer.displayName, request.slicer, result.value);
   return result;
 }

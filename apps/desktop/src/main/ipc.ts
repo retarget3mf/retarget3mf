@@ -6,6 +6,7 @@ import type { ConvertRequest, ConvertResult, SlicerKind } from '../shared/api.ts
 import type { AppContext } from './context.ts';
 import { assertProjectPath, convertProject, inspectProject, openInSlicer } from './conversion.ts';
 import { cancelWorker } from './converter.ts';
+import { checkNow } from './updates.ts';
 import { sanitizeSettings } from './settings.ts';
 import { SLICER_NAMES } from './slicers.ts';
 
@@ -24,6 +25,12 @@ export function registerIpc(ctx: AppContext): void {
     const r = await dialog.showOpenDialog(ctx.window!, { properties: ['openFile'], filters: [{ name: '3MF project', extensions: ['3mf'] }] });
     return r.canceled ? undefined : r.filePaths[0];
   });
+  ipcMain.handle('folder:pick', async () => {
+    const r = await dialog.showOpenDialog(ctx.window!, { defaultPath: ctx.outputFolder, properties: ['openDirectory', 'createDirectory'] });
+    if (!r.canceled && r.filePaths[0]) await ctx.update({ output: 'app-folder', outputDir: r.filePaths[0] }, sanitizeSettings);
+    return ctx.state();
+  });
+  ipcMain.handle('update:check', () => checkNow(ctx.settings.autoUpdate));
   ipcMain.handle('slicer:pick', async (_e, kind: SlicerKind) => {
     if (!(kind in SLICER_NAMES)) return ctx.state();
     const r = await dialog.showOpenDialog(ctx.window!, { title: `Locate ${SLICER_NAMES[kind]}`, properties: ['openFile', 'treatPackageAsDirectory'] });
@@ -53,6 +60,10 @@ export function registerHistoryIpc(ctx: AppContext): void {
     const removed = await ctx.history.remove(String(id));
     // Only the converted file this app wrote, and only to the Trash; the original download is left alone.
     if (removed && moveFileToTrash === true && removed.exists) await shell.trashItem(removed.outputPath).catch((error) => console.error('trash', error));
+    return ctx.history.list();
+  });
+  ipcMain.handle('history:clear', async () => {
+    await ctx.history.clear();
     return ctx.history.list();
   });
   ipcMain.handle('history:source', async (_e, id: string) => {

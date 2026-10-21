@@ -26,11 +26,14 @@ export class AppContext {
   }
 
   get outputFolder(): string {
-    return join(app.getPath('documents'), 'Retarget3MF');
+    return this.settings.outputDir ?? join(app.getPath('documents'), 'Retarget3MF');
   }
 
   async state(): Promise<AppState> {
-    return { settings: this.settings, printers: PRINTERS, slicers: await this.slicers, outputFolder: this.outputFolder, browsers: this.browsers };
+    return {
+      settings: this.settings, printers: PRINTERS, slicers: await this.slicers, outputFolder: this.outputFolder, browsers: this.browsers,
+      version: app.getVersion(), packaged: app.isPackaged,
+    };
   }
 
   async findSlicer(kind: Settings['slicer']): Promise<SlicerInstall | undefined> {
@@ -49,6 +52,7 @@ export class AppContext {
     this.settings = sanitize({ ...this.settings, ...patch, ...(saved && { slicer: saved.slicer }) }, this.settings);
     nativeTheme.themeSource = this.settings.theme;
     await saveSettings(app.getPath('userData'), this.settings);
+    await this.history.prune(this.settings.historyRetention);
     if (pathsChanged) await this.refreshSlicers();
   }
 

@@ -25,6 +25,9 @@ const api: DesktopApi = {
   listHistory: () => ipcRenderer.invoke('history:list'),
   historyReport: (id) => ipcRenderer.invoke('history:report', id),
   removeHistory: (id, moveFileToTrash) => ipcRenderer.invoke('history:remove', id, moveFileToTrash),
+  clearHistory: () => ipcRenderer.invoke('history:clear'),
+  pickOutputFolder: () => ipcRenderer.invoke('folder:pick'),
+  checkForUpdates: () => ipcRenderer.invoke('update:check'),
   openSourcePage: (id) => ipcRenderer.invoke('history:source', id),
 };
 

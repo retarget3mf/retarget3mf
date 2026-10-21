@@ -1,12 +1,12 @@
 import { join } from 'node:path';
 import { app } from 'electron';
-import electronUpdater from 'electron-updater';
 import { AppContext } from './context.ts';
 import { appLinksFromArgv, projectPathsFromArgv } from './externalFiles.ts';
 import { openFromOs } from './fastPath.ts';
 import { registerHistoryIpc, registerIpc } from './ipc.ts';
 import { openLink, registerAppScheme, startBridge } from './bridge.ts';
 import { loadSettings } from './settings.ts';
+import { checkOnLaunch } from './updates.ts';
 import { showWindow } from './window.ts';
 
 // One instance owns the window and the converter; later launches forward their files and exit.
@@ -54,8 +54,8 @@ app.whenReady().then(() => {
   // The fast path, and launches by the browser extension's host, stay windowless; a plain launch shows the window.
   if (files.length === 0 && !process.argv.includes('--from-browser')) showWindow(ctx);
   files.forEach((f) => void openAndMaybeQuit(f));
-  // GitHub Releases; unsigned macOS builds cannot apply updates, so failures are only logged.
-  if (app.isPackaged) electronUpdater.autoUpdater.checkForUpdatesAndNotify().catch((error: unknown) => console.error('update check', error));
+  checkOnLaunch(ctx.settings.autoUpdate);
+  void ctx.history.prune(ctx.settings.historyRetention);
   app.on('activate', () => showWindow(ctx!));
 });
 

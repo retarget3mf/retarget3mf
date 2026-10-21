@@ -7,6 +7,7 @@ import type { ConversionReport } from '@retarget3mf/core';
 import type { HistoryEntry, ProjectOrigin } from '../shared/api.ts';
 
 const MAX_ENTRIES = 200;
+const DAY_MS = 24 * 60 * 60 * 1000;
 type Stored = Omit<HistoryEntry, 'exists' | 'thumbnail'> & { hasThumbnail: boolean };
 
 export interface NewEntry {
@@ -92,6 +93,25 @@ export class History {
     } catch {
       return undefined;
     }
+  }
+
+  /** Drops entries older than the retention in days ('forever' keeps all). */
+  async prune(retention: 'forever' | `${number}`): Promise<void> {
+    if (retention === 'forever') return;
+    const cutoff = Date.now() - Number(retention) * DAY_MS;
+    const old = this.entries.filter((e) => Date.parse(e.createdAt) < cutoff);
+    if (old.length === 0) return;
+    this.entries = this.entries.filter((e) => !old.includes(e));
+    await Promise.all(old.map((e) => this.removeFiles(e.id)));
+    await this.save();
+  }
+
+  /** Forgets every entry; converted files stay where they are. */
+  async clear(): Promise<void> {
+    const all = this.entries;
+    this.entries = [];
+    await Promise.all(all.map((e) => this.removeFiles(e.id)));
+    await this.save();
   }
 
   async remove(id: string): Promise<HistoryEntry | undefined> {

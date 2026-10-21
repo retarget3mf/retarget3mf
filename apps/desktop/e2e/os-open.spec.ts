@@ -1,4 +1,4 @@
-import { mkdtempSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { _electron as electron, expect, test } from '@playwright/test';
@@ -61,7 +61,7 @@ test('too many colours for the printer opens the review screen instead', async (
   await app.close();
 });
 
-test('settings: theme, brand groups and slicer cards', async () => {
+test('settings: pages, appearance, browsers and converting options', async () => {
   const { dir, userData } = profile({ printer: 'ad5x-0.4' });
   // Chrome and Dia "installed" in the throwaway home (macOS and Linux layouts).
   for (const p of ['Library/Application Support/Google/Chrome', 'Library/Application Support/Dia/User Data', '.config/google-chrome']) mkdirSync(join(dir, p), { recursive: true });
@@ -70,25 +70,40 @@ test('settings: theme, brand groups and slicer cards', async () => {
   // Playwright emulates a light scheme by default, which would hide Electron's nativeTheme.
   await page.emulateMedia({ colorScheme: null });
   await page.getByRole('button', { name: 'Settings' }).click();
-  await expect(page.getByRole('group', { name: 'Flashforge' })).toBeVisible();
-  await expect(page.getByRole('radio', { name: 'Flash Studio' })).toBeVisible();
-  await page.getByRole('radio', { name: 'Dark' }).first().click();
+  await expect(page.getByRole('heading', { name: 'Printers', exact: true })).toBeVisible();
+  await expect(page.getByText('DEFAULT', { exact: true })).toBeVisible();
+
+  const nav = page.getByRole('navigation', { name: 'Settings' });
+  await nav.getByRole('button', { name: 'Appearance' }).click();
+  await page.getByRole('radio', { name: 'Dark' }).click();
   await expect.poll(() => page.evaluate(() => matchMedia('(prefers-color-scheme: dark)').matches)).toBe(true);
   expect(await app.evaluate(({ nativeTheme }) => nativeTheme.themeSource)).toBe('dark');
-  await page.screenshot({ path: 'e2e/.results/settings-dark.png', fullPage: true });
-  await page.getByRole('radio', { name: 'Light' }).first().click();
+  await page.getByRole('radio', { name: 'Violet' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'violet');
+  await page.screenshot({ path: 'e2e/.results/settings-appearance.png' });
+  await page.getByRole('radio', { name: 'Light' }).click();
   await expect.poll(() => page.evaluate(() => matchMedia('(prefers-color-scheme: dark)').matches)).toBe(false);
-  await page.screenshot({ path: 'e2e/.results/settings-light.png', fullPage: true });
 
   // Chromium browsers share one row; Firefox and Safari are always listed.
+  await nav.getByRole('button', { name: 'Browser' }).click();
   await expect(page.getByText('Chrome and Chromium browsers')).toBeVisible();
   await expect(page.getByText('Not supported yet')).toBeVisible();
   await page.getByRole('button', { name: 'Which browsers?' }).click();
   await expect(page.getByText(/Set up on this computer: Chrome/)).toBeVisible();
-  await page.screenshot({ path: 'e2e/.results/settings-browsers.png', fullPage: true });
+  await page.screenshot({ path: 'e2e/.results/settings-browsers.png' });
+  await page.keyboard.press('Escape');
+
+  await nav.getByRole('button', { name: 'Converting' }).click();
+  const removeUnused = page.getByRole('switch', { name: 'Remove filaments not used by any object' });
+  await removeUnused.click();
+  await expect(removeUnused).not.toBeChecked();
+  await page.getByLabel('File name').fill('{printer} - {name}');
+  await page.getByLabel('File name').blur();
+  await expect.poll(async () => JSON.parse(readFileSync(join(userData, 'settings.json'), 'utf8'))).toMatchObject({ removeUnused: false, fileNamePattern: '{printer} - {name}' });
+  await nav.getByRole('button', { name: 'Slicers' }).click();
+  await expect(page.getByText("Flashforge's own slicer")).toBeVisible();
   await app.close();
 });
-
 
 test('home printer card and slicer menu switch printer and slicer, and link to settings', async () => {
   const { userData } = profile({ printer: 'ad5x-0.4', slicer: 'flashstudio' });
@@ -108,6 +123,6 @@ test('home printer card and slicer menu switch printer and slicer, and link to s
   await expect(page.getByRole('button', { name: 'Printer: Adventurer 5M Pro' })).toBeVisible();
   await page.getByRole('button', { name: 'Slicer: Flash Studio' }).click();
   await page.getByRole('menuitem', { name: 'Manage slicers…' }).click();
-  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Slicers', exact: true })).toBeVisible();
   await app.close();
 });

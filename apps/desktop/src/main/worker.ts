@@ -6,7 +6,7 @@ import type { ConvertRequest, ConvertResult, InspectResult } from '../shared/api
 
 export type WorkerRequest =
   | { id: number; kind: 'inspect'; path: string }
-  | { id: number; kind: 'convert'; request: ConvertRequest; outputPath: string };
+  | { id: number; kind: 'convert'; request: ConvertRequest; outputPath: string; keepUnused?: boolean };
 
 export type WorkerResponse =
   | { id: number; ok: true; value: InspectResult | ConvertResult }
@@ -32,6 +32,7 @@ async function handle(message: WorkerRequest): Promise<InspectResult | ConvertRe
     printer: request.printer,
     slicer: request.slicer,
     ...(request.filamentMap && { filamentMap: request.filamentMap }),
+    ...(message.keepUnused && { keepUnused: true }),
   });
   await writeFile(message.outputPath, output);
   return {

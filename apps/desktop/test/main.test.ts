@@ -11,7 +11,7 @@ import { outputPathFor } from '../src/main/paths.ts';
 import { DEFAULT_SETTINGS, dropPrinter, sanitizeSettings } from '../src/main/settings.ts';
 import { launchCommand } from '../src/main/slicers.ts';
 import { pickSlicer, slicersFor } from '../src/renderer/src/slicerKinds.ts';
-import { browserRows } from '../src/renderer/src/components/BrowserSupport.tsx';
+import { browserRows } from '../src/renderer/src/settings/browsers.ts';
 
 describe('dropPrinter', () => {
   const two = sanitizeSettings({ printer: 'qidi-q1-pro-0.4', slicer: 'orca', defaultPrinter: 'ad5x-0.4', printers: [{ model: 'ad5x-0.4', slicer: 'flashstudio' }] });
@@ -40,6 +40,14 @@ describe('sanitizeSettings', () => {
 
   it('upgrades a single-printer settings file to a one-printer list', () => {
     expect(sanitizeSettings({ printer: 'ad5x-0.4', slicer: 'orca' })).toMatchObject({ printers: [{ model: 'ad5x-0.4', slicer: 'orca' }], defaultPrinter: 'ad5x-0.4', dropTarget: 'last', autoCombine: false });
+  });
+
+  it('accepts a file name pattern only when it names the project and stays in its folder', () => {
+    expect(sanitizeSettings({ fileNamePattern: '{name} — {printer}.3mf' }).fileNamePattern).toBe('{name} — {printer}');
+    expect(sanitizeSettings({ fileNamePattern: '{printer}' }).fileNamePattern).toBe(DEFAULT_SETTINGS.fileNamePattern);
+    expect(sanitizeSettings({ fileNamePattern: '../{name}' }).fileNamePattern).toBe(DEFAULT_SETTINGS.fileNamePattern);
+    expect(sanitizeSettings({ outputDir: 'relative/dir' }).outputDir).toBeUndefined();
+    expect(sanitizeSettings({ historyRetention: '90' }).historyRetention).toBe('90');
   });
 
   it('keeps a known accent and falls back to lime', () => {
@@ -79,8 +87,14 @@ describe('launchCommand', () => {
 
 describe('outputPathFor', () => {
   it('names the file after the printer, next to the original by default', () => {
-    expect(outputPathFor('/m/Benchy.3mf', 'AD5X', undefined)).toBe('/m/Benchy - AD5X.3mf');
-    expect(outputPathFor('/m/Benchy.3MF', 'AD5X', '/out')).toBe('/out/Benchy - AD5X.3mf');
+    const names = { printer: 'AD5X', slicer: 'Flash Studio' };
+    expect(outputPathFor('/m/Benchy.3mf', names, undefined)).toBe('/m/Benchy - AD5X.3mf');
+    expect(outputPathFor('/m/Benchy.3MF', names, '/out')).toBe('/out/Benchy - AD5X.3mf');
+  });
+
+  it('fills in the file name pattern and keeps separators out of it', () => {
+    expect(outputPathFor('/m/Benchy.3mf', { printer: 'K2 Plus', slicer: 'Creality Print' }, undefined, '{name} — {printer} ({slicer})')).toBe('/m/Benchy — K2 Plus (Creality Print).3mf');
+    expect(outputPathFor('/m/a.3mf', { printer: 'X/Y', slicer: 'S' }, undefined, '{printer}_{name}')).toBe('/m/X-Y_a.3mf');
   });
 });
 

@@ -79,8 +79,11 @@ test('two printers: ⌘2 switches, each keeps its slicer, a fitting drop convert
   await app.evaluate(({ dialog }, path) => { dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [path] }); }, input);
 
   await expect(page.getByRole('radio', { name: /Adventurer 5M/ })).toHaveAttribute('aria-checked', 'true');
-  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+2' : 'Control+2');
-  await expect(page.getByRole('radio', { name: /AD5X/ })).toHaveAttribute('aria-checked', 'true');
+  // The shortcut listener attaches just after the first paint; a key pressed sooner is lost, so retry.
+  await expect(async () => {
+    await page.keyboard.press(process.platform === 'darwin' ? 'Meta+2' : 'Control+2');
+    await expect(page.getByRole('radio', { name: /AD5X/ })).toHaveAttribute('aria-checked', 'true', { timeout: 500 });
+  }).toPass();
   await expect(page.getByRole('button', { name: 'Slicer: Flash Studio' })).toBeVisible();
   await page.screenshot({ path: 'e2e/.results/two-printers.png' });
 

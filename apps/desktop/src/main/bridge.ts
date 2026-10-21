@@ -50,7 +50,7 @@ function bridgeDeps(ctx: AppContext): BridgeDeps {
     download: (url, name) => downloadProject(url, name, testHome() ?? app.getPath('downloads'), testFetch() ?? fetch),
     open: (path, origin) => {
       if (origin) ctx.origins.set(path, origin);
-      return openFromOs(ctx, path);
+      return openFromOs(ctx, path, true);
     },
   };
 }

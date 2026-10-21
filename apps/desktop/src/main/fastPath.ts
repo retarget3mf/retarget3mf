@@ -15,20 +15,21 @@ export type FastPathOutcome =
  * A .3mf opened from the OS or the browser extension: convert with saved defaults and open the slicer without
  * showing the window, unless something needs the user (no printer yet, colours to merge, errors, or "review" mode).
  */
-export async function openFromOs(ctx: AppContext, path: string): Promise<FastPathOutcome> {
-  const { openMode, openAfterConvert, autoCombine } = ctx.settings;
-  if (!ctx.settings.printer) return review(ctx, path, 'Choose your printer in Retarget3MF first.');
+export async function openFromOs(ctx: AppContext, path: string, fromExtension = false): Promise<FastPathOutcome> {
+  const { openAfterConvert, autoCombine } = ctx.settings;
+  const openMode = fromExtension ? ctx.settings.extensionMode : ctx.settings.openMode;
+  if (!ctx.settings.printer) return review(ctx, path, 'Choose your printer in Retarget3MF first.', fromExtension);
   const target = dropPrinter(ctx.settings);
-  if (!target) return review(ctx, path, 'Choose the printer for this project in Retarget3MF.');
+  if (!target) return review(ctx, path, 'Choose the printer for this project in Retarget3MF.', fromExtension);
   const printer = PRINTERS.find((p) => p.id === target.model)!;
   const { slicer } = target;
-  if (openMode === 'review') return review(ctx, path, 'Review the project in Retarget3MF.');
+  if (openMode === 'review') return review(ctx, path, 'Review the project in Retarget3MF.', fromExtension);
 
   const inspected = await inspectProject(path);
   if (!inspected.ok) return fail(ctx, inspected.error);
   const used = inspected.value.filaments.filter((f) => f.used);
   if (used.length > printer.slots.count && !autoCombine) {
-    return review(ctx, path, `${used.length} colours for ${printer.slots.count} slot(s): choose how to merge them in Retarget3MF.`);
+    return review(ctx, path, `${used.length} colours for ${printer.slots.count} slot(s): choose how to merge them in Retarget3MF.`, fromExtension);
   }
 
   const converted = await convertProject(ctx, { path, printer: printer.id, slicer, filamentMap: suggestFilamentMap(used, printer.slots.count) });
@@ -52,8 +53,8 @@ export async function openFromOs(ctx: AppContext, path: string): Promise<FastPat
   return { kind: 'opened', message: title, outputPath };
 }
 
-function review(ctx: AppContext, path: string, message: string): FastPathOutcome {
-  ctx.emit({ kind: 'open-project', path });
+function review(ctx: AppContext, path: string, message: string, fromExtension: boolean): FastPathOutcome {
+  ctx.emit({ kind: 'open-project', path, ...(fromExtension && { fromExtension }) });
   showWindow(ctx);
   return { kind: 'review', message };
 }

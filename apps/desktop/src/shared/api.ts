@@ -12,8 +12,12 @@ export interface SavedPrinter { model: PrinterId; slicer: SlicerKind }
 /** Which saved printer a dropped or OS-opened project is converted for. */
 export type DropTarget = 'last' | 'default' | 'ask';
 
-/** What happens when a .3mf is opened from the OS (double-click, "Open with"). */
+/** What happens when a .3mf is opened from the OS (double-click, "Open with") or arrives from the browser extension. */
 export type OpenMode = 'auto' | 'review';
+export const HISTORY_RETENTION = ['forever', '365', '90', '30'] as const;
+export type HistoryRetention = (typeof HISTORY_RETENTION)[number];
+/** `{name}`, `{printer}` and `{slicer}` are replaced; `.3mf` is appended. */
+export const DEFAULT_FILE_NAME = '{name} - {printer}';
 
 export interface Settings {
   /** The current (last used) printer and its slicer; always one of `printers`. */
@@ -27,6 +31,15 @@ export interface Settings {
   /** Overrides for detected slicer locations. */
   slicerPaths: Partial<Record<SlicerKind, string>>;
   output: 'next-to-original' | 'app-folder';
+  /** The folder for `output: 'app-folder'`; Documents/Retarget3MF when unset. */
+  outputDir?: string;
+  fileNamePattern: string;
+  /** Drop filaments no object uses (else they stay while the printer has free slots). */
+  removeUnused: boolean;
+  /** Files from the browser extension: convert and open, or show the review screen. */
+  extensionMode: OpenMode;
+  autoUpdate: boolean;
+  historyRetention: HistoryRetention;
   openAfterConvert: boolean;
   theme: Theme;
   accent: Accent;
@@ -42,6 +55,9 @@ export interface AppState {
   slicers: SlicerInstall[];
   outputFolder: string;
   browsers: BrowserStatus[];
+  version: string;
+  /** Installed builds update themselves; development runs do not. */
+  packaged: boolean;
 }
 
 export interface InspectResult {
@@ -78,11 +94,13 @@ export interface HistoryEntry {
 
 /** Pushed from the main process, e.g. after a file was opened from the OS. */
 export type AppEvent =
-  | { kind: 'open-project'; path: string }
+  | { kind: 'open-project'; path: string; fromExtension?: boolean }
   | { kind: 'show-result'; project: InspectResult; result: ConvertResult; launchError?: string }
   | { kind: 'error'; message: string }
   /** Printer or slicer changed from outside the window (the extension popup). */
   | { kind: 'settings-changed' };
+
+export type UpdateStatus = { kind: 'current' | 'available' | 'unavailable' | 'error'; version?: string; message?: string };
 
 export type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
@@ -107,6 +125,10 @@ export interface DesktopApi {
   listHistory(): Promise<HistoryEntry[]>;
   historyReport(id: string): Promise<ConvertResult | undefined>;
   removeHistory(id: string, moveFileToTrash: boolean): Promise<HistoryEntry[]>;
+  clearHistory(): Promise<HistoryEntry[]>;
+  /** Chooses the folder for converted files and switches output to it. */
+  pickOutputFolder(): Promise<AppState>;
+  checkForUpdates(): Promise<UpdateStatus>;
   /** Opens a model page in the default browser; only known model-site pages are accepted. */
   openSourcePage(id: string): Promise<void>;
 }

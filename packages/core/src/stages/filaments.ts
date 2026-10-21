@@ -79,6 +79,13 @@ export function remapRef(value: string, map: ReadonlyMap<number, number>): strin
 export type FilamentMap = Readonly<Record<number, number>>;
 
 /** Applies a user mapping; targets must be 1..k without gaps and every used filament must be mapped. */
+/** Unused filaments stay after the used ones, in their order, while the printer has free slots. */
+export function keepUnusedFilaments(plan: FilamentPlan, total: number, slots: number): FilamentPlan {
+  const free = Math.max(0, slots - plan.keep.length);
+  const extras = Array.from({ length: total }, (_, i) => i + 1).filter((f) => !plan.map.has(f)).slice(0, free);
+  return { ...plan, keep: [...plan.keep, ...extras], map: new Map([...plan.map, ...extras.map((f, i): [number, number] => [f, plan.keep.length + i + 1])]) };
+}
+
 export function applyFilamentMap(plan: FilamentPlan, user: FilamentMap): FilamentPlan {
   const targets = plan.keep.map((f) => user[f]);
   if (targets.some((t) => t === undefined || !Number.isInteger(t) || t < 1)) {

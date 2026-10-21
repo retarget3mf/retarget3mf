@@ -6,7 +6,7 @@ import { editModelSettings, MODEL_SETTINGS, readModelSettings } from './modelSet
 import { remapPaint } from './paint.ts';
 import type { ConversionReport } from './report.ts';
 import { detectSource, PROJECT_SETTINGS } from './stages/detect.ts';
-import { applyFilamentMap, padToToolheads, planFilaments, remapRef, type FilamentMap } from './stages/filaments.ts';
+import { applyFilamentMap, keepUnusedFilaments, padToToolheads, planFilaments, remapRef, type FilamentMap } from './stages/filaments.ts';
 import { parseBed, planPlacement } from './stages/placement.ts';
 import { buildSettings, SLICER_NAMES, type SettingsResult } from './stages/settings.ts';
 import { carriesToPrusa } from './rules/toPrusa.ts';
@@ -23,6 +23,8 @@ export interface ConvertOptions {
   slicer?: SlicerId | 'pandaforge';
   /** Source filament → target filament (1-based); merges colours when the printer has fewer slots. */
   filamentMap?: FilamentMap;
+  /** Keep filaments no object uses, while the printer has slots for them (they are removed by default). */
+  keepUnused?: boolean;
 }
 
 /** `preview` is what UIs show in lists: the project title and its first plate thumbnail (PNG). */
@@ -67,7 +69,8 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
   const geo = readGeometry(archive);
   const used = planFilaments(source.config, settings, geo, readText(archive, CUSTOM_GCODE));
   const mapped = opts.filamentMap ? mapFilaments(used, opts.filamentMap) : used;
-  const plan = printer.slots.kind === 'toolheads' ? padToToolheads(mapped, printer.slots.count) : mapped;
+  const kept = opts.keepUnused ? keepUnusedFilaments(mapped, asList(source.config.filament_colour).length, printer.slots.count) : mapped;
+  const plan = printer.slots.kind === 'toolheads' ? padToToolheads(kept, printer.slots.count) : kept;
 
   const towerWidth = Number(first(source.config.prime_tower_width)) || 35;
   const placement = planPlacement(geo, settings, {
@@ -92,7 +95,7 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
   const warnings = [...result.warnings];
   if (unmappedPaint.size) warnings.push(`Paint for filament(s) ${[...unmappedPaint].join(', ')} is on parts that never print or beyond the filament list; it was cleared.`);
   if (mapped.keep.length > printer.slots.count) warnings.unshift(`The project uses ${mapped.keep.length} filaments but the ${printer.displayName} has ${printer.slots.count} ${printer.slots.kind === 'toolheads' ? 'toolhead' : 'slot'}(s). Merge colours before printing.`);
-  const unused = asList(source.config.filament_colour).length - used.keep.length;
+  const unused = asList(source.config.filament_colour).length - used.keep.length - (kept.keep.length - mapped.keep.length);
   if (unused > 0) warnings.push(`${unused} unused filament(s) were removed and the rest renumbered.`);
   const merged = used.keep.length - mapped.keep.length;
   if (merged > 0) warnings.push(`${merged} colour(s) were merged onto shared slots as you chose.`);

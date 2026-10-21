@@ -3,7 +3,8 @@ import type { PrinterId } from '@retarget3mf/core';
 import { suggestFilamentMap } from '@retarget3mf/core/suggest';
 import { applyAccent, I18nProvider, ReportView, useT } from '@retarget3mf/ui';
 import type { AppEvent, AppState, ConvertResult, HistoryEntry, InspectResult, SavedPrinter, Settings } from '../../shared/api.ts';
-import { SettingsView } from './components/SettingsView.tsx';
+import { SettingsView } from './settings/SettingsView.tsx';
+import type { Page } from './settings/messages.ts';
 import { ChoosePrinter } from './flow/ChoosePrinter.tsx';
 import { ConvertingView } from './flow/ConvertingView.tsx';
 import { ReviewView } from './flow/ReviewView.tsx';
@@ -19,7 +20,7 @@ import { TitleBar } from './shell/TitleBar.tsx';
 import { detectSlicer, SLICER_KINDS, slicersFor } from './slicerKinds.ts';
 import styles from './App.module.css';
 
-type Origin = 'drop' | 'os';
+type Origin = 'drop' | 'os' | 'extension';
 /** performance.now() when the file arrived and when it had been read. */
 interface Marks { dropped: number; read: number }
 type Stage =
@@ -32,7 +33,7 @@ type Stage =
   | { kind: 'done'; project: InspectResult; result: ConvertResult; target: SavedPrinter; opened: boolean; elapsed?: number; launchError?: string }
   | { kind: 'report'; result: ConvertResult; back: Stage }
   | { kind: 'history' }
-  | { kind: 'settings' };
+  | { kind: 'settings'; page?: Page };
 
 const api = window.desktop;
 const NUMBER_KEYS = 9;
@@ -64,14 +65,14 @@ function Main() {
   useEffect(() => { void api.getState().then(setState); }, []);
   useEffect(() => { if (state) applyAccent(state.settings.accent); }, [state?.settings.accent]);
   // Conversions can also finish outside this window (Finder, browser extension); refresh whenever the home screen shows.
-  useEffect(() => { if (stage.kind === 'idle' || stage.kind === 'done' || stage.kind === 'history') void api.listHistory().then(setHistory); }, [stage]);
+  useEffect(() => { if (stage.kind === 'idle' || stage.kind === 'done' || stage.kind === 'history' || stage.kind === 'settings') void api.listHistory().then(setHistory); }, [stage]);
   useEffect(() => api.onEvent((event) => setPending((queue) => [...queue, event])), []);
   // Events from the OS fast path wait until the first-run question is answered.
   useEffect(() => {
     const event = pending[0];
     if (!event || !state?.settings.printer) return;
     setPending((queue) => queue.slice(1));
-    if (event.kind === 'open-project') void open(event.path, 'os');
+    if (event.kind === 'open-project') void open(event.path, event.fromExtension ? 'extension' : 'os');
     else if (event.kind === 'show-result') {
       const printer = state.printers.find((p) => p.displayName === event.result.report.target.printer);
       const target = state.settings.printers.find((p) => p.model === printer?.id) ?? dropPrinter(state.settings)!;
@@ -121,7 +122,8 @@ function Main() {
   function proceed(project: InspectResult, target: SavedPrinter, origin: Origin) {
     const printer = printerDef(target.model);
     const used = project.filaments.filter((f) => f.used);
-    if (origin === 'os' && state!.settings.openMode === 'review') setStage({ kind: 'review', project, target });
+    const { openMode, extensionMode } = state!.settings;
+    if ((origin === 'os' && openMode === 'review') || (origin === 'extension' && extensionMode === 'review')) setStage({ kind: 'review', project, target });
     else if (used.length > printer.slots.count && !state!.settings.autoCombine) setStage({ kind: 'merge', project, target });
     else void convert(project, target, suggestFilamentMap(used, printer.slots.count), state!.settings.openAfterConvert);
   }
@@ -223,7 +225,7 @@ function Main() {
             onPrinter={(p) => void choosePrinter(p)}
             onCatalogue={setCatalogue}
             onSlicer={(slicer) => void save({ slicer })}
-            onManageSlicers={() => setStage({ kind: 'settings' })}
+            onManageSlicers={() => setStage({ kind: 'settings', page: 'slicers' })}
             onHistory={() => setStage({ kind: 'history' })}
           />
         </>
@@ -237,12 +239,27 @@ function Main() {
           opened={stage.kind === 'done' && stage.opened}
           onPrinter={(p) => void choosePrinter(p)}
           onSlicer={(slicer) => void save({ slicer })}
-          onManageSlicers={() => setStage({ kind: 'settings' })}
+          onManageSlicers={() => setStage({ kind: 'settings', page: 'slicers' })}
           onOpenFile={() => void browse()}
           onCloseProject={() => setStage({ kind: 'idle' })}
         />
       )}
-      {!firstRun && stage.kind !== 'idle' && (
+      {!firstRun && stage.kind === 'settings' && (
+            <SettingsView
+              state={state}
+              initialPage={stage.page}
+              historyCount={history.length}
+              onChange={save}
+              onLocate={locate}
+              onRescan={async () => setState(await api.refreshSlicers())}
+              onAddPrinter={() => setCatalogue('add')}
+              onPickFolder={async () => setState(await api.pickOutputFolder())}
+              onCheckUpdates={() => api.checkForUpdates()}
+              onClearHistory={async () => setHistory(await api.clearHistory())}
+              onBack={() => setStage({ kind: 'idle' })}
+            />
+      )}
+      {!firstRun && stage.kind !== 'idle' && stage.kind !== 'settings' && (
         <main className={styles.main}>
           {error && <div role="alert" className={styles.error}>{error}</div>}
           {stage.kind === 'reading' && <p className={styles.busy} aria-live="polite">{t.busy.reading}</p>}
@@ -293,15 +310,6 @@ function Main() {
           )}
           {stage.kind === 'history' && (
             <HistoryView entries={history} onBack={() => setStage({ kind: 'idle' })} {...historyActions({ kind: 'history' })} />
-          )}
-          {stage.kind === 'settings' && (
-            <SettingsView
-              state={state}
-              onChange={save}
-              onLocate={locate}
-              onRescan={async () => setState(await api.refreshSlicers())}
-              onBack={() => setStage({ kind: 'idle' })}
-            />
           )}
           {stage.kind === 'report' && (
             <ReportView report={stage.result.report} onBack={() => setStage(stage.back)} onExport={(format) => api.exportReport(stage.result, format)} />
