@@ -1,11 +1,13 @@
-export { ConversionView, compactMap, type ProjectSummary } from './ConversionView.tsx';
+export { compactMap, type ProjectSummary } from './project.ts';
 export { Dropdown, IconPlaceholder, type DropdownOption } from './Dropdown.tsx';
 export { DropZone } from './DropZone.tsx';
-export { ChevronDown, GearIcon } from './icons.tsx';
+export { FilamentRows, Swatch } from './FilamentRows.tsx';
+export { ChevronDown, CoffeeIcon, GearIcon, GitHubIcon, ThemeIcon } from './icons.tsx';
 export { Logo } from './Logo.tsx';
 export { I18nProvider, LOCALES, LOCALE_NAMES, detectLocale, plural, useLocale, useT, type Locale } from './i18n.tsx';
 export { UI_MESSAGES, type UiMessages } from './messages.ts';
 export { PrinterPicker, PrinterSelect, groupByVendor, modelName, slotsLabel } from './PrinterPicker.tsx';
 export { ReportView } from './ReportView.tsx';
 export { ThemeSwitch, type Theme } from './ThemeSwitch.tsx';
+export { applyTheme, ThemeButton } from './ThemeButton.tsx';
 export { ACCENTS, applyAccent, type Accent } from './accent.ts';

@@ -8,9 +8,11 @@ interface Props {
   /** Replaces the built-in file input, e.g. with a native open dialog. */
   onBrowse?: () => void;
   disabled?: boolean;
+  /** Small mono label above the title, e.g. "02 OPEN A PROJECT". */
+  label?: string;
 }
 
-export function DropZone({ onFile, onBrowse, disabled = false }: Props) {
+export function DropZone({ onFile, onBrowse, disabled = false, label }: Props) {
   const t = useT(UI_MESSAGES).drop;
   const [over, setOver] = useState(false);
   const input = useRef<HTMLInputElement>(null);
@@ -27,6 +29,7 @@ export function DropZone({ onFile, onBrowse, disabled = false }: Props) {
         if (file && !disabled) onFile(file);
       }}
     >
+      {label && <span className={styles.label}>{label}</span>}
       <h2>{t.title}</h2>
       <p>{t.body}</p>
       <button className="primary" disabled={disabled} onClick={() => (onBrowse ? onBrowse() : input.current?.click())}>{t.browse}</button>

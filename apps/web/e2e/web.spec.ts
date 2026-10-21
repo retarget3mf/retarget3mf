@@ -22,12 +22,16 @@ test('printer first, then convert and download, without leaving the site', async
   // The target slicer is chosen next to Convert and defaults to the printer maker's own.
   await expect(page.getByRole('button', { name: /^Slicer: Flash Studio/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Test cube' })).toBeVisible();
-  await expect(page.getByText('not used by any object, will be removed')).toHaveCount(2);
-  await page.getByRole('button', { name: 'Convert', exact: true }).click();
+  await expect(page.getByLabel('Slot for filament 3')).toBeVisible();
+  await page.screenshot({ path: 'e2e/.results/review.png', fullPage: true });
+  // Converting downloads the file straight away; "Download again" repeats it.
+  const [first] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Convert & download' }).click()]);
+  expect(first.suggestedFilename()).toBe('cube - AD5X.3mf');
 
-  await expect(page.getByRole('heading', { name: 'Converted “Test cube” for Flashforge AD5X' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Converted for Flashforge AD5X' })).toBeVisible();
   await expect(page.getByText(/File → Open Project/)).toBeVisible();
-  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Download cube - AD5X.3mf' }).click()]);
+  await expect(page.getByText('cube - AD5X.3mf · downloaded')).toBeVisible();
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Download again' }).click()]);
   expect(download.suggestedFilename()).toBe('cube - AD5X.3mf');
   expect([...readFileSync(await download.path()).subarray(0, 4)]).toEqual([0x50, 0x4b, 0x03, 0x04]);
   await page.screenshot({ path: 'e2e/.results/done.png', fullPage: true });
@@ -45,6 +49,16 @@ test('works offline once loaded', async ({ page, context }) => {
   await page.reload();
   await printerCard(page, 'Flashforge AD5X').click();
   await page.locator('input[type=file]').setInputFiles(project);
-  await page.getByRole('button', { name: 'Convert', exact: true }).click();
-  await expect(page.getByRole('heading', { name: /Converted “Test cube”/ })).toBeVisible();
+  await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Convert & download' }).click()]);
+  await expect(page.getByRole('heading', { name: 'Converted for Flashforge AD5X' })).toBeVisible();
+});
+
+test('fits a 390 px phone without sideways scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('./');
+  await printerCard(page, 'Flashforge AD5X').click();
+  await page.locator('input[type=file]').setInputFiles(project);
+  await expect(page.getByRole('heading', { name: 'Test cube' })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  await page.screenshot({ path: 'e2e/.results/mobile-review.png', fullPage: true });
 });

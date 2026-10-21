@@ -16,8 +16,6 @@ export interface UiMessages {
     tooManyTitle: (used: number, slots: number, kind: SlotKind) => string;
     combined: string;
     filamentLabel: (n: number, type: string) => string;
-    filament: (n: number, type: string, colour: string) => string;
-    unused: (n: number, type: string) => string;
     slotFor: (n: number) => string;
     slot: (n: number, kind: SlotKind) => string;
     plate: (n: number) => string;
@@ -47,8 +45,6 @@ const en: UiMessages = {
     combined: 'Similar colours were combined; adjust below.',
     tooMany(used, slots, kind) { return `${this.tooManyTitle(used, slots, kind)} ${this.combined}`; },
     filamentLabel: (n, type) => `Filament ${n} · ${type}`,
-    filament: (n, type, colour) => `Filament ${n} · ${type} · ${colour}`,
-    unused: (n, type) => `Filament ${n} · ${type} — not used by any object, will be removed`,
     slotFor: (n) => `Slot for filament ${n}`,
     slot: (n, kind) => (kind === 'toolheads' ? `Toolhead ${n}` : `Slot ${n}`),
     plate: (n) => `Plate ${n}`,
@@ -82,8 +78,6 @@ const pl: UiMessages = {
     combined: 'Podobne kolory połączono; popraw poniżej.',
     tooMany(used, slots, kind) { return `${this.tooManyTitle(used, slots, kind)} ${this.combined}`; },
     filamentLabel: (n, type) => `Filament ${n} · ${type}`,
-    filament: (n, type, colour) => `Filament ${n} · ${type} · ${colour}`,
-    unused: (n, type) => `Filament ${n} · ${type} — nieużywany przez żaden obiekt, zostanie usunięty`,
     slotFor: (n) => `Slot dla filamentu ${n}`,
     slot: (n, kind) => (kind === 'toolheads' ? `Głowica ${n}` : `Slot ${n}`),
     plate: (n) => `Stół ${n}`,

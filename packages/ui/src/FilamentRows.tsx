@@ -1,6 +1,8 @@
 import type { PrinterDefinition, ProjectFilament } from '@retarget3mf/core';
-import { compactMap, UI_MESSAGES, useT } from '@retarget3mf/ui';
-import styles from './Flow.module.css';
+import { compactMap } from './project.ts';
+import { useT } from './i18n.tsx';
+import { UI_MESSAGES } from './messages.ts';
+import styles from './FilamentRows.module.css';
 
 interface Props {
   filaments: readonly ProjectFilament[];

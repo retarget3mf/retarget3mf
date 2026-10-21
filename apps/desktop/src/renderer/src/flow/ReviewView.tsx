@@ -1,10 +1,9 @@
 import { useState, type ReactNode } from 'react';
 import type { PrinterDefinition } from '@retarget3mf/core';
 import { suggestFilamentMap } from '@retarget3mf/core/suggest';
-import { compactMap, UI_MESSAGES, useT } from '@retarget3mf/ui';
+import { compactMap, Swatch, UI_MESSAGES, useT } from '@retarget3mf/ui';
 import type { InspectResult } from '../../../shared/api.ts';
 import { DESKTOP_MESSAGES } from '../messages.ts';
-import { Swatch } from './FilamentRows.tsx';
 import styles from './Flow.module.css';
 
 interface Props {

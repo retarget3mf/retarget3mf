@@ -1,9 +1,8 @@
 import { useState, type ReactNode } from 'react';
 import type { PrinterDefinition } from '@retarget3mf/core';
 import { suggestFilamentMap } from '@retarget3mf/core/suggest';
-import { UI_MESSAGES, useT } from '@retarget3mf/ui';
+import { FilamentRows, UI_MESSAGES, useT } from '@retarget3mf/ui';
 import type { InspectResult } from '../../../shared/api.ts';
-import { FilamentRows } from './FilamentRows.tsx';
 import styles from './Flow.module.css';
 
 interface Props {
