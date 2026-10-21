@@ -19,7 +19,7 @@
 
 .primary, .secondary, .coffee {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 22px; border-radius: 10px;
-  font-weight: 650; font-size: 16px; text-decoration: none; transition: transform 120ms, background 120ms;
+  font-weight: 650; font-size: 16px; text-decoration: none; white-space: nowrap; transition: transform 120ms, background 120ms;
 }
 .primary { background: #2f86ee; color: #fff; }
 .primary:hover { background: #0b66d0; transform: translateY(-1px); }

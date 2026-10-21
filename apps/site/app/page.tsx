@@ -127,7 +127,7 @@ export default function Home() {
                 <h3>Desktop app</h3>
                 <p>Converts and opens your slicer in one step; also opens .3mf files from Finder or Explorer.</p>
                 <p className={styles.small}>macOS (Apple silicon and Intel) · Windows · Linux (AppImage, deb)</p>
-                <DownloadButton />
+                <DownloadButton compact />
               </div>
               <div className={styles.getCard}>
                 <h3>Browser extension</h3>
