@@ -23,6 +23,7 @@ for (const loggedIn of [true, false]) {
     await expect(row).toHaveText(/Open (for|in) /);
     // Same element type and classes as the site's own rows, right after "Open in Bambu Studio" (or first).
     await expect(row).toHaveClass('menu-row');
+    await expect(row.locator('img, svg')).toHaveCount(0);
     const order = await page.locator('.rows > *').allTextContents();
     expect(order.indexOf(await row.textContent() ?? '')).toBe(loggedIn ? 1 : 0);
     await page.screenshot({ path: `e2e/.results/menu-${loggedIn ? 'in' : 'out'}.png` });

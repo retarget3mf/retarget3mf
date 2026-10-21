@@ -23,12 +23,19 @@ test('Printables: row only for 3MF files, explains the PrusaSlicer dialog, hands
   await page.goto(URL);
   const row = page.locator('[data-retarget3mf="row"]');
 
+  // STL rows get a disabled row explaining why; clicking it does nothing.
   await page.locator('.toggle[data-type="stl"]').click();
-  await expect(page.getByText('Open in OrcaSlicer')).toBeVisible();
-  await expect(row).toHaveCount(0);
+  await expect(row).toHaveText(/· needs a 3MF$/);
+  await expect(row).toHaveAttribute('aria-disabled', 'true');
+  await row.click({ force: true });
+  await expect(page.getByRole('status')).toHaveCount(0);
+  await page.screenshot({ path: 'e2e/.results/Printables-stl.png' });
 
   await page.locator('.toggle[data-type="3mf"]').click();
-  await expect(row).toHaveText(/Open (for|in) /);
+  await expect(row).toHaveText(/^Open (for|in) [^·]*$/);
+  await expect(row).not.toHaveAttribute('aria-disabled');
+  // Like the site's rows, ours starts with a logo (our icon, inline).
+  await expect(row.locator('img')).toHaveAttribute('src', /^data:image\/svg\+xml,/);
   const texts = (await page.locator('[role=menu] > *').allTextContents()).map((t) => t.trim());
   expect(texts[1]).toMatch(/Open (for|in) /);
   await page.screenshot({ path: 'e2e/.results/Printables.png' });

@@ -1,3 +1,4 @@
+import iconSvg from '@retarget3mf/ui/icon.svg?raw';
 import { buildOpenLink, isAllowedDownloadUrl, parseSlicerLink, type OpenLink } from '@retarget3mf/bridge';
 import { findImportButton, findMenu, findSlicerTarget, MARKER, siteFor } from '../src/sites.ts';
 import { idleLabel, type AppStatus, type ButtonState, type ToBackground } from '../src/messages.ts';
@@ -22,6 +23,29 @@ const BANNER_STYLE = `
   b { color: #7fb0ff; }
 `;
 
+const ICON_URL = `data:image/svg+xml,${encodeURIComponent(iconSvg)}`;
+
+/** Our icon in the shape of the site's: an <img> keeps its classes and size attributes, an inline <svg> its box. */
+function brandIcon(siteIcon: Element): Element {
+  if (siteIcon instanceof HTMLImageElement) {
+    const img = siteIcon.cloneNode(false) as HTMLImageElement;
+    img.src = ICON_URL;
+    img.alt = '';
+    img.removeAttribute('srcset');
+    return img;
+  }
+  const box = siteIcon.getBoundingClientRect();
+  const svg = new DOMParser().parseFromString(iconSvg, 'image/svg+xml').documentElement;
+  for (const attr of ['class', 'width', 'height', 'style']) {
+    const value = siteIcon.getAttribute(attr);
+    if (value) svg.setAttribute(attr, value);
+  }
+  if (!svg.getAttribute('width') && box.width) svg.setAttribute('width', String(Math.round(box.width)));
+  if (!svg.getAttribute('height') && box.height) svg.setAttribute('height', String(Math.round(box.height)));
+  svg.setAttribute('aria-hidden', 'true');
+  return document.importNode(svg, true);
+}
+
 export default defineContentScript({
   matches: ['https://makerworld.com/*', 'https://www.crealitycloud.com/*', 'https://crealitycloud.com/*', 'https://space.snapmaker.com/*', 'https://www.printables.com/*', 'https://printables.com/*'],
   runAt: 'document_idle',
@@ -39,10 +63,17 @@ export default defineContentScript({
     }, true);
     // The site's own "Open in <slicer>" already serves printers of its brand; a second button would only confuse.
     const isOwnPrinter = () => status.vendor === site.ownVendor;
+    // Files without print settings (Printables STL rows) get a disabled row, so the missing action explains itself.
+    const rowLabel = (row: HTMLElement) => (row.dataset.state === 'disabled' ? `${idleLabel(status.printer)} · needs a 3MF` : idleLabel(status.printer));
+    /** The row's own text node, after the icon copied from the site's row (if any). */
+    const setLabel = (row: HTMLElement) => {
+      const text = [...row.childNodes].find((n) => n.nodeType === Node.TEXT_NODE) ?? row.appendChild(document.createTextNode(''));
+      text.textContent = `${row.dataset.gap ?? ''}${rowLabel(row)}`;
+    };
     const refreshStatus = () => browser.runtime.sendMessage({ type: 'status' } satisfies ToBackground).then((s) => {
       status = s as AppStatus;
       if (isOwnPrinter()) rows.forEach((r) => r.remove());
-      rows.forEach((r) => { r.textContent = idleLabel(status.printer); });
+      rows.forEach(setLabel);
     });
     void refreshStatus();
 
@@ -158,16 +189,28 @@ export default defineContentScript({
     const attach = () => {
       const menu = findMenu(document, site);
       if (!menu || isOwnPrinter()) return;
-      const existing = menu.rows[0]?.parentElement?.querySelector(`[${MARKER}="row"]`);
-      if (site.isProjectMenu && !(opener && site.isProjectMenu(opener))) { existing?.remove(); return; }
-      if (existing) return;
+      const state = !site.isProjectMenu || (opener && site.isProjectMenu(opener)) ? 'ready' : 'disabled';
+      const existing = menu.rows[0]?.parentElement?.querySelector<HTMLElement>(`[${MARKER}="row"]`);
+      if (existing?.dataset.state === state) return;
+      existing?.remove();
       const template = menu.slicerRow ?? menu.rows.find((r) => r.childElementCount === 0) ?? menu.rows[0]!;
       const row = template.cloneNode(false) as HTMLElement;
       row.setAttribute(MARKER, 'row');
       row.setAttribute('role', 'menuitem');
-      row.textContent = idleLabel(status.printer);
+      row.dataset.state = state;
+      // Sites that put a slicer logo before each row's text (Printables) get ours the same way, with their sizing classes.
+      const siteIcon = template.querySelector(':scope > img, :scope > svg');
+      if (siteIcon) row.append(brandIcon(siteIcon));
+      row.dataset.gap = /^\s/.test([...template.childNodes].find((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim())?.textContent ?? '') ? ' ' : '';
+      setLabel(row);
+      if (state === 'disabled') {
+        row.setAttribute('aria-disabled', 'true');
+        row.title = 'This file has no print settings to convert. Choose a 3MF project file.';
+        Object.assign(row.style, { opacity: '0.45', cursor: 'default' });
+      }
       row.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (row.dataset.state === 'disabled') return;
         // The site's slicer control is either a row of this menu (clicking it closes the menu) or the main button,
         // in which case the menu is closed the way a click elsewhere would.
         const studio = menu.slicerRow ?? findSlicerTarget(document, site);

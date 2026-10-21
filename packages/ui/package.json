@@ -6,7 +6,8 @@
   "license": "AGPL-3.0-or-later",
   "exports": {
     ".": "./src/index.ts",
-    "./tokens.css": "./src/tokens.css"
+    "./tokens.css": "./src/tokens.css",
+    "./icon.svg": "./src/brand/icon.svg"
   },
   "dependencies": {
     "@retarget3mf/core": "workspace:*"
