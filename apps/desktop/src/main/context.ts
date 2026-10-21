@@ -16,6 +16,8 @@ export class AppContext {
   /** Model pages of projects the browser extension downloaded, keyed by the downloaded file path. */
   readonly origins = new Map<string, ProjectOrigin>();
   private slicers: Promise<SlicerInstall[]>;
+  /** The last finished slicer search, for synchronous readers (the browser bridge). */
+  installed: SlicerInstall[] = [];
   private queue: AppEvent[] = [];
   private rendererReady = false;
 
@@ -74,10 +76,11 @@ export class AppContext {
 
   private async discover(): Promise<SlicerInstall[]> {
     const found = await discoverSlicers(this.settings.slicerPaths);
-    return Promise.all(found.map(async (s) => {
+    this.installed = await Promise.all(found.map(async (s) => {
       const icon = await slicerIcon(s.path);
       return icon ? { ...s, icon } : s;
     }));
+    return this.installed;
   }
 }
 

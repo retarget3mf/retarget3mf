@@ -35,7 +35,8 @@ export type BridgeRequest =
   | { id: number; type: 'open-file'; path: string; site?: SourceSite; pageUrl?: string };
 
 export type BridgeResponse =
-  | { id: number; type: 'pong'; version: string; printer?: string; vendor?: string; slicer?: string; printerId?: string; slicerId?: string }
+  /** `slicerIcon`: the installed slicer's icon as a data URL, when the desktop app has one. */
+  | { id: number; type: 'pong'; version: string; printer?: string; vendor?: string; slicer?: string; printerId?: string; slicerId?: string; slicerIcon?: string }
   | { id: number; type: 'progress'; stage: 'downloading' | 'converting' | 'opening' }
   | { id: number; type: 'done'; outcome: 'opened' | 'converted' | 'review'; message: string }
   | { id: number; type: 'error'; message: string };

@@ -4,6 +4,8 @@ import { defineConfig } from 'wxt';
 const SITES = ['https://makerworld.com/*', 'https://www.crealitycloud.com/*', 'https://crealitycloud.com/*', 'https://space.snapmaker.com/*', 'https://www.printables.com/*', 'https://printables.com/*'];
 
 export default defineConfig({
+  // The popup is React (shared with the landing page's preview); esbuild compiles its JSX.
+  vite: () => ({ esbuild: { jsx: 'automatic' } }),
   // Visible folder: macOS file pickers hide ".output", which is what Chrome's "Load unpacked" needs.
   // e2e runs build elsewhere (WXT_OUT_DIR), so tests never rewrite the copy loaded in a browser.
   outDir: process.env.WXT_OUT_DIR ?? 'dist',

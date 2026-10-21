@@ -26,13 +26,14 @@ test('Printables: row only for 3MF files, explains the PrusaSlicer dialog, hands
   // STL rows get a disabled row explaining why; clicking it does nothing.
   await page.locator('.toggle[data-type="stl"]').click();
   await expect(row).toHaveText(/· needs a 3MF$/);
+  await expect(page.locator('[data-retarget3mf="other"]')).toHaveCount(0);
   await expect(row).toHaveAttribute('aria-disabled', 'true');
   await row.click({ force: true });
   await expect(page.getByRole('status')).toHaveCount(0);
   await page.screenshot({ path: 'e2e/.results/Printables-stl.png' });
 
   await page.locator('.toggle[data-type="3mf"]').click();
-  await expect(row).toHaveText(/^Open (for|in) [^·]*$/);
+  await expect(row).toHaveText(/^Open (for|in) [^·]*Converts in your browser$/);
   await expect(row).not.toHaveAttribute('aria-disabled');
   // Like the site's rows, ours starts with a logo (our icon, inline).
   await expect(row.locator('img')).toHaveAttribute('src', /^data:image\/svg\+xml,/);

@@ -5,7 +5,12 @@ export type ToBackground =
   | { type: 'open'; url: string; name: string; site: SourceSite; pageUrl: string }
   | { type: 'status' }
   | { type: 'set-target'; printer: string; slicer: string }
-  | { type: 'convert-in-browser'; url: string; name: string; site: SourceSite; pageUrl: string };
+  | { type: 'convert-in-browser'; url: string; name: string; site: SourceSite; pageUrl: string }
+  /** The download offer's "Open for …"; `always` skips the offer from now on. */
+  | { type: 'open-download'; id: number; always: boolean };
+
+/** background → content script: offer to open a finished project download (passive mode). */
+export interface DownloadOffer { type: 'download-offer'; id: number; file: string; siteName?: string; label: string }
 
 /** background → content script / popup */
 export type ButtonState =
@@ -14,7 +19,7 @@ export type ButtonState =
   | { kind: 'done'; label: string }
   | { kind: 'error'; label: string; installHint?: boolean };
 
-export interface AppStatus { connected: boolean; printer?: string; vendor?: string; slicer?: string; printerId?: string; slicerId?: string; version?: string }
+export interface AppStatus { connected: boolean; printer?: string; vendor?: string; slicer?: string; printerId?: string; slicerId?: string; slicerIcon?: string; version?: string }
 
 /** What the button says for a bridge response; `printer` personalises the idle label. */
 export function stateFor(response: BridgeResponse | { type: 'no-app' }): ButtonState {

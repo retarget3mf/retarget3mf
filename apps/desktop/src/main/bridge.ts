@@ -29,6 +29,9 @@ function testFetch(): typeof fetch | undefined {
   return (async (url: string) => Object.defineProperty(new Response(readFileSync(fixture)), 'url', { value: url })) as unknown as typeof fetch;
 }
 
+// Native messaging caps a message at 1 MB; a larger icon is left out.
+const MAX_ICON_CHARS = 200_000;
+
 /** Throwaway home for e2e runs: native host registration and downloads stay out of the real profile. */
 const testHome = () => (!app.isPackaged && process.env.RETARGET3MF_E2E_HOME) || undefined;
 
@@ -37,9 +40,11 @@ function bridgeDeps(ctx: AppContext): BridgeDeps {
     version: app.getVersion(),
     status: () => {
       const printer = PRINTERS.find((p) => p.id === ctx.settings.printer);
+      const icon = ctx.installed.find((s) => s.kind === ctx.settings.slicer)?.icon;
       return {
         ...(printer && { printer: printer.displayName, vendor: printer.vendor, printerId: printer.id }),
         slicer: SLICER_NAMES[ctx.settings.slicer], slicerId: ctx.settings.slicer,
+        ...(icon && icon.length <= MAX_ICON_CHARS && { slicerIcon: icon }),
       };
     },
     // Same validation as the settings screen: unknown printers are ignored, a slicer without the printer's profiles is replaced.

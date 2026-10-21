@@ -1,34 +1,3 @@
-body { width: 320px; padding: 14px; display: flex; flex-direction: column; gap: 12px; font-size: 13px; }
-.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.logo { display: inline-flex; align-items: center; gap: 8px; }
-.logo img { filter: var(--icon-ring); }
-.word { font-weight: 700; font-size: 16px; letter-spacing: -0.01em; }
-.accent { color: var(--brand-accent); }
-
-.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--bg); color: var(--muted); border: 1px solid var(--border); white-space: nowrap; }
-.pill::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-.pill.ok { color: var(--ok); }
-.pill.off { color: var(--warn-text); background: var(--warn-bg); border-color: transparent; }
-
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-.card h2 { margin: 0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-.field { display: flex; flex-direction: column; gap: 4px; }
-.field > span { font-size: 12px; font-weight: 600; }
-.field select {
-  appearance: none; width: 100%; padding: 8px 32px 8px 10px; border-radius: 8px; font-size: 13px; cursor: pointer;
-  background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 16 16' fill='none' stroke='%239aa4b1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E") no-repeat right 10px center;
-}
-.field select:hover { border-color: var(--muted); }
-.field select:disabled { opacity: 0.5; cursor: default; }
-.caption { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.4; }
-
-.toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; }
-.toggle strong { display: block; font-size: 13px; }
-.toggle small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
-.toggle input { appearance: none; flex: none; width: 34px; height: 20px; border-radius: 999px; background: var(--border); position: relative; cursor: pointer; transition: background 120ms; margin: 0; }
-.toggle input::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / 0.3); transition: transform 120ms; }
-.toggle input:checked { background: var(--accent); }
-.toggle input:checked::after { transform: translateX(14px); }
-
-.hint { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.45; }
-.hint b { color: var(--text); font-weight: 600; }
+body { width: 340px; margin: 0; }
+/* The popup window is its frame. */
+#root > * { width: 100%; border: none; border-radius: 0; }

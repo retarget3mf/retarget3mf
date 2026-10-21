@@ -45,16 +45,19 @@ test('MakerWorld button → native host → desktop app → converted project', 
   const page = await browser.newPage();
   await page.goto('https://makerworld.com/en/models/1-test-cube');
   // The row label comes from the desktop app's status (printer name).
-  await expect.poll(async () => { await page.locator('.icon-box').click(); return page.locator('[data-retarget3mf="row"]').textContent(); }, { timeout: 30_000 }).toBe('Open for AD5X');
+  await expect.poll(async () => { await page.locator('.icon-box').click(); return page.locator('[data-retarget3mf="row"] [data-r3="label"] > span').textContent(); }, { timeout: 30_000 }).toBe('Open for AD5X');
+  await expect(page.locator('[data-retarget3mf="row"] small')).toHaveText('Converts and opens in Flash Studio');
+  await expect(page.locator('[data-retarget3mf="other"]')).toHaveText('Other printer…');
   await page.locator('[data-retarget3mf="row"]').click();
   await expect(page.getByRole('status')).toContainText('Converted ✓', { timeout: 45_000 });
   await page.screenshot({ path: 'e2e/.results/full-chain-done.png' });
 
   const window = await desktop.firstWindow();
-  await expect(window.getByRole('heading', { name: /Converted: Test_Cube - AD5X\.3mf/ })).toBeVisible();
+  await expect(window.getByRole('heading', { name: 'Converted for AD5X' })).toBeVisible();
   await window.screenshot({ path: 'e2e/.results/full-chain-desktop.png' });
   // The history keeps a link back to the model page the project came from.
-  await window.getByRole('button', { name: 'Convert another' }).click();
+  await window.getByRole('button', { name: 'Drop another' }).click();
+  await window.getByRole('button', { name: 'History' }).click();
   await expect(window.getByRole('button', { name: 'MakerWorld ↗' })).toBeVisible();
   await window.screenshot({ path: 'e2e/.results/full-chain-history.png' });
   await browser.close();
@@ -68,7 +71,7 @@ test('no row on MakerWorld when a Bambu Lab printer is chosen (the site already 
   // Control: on Printables the row appears, so the extension has the app's status.
   const printables = await browser.newPage();
   await printables.goto('https://www.printables.com/model/1-test');
-  await expect.poll(async () => { await printables.locator('.toggle[data-type="3mf"]').click(); return printables.locator('[data-retarget3mf="row"]').textContent(); }, { timeout: 30_000 }).toBe('Open for Bambu Lab X1 Carbon');
+  await expect.poll(async () => { await printables.locator('.toggle[data-type="3mf"]').click(); return printables.locator('[data-retarget3mf="row"] [data-r3="label"] > span').textContent(); }, { timeout: 30_000 }).toBe('Open for Bambu Lab X1 Carbon');
 
   const page = await browser.newPage();
   await page.goto('https://makerworld.com/en/models/1-test-cube');
@@ -84,7 +87,8 @@ test('popup printer and slicer menus change the desktop app', async () => {
   const { desktop, browser } = await startChain('ad5x-0.4');
   const popup = await browser.newPage();
   await popup.goto(`chrome-extension://${EXTENSION_IDS[0]}/popup.html`);
-  await expect(popup.getByText('Connected', { exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(popup.getByText('DESKTOP APP', { exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(popup.getByText('Synced with the desktop app.')).toBeVisible();
   await expect(popup.getByLabel('Printer')).toHaveValue('ad5x-0.4');
   await expect(popup.getByLabel('Slicer')).toHaveValue('flashstudio');
 
@@ -92,7 +96,8 @@ test('popup printer and slicer menus change the desktop app', async () => {
   // Flash Studio has no Bambu profiles, so the slicer follows the printer.
   await expect(popup.getByLabel('Slicer')).toHaveValue('bambustudio');
   const window = await desktop.firstWindow();
-  await expect(window.getByRole('button', { name: /^Printer: X1 Carbon/ })).toBeVisible();
+  // The popup's printer joins the app's saved printers and becomes the current one.
+  await expect(window.getByRole('radio', { name: /X1 Carbon/ })).toHaveAttribute('aria-checked', 'true');
   await expect(window.getByRole('button', { name: /^Slicer: Bambu Studio/ })).toBeVisible();
   await popup.setViewportSize({ width: 348, height: 400 });
   await popup.screenshot({ path: 'e2e/.results/popup-light.png' });

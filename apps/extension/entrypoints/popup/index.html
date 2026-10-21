@@ -5,27 +5,7 @@
     <title>Retarget3MF</title>
   </head>
   <body>
-    <header class="top">
-      <span class="logo"><img src="/icon/32.png" width="26" height="26" alt="" /><span class="word">Retarget<span class="accent">3MF</span></span></span>
-      <span id="status" class="pill">Checking…</span>
-    </header>
-
-    <section class="card" aria-labelledby="target-title">
-      <h2 id="target-title">Converting for</h2>
-      <label class="field"><span>Printer</span><select id="printer"></select></label>
-      <label class="field"><span>Slicer</span><select id="slicer"></select></label>
-      <p id="sync" class="caption"></p>
-    </section>
-
-    <label id="watch-row" class="toggle" hidden>
-      <span>
-        <strong>Offer to open 3MF downloads</strong>
-        <small>When a project from a model site finishes downloading</small>
-      </span>
-      <input type="checkbox" id="watch" role="switch" />
-    </label>
-
-    <p class="hint">On MakerWorld, Printables, Creality Cloud and Snapmaker Space, open the site's download or slicer menu and pick <b>Open for …</b></p>
-    <script type="module" src="./main.ts"></script>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
   </body>
 </html>

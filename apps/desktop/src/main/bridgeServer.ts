@@ -7,7 +7,7 @@ import type { FastPathOutcome } from './fastPath.ts';
 
 export interface BridgeDeps {
   version: string;
-  status: () => { printer?: string; vendor?: string; slicer?: string; printerId?: string; slicerId?: string };
+  status: () => { printer?: string; vendor?: string; slicer?: string; printerId?: string; slicerId?: string; slicerIcon?: string };
   setTarget: (printer: string, slicer: string) => Promise<void>;
   download: (url: string, name: string) => Promise<string>;
   open: (path: string, origin?: { site: SourceSite; pageUrl: string }) => Promise<FastPathOutcome>;

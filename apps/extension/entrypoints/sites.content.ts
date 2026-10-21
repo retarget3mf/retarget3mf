@@ -1,7 +1,11 @@
 import iconSvg from '@retarget3mf/ui/icon.svg?raw';
 import { buildOpenLink, isAllowedDownloadUrl, parseSlicerLink, type OpenLink } from '@retarget3mf/bridge';
 import { findImportButton, findMenu, findSlicerTarget, MARKER, siteFor } from '../src/sites.ts';
-import { idleLabel, type AppStatus, type ButtonState, type ToBackground } from '../src/messages.ts';
+import { idleLabel, type AppStatus, type ButtonState, type DownloadOffer, type ToBackground } from '../src/messages.ts';
+import { el, showCard } from '../src/card.ts';
+import { strings } from '../src/strings.ts';
+import { fillPrinters, storeTarget } from '../src/target.ts';
+import { PRINTERS } from '@retarget3mf/profiles/printers';
 
 const CAPTURE_TIMEOUT_MS = 90_000;
 const APP_LAUNCH_WAIT_MS = 6000;
@@ -24,6 +28,9 @@ const BANNER_STYLE = `
 `;
 
 const ICON_URL = `data:image/svg+xml,${encodeURIComponent(iconSvg)}`;
+// Lime from the app's palette: a soft fill for our row, a mid tone that reads on light and dark sites for links.
+const ROW_FILL = 'oklch(0.87 0.18 125 / 0.14)';
+const LINK_INK = 'oklch(0.62 0.15 128)';
 
 /** Our icon in the shape of the site's: an <img> keeps its classes and size attributes, an inline <svg> its box. */
 function brandIcon(siteIcon: Element): Element {
@@ -65,10 +72,21 @@ export default defineContentScript({
     const isOwnPrinter = () => status.vendor === site.ownVendor;
     // Files without print settings (Printables STL rows) get a disabled row, so the missing action explains itself.
     const rowLabel = (row: HTMLElement) => (row.dataset.state === 'disabled' ? `${idleLabel(status.printer)} · needs a 3MF` : idleLabel(status.printer));
-    /** The row's own text node, after the icon copied from the site's row (if any). */
+    const t = strings();
+    /** Title and "Converts and opens in …" under it, after the icon copied from the site's row (if any). */
     const setLabel = (row: HTMLElement) => {
-      const text = [...row.childNodes].find((n) => n.nodeType === Node.TEXT_NODE) ?? row.appendChild(document.createTextNode(''));
-      text.textContent = `${row.dataset.gap ?? ''}${rowLabel(row)}`;
+      if (row.getAttribute(MARKER) === 'other') return;
+      let box = row.querySelector<HTMLElement>(':scope > [data-r3="label"]');
+      if (!box) {
+        box = el('span', {}, el('span'), el('small'));
+        box.dataset.r3 = 'label';
+        Object.assign(box.style, { display: 'inline-flex', flexDirection: 'column', lineHeight: '1.3' });
+        Object.assign((box.lastChild as HTMLElement).style, { fontSize: '12px', opacity: '0.7', fontWeight: '400' });
+        row.append(box);
+      }
+      (box.firstChild as HTMLElement).textContent = `${row.dataset.gap ?? ''}${rowLabel(row)}`;
+      const sub = box.lastChild as HTMLElement;
+      sub.textContent = row.dataset.state === 'disabled' ? '' : status.connected && status.slicer ? t.converts(status.slicer) : t.convertsHere;
     };
     const refreshStatus = () => browser.runtime.sendMessage({ type: 'status' } satisfies ToBackground).then((s) => {
       status = s as AppStatus;
@@ -193,6 +211,7 @@ export default defineContentScript({
       const existing = menu.rows[0]?.parentElement?.querySelector<HTMLElement>(`[${MARKER}="row"]`);
       if (existing?.dataset.state === state) return;
       existing?.remove();
+      menu.rows[0]?.parentElement?.querySelector(`[${MARKER}="other"]`)?.remove();
       const template = menu.slicerRow ?? menu.rows.find((r) => r.childElementCount === 0) ?? menu.rows[0]!;
       const row = template.cloneNode(false) as HTMLElement;
       row.setAttribute(MARKER, 'row');
@@ -217,12 +236,69 @@ export default defineContentScript({
         if (!menu.slicerRow) document.body.click();
         void start(studio);
       });
+      if (state === 'ready') Object.assign(row.style, { background: ROW_FILL, borderRadius: '7px' });
       rows.add(row);
       void refreshStatus();
       // Right under the site's "Open in <slicer>" row when it is in the menu; first otherwise.
       if (menu.slicerRow) menu.slicerRow.insertAdjacentElement('afterend', row);
       else menu.rows[0]!.insertAdjacentElement('beforebegin', row);
+      if (state !== 'ready') return;
+      // "Other printer…": a one-off pick that also becomes the remembered printer, like switching in the app.
+      const other = template.cloneNode(false) as HTMLElement;
+      other.setAttribute(MARKER, 'other');
+      other.setAttribute('role', 'menuitem');
+      other.textContent = t.otherPrinter;
+      Object.assign(other.style, { color: LINK_INK, fontSize: '12px', paddingTop: '4px', paddingBottom: '4px' });
+      other.addEventListener('click', (e) => {
+        e.stopPropagation();
+        chooseOther(menu.slicerRow ?? findSlicerTarget(document, site), !menu.slicerRow);
+      });
+      rows.add(other);
+      row.insertAdjacentElement('afterend', other);
     };
+
+    const chooseOther = (studio: HTMLElement | undefined, closeMenu: boolean) => {
+      const card = showCard('choose');
+      const select = el('select', { ariaLabel: t.chooseTitle });
+      fillPrinters(select, status.printerId);
+      const open = el('button', { className: 'primary', textContent: t.open });
+      const cancel = el('button', { textContent: t.cancel, onclick: card.close });
+      open.addEventListener('click', async () => {
+        const printer = select.value;
+        const allowed = PRINTERS.find((p) => p.id === printer)?.slicers ?? [];
+        const slicer = allowed.includes(status.slicerId as never) ? status.slicerId! : allowed[0]!;
+        await storeTarget({ printer, slicer });
+        if (status.connected) await browser.runtime.sendMessage({ type: 'set-target', printer, slicer } satisfies ToBackground);
+        await refreshStatus();
+        card.close();
+        if (closeMenu) document.body.click();
+        // The site's menu row may be gone by now; its main button still starts the download.
+        void start(studio?.isConnected ? studio : findSlicerTarget(document, site));
+      });
+      card.body.append(el('div', { className: 'title', textContent: t.chooseTitle }), select, el('div', { className: 'row' }, open, cancel));
+      select.focus();
+    };
+
+    browser.runtime.onMessage.addListener((message: DownloadOffer | { type: string }) => {
+      if (message.type !== 'download-offer') return;
+      const offer = message as DownloadOffer;
+      const card = showCard('offer');
+      const always = el('input', { type: 'checkbox' });
+      const open = el('button', { className: 'primary', textContent: offer.label });
+      open.addEventListener('click', () => {
+        card.close();
+        void browser.runtime.sendMessage({ type: 'open-download', id: offer.id, always: always.checked } satisfies ToBackground);
+      });
+      card.body.append(
+        el('div', { className: 'head' },
+          el('span', { className: 'thumb' }),
+          el('div', { className: 'grow' }, el('div', { className: 'title', textContent: offer.file }), el('div', { className: 'muted', textContent: offer.siteName ? t.downloadedFrom(offer.siteName) : t.downloaded })),
+          el('button', { className: 'close', textContent: '✕', ariaLabel: t.close, onclick: card.close })),
+        el('div', { className: 'row' }, open, el('button', { textContent: t.notNow, onclick: card.close })),
+        el('label', { className: 'muted' }, always, t.always),
+      );
+      open.focus();
+    });
 
     // The menu is mounted on open and removed on close; the page is a single-page app.
     const observer = new MutationObserver(() => { attach(); if (waiting) annotateImportDialog(); });
