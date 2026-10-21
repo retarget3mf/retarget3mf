@@ -1,7 +1,7 @@
 import type { AppState, Settings } from '../../../shared/api.ts';
 import { SlicerMenu } from './SlicerMenu.tsx';
 import { pickSlicer, slicersFor } from '../slicerKinds.ts';
-import { GearIcon, PrinterSelect, ThemeSwitch } from '@retarget3mf/ui';
+import { GearIcon, Logo, PrinterSelect, ThemeSwitch } from '@retarget3mf/ui';
 import styles from './Header.module.css';
 
 interface Props {
@@ -16,7 +16,7 @@ export function Header({ state, onChange, onSettings, onHistory }: Props) {
   const kinds = slicersFor(printers, settings.printer);
   return (
     <header className={styles.header}>
-      <strong className={styles.brand}>Retarget3MF</strong>
+      <span className={styles.brand}><Logo /></span>
       <PrinterSelect
         printers={printers}
         value={settings.printer}

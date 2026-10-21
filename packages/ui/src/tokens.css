@@ -11,6 +11,7 @@
   --error-bg: #fdecec;
   --error-text: #8a1c1c;
   --ok: #1a7f37;
+  --brand-accent: #0b66d0;
   --radius: 10px;
   color-scheme: light dark;
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -30,6 +31,7 @@
     --error-bg: #3d1a1a;
     --error-text: #f5b4b4;
     --ok: #4ac26b;
+    --brand-accent: #5fa0f2;
   }
 }
 :root[data-theme='dark'] {
@@ -45,6 +47,7 @@
   --error-bg: #3d1a1a;
   --error-text: #f5b4b4;
   --ok: #4ac26b;
+  --brand-accent: #5fa0f2;
 }
 :root[data-theme='light'] { color-scheme: light; }
 :root[data-theme='dark'] { color-scheme: dark; }

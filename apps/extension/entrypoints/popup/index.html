@@ -6,7 +6,8 @@
     <style>
       :root { color-scheme: light dark; font: 14px/1.4 system-ui, sans-serif; }
       body { margin: 0; padding: 16px; width: 280px; }
-      h1 { font-size: 15px; margin: 0 0 10px; }
+      h1 { display: flex; align-items: center; gap: 6px; font-size: 16px; letter-spacing: -0.01em; margin: 0 0 12px; }
+      .accent { color: #0b66d0; } @media (prefers-color-scheme: dark) { .accent { color: #5fa0f2; } }
       .ok { color: #1a7f37; } .off { color: #a33; }
       p { margin: 6px 0; } small { color: GrayText; }
       label { display: flex; gap: 6px; align-items: flex-start; margin: 10px 0; }
@@ -15,7 +16,7 @@
     </style>
   </head>
   <body>
-    <h1>Retarget3MF</h1>
+    <h1><img src="/icon/32.png" width="24" height="24" alt="" />Retarget<span class="accent">3MF</span></h1>
     <label class="field">Printer <select id="printer"></select></label>
     <label class="field">Slicer <select id="slicer"></select></label>
     <p id="status">Checking the desktop app…</p>

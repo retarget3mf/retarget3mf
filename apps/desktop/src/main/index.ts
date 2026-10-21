@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { app } from 'electron';
 import electronUpdater from 'electron-updater';
 import { AppContext } from './context.ts';
@@ -42,6 +43,8 @@ app.on('second-instance', (_e, argv, cwd) => {
 });
 
 app.whenReady().then(() => {
+  // Packaged builds carry the icon in their bundle; dev runs would otherwise show Electron's.
+  if (!app.isPackaged && process.platform === 'darwin') app.dock?.setIcon(join(app.getAppPath(), 'build', 'icon.png'));
   ctx = new AppContext(loadSettings(app.getPath('userData')));
   registerIpc(ctx);
   registerHistoryIpc(ctx);

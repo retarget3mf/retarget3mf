@@ -2,6 +2,7 @@ export { ConversionView, compactMap, type ProjectSummary } from './ConversionVie
 export { Dropdown, IconPlaceholder } from './Dropdown.tsx';
 export { DropZone } from './DropZone.tsx';
 export { ChevronDown, GearIcon } from './icons.tsx';
+export { Logo } from './Logo.tsx';
 export { I18nProvider, LOCALES, LOCALE_NAMES, detectLocale, plural, useLocale, useT, type Locale } from './i18n.tsx';
 export { UI_MESSAGES, type UiMessages } from './messages.ts';
 export { PrinterPicker, PrinterSelect, groupByVendor, modelName } from './PrinterPicker.tsx';

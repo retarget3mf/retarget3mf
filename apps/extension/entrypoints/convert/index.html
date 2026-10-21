@@ -21,10 +21,13 @@
       th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); }
       .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; border: 1px solid var(--line); }
       .done { color: var(--ok); font-weight: 600; }
+      .brand { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+      .accent { color: #0b66d0; } @media (prefers-color-scheme: dark) { .accent { color: #5fa0f2; } }
     </style>
   </head>
   <body>
     <main>
+      <p class="brand"><img src="/icon/48.png" width="32" height="32" alt="" />Retarget<span class="accent">3MF</span></p>
       <h1>Convert in the browser</h1>
       <p class="muted" id="project"></p>
       <section>

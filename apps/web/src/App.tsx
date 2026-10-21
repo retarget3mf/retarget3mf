@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { PrinterId, SlicerId } from '@retarget3mf/core';
 import { PRINTERS } from '@retarget3mf/profiles/printers';
 import {
-  ConversionView, DropZone, Dropdown, I18nProvider, LOCALES, LOCALE_NAMES, PrinterPicker, ReportView, ThemeSwitch,
+  ConversionView, DropZone, Dropdown, I18nProvider, Logo, LOCALES, LOCALE_NAMES, PrinterPicker, ReportView, ThemeSwitch,
   detectLocale, useT, type Locale, type ProjectSummary, type Theme,
 } from '@retarget3mf/ui';
 import { convertProject, ConverterError, inspectProject } from './converter.ts';
@@ -95,7 +95,7 @@ function Page({ locale, onLocale }: { locale: Locale; onLocale: (l: Locale) => v
   return (
     <div className={styles.app}>
       <header className={styles.header}>
-        <strong className={styles.brand}>Retarget3MF</strong>
+        <span className={styles.brand}><Logo /></span>
         <span className={styles.spacer} />
         <ThemeSwitch value={theme} onChange={chooseTheme} />
         <label className={styles.language}>

@@ -1,0 +1,3 @@
+.logo { display: inline-flex; align-items: center; gap: 6px; }
+.word { font-weight: 700; font-size: 16px; letter-spacing: -0.01em; }
+.accent { color: var(--brand-accent); }

@@ -15,7 +15,8 @@
     "extension": "pnpm -C apps/extension build",
     "sync-profiles": "node packages/profiles/scripts/sync-profiles.ts",
     "slice-check": "node packages/core/scripts/slice-check.ts",
-    "web": "pnpm -C apps/web dev"
+    "web": "pnpm -C apps/web dev",
+    "icons": "node packages/ui/scripts/render-icons.ts"
   },
   "devDependencies": {
     "@types/node": "22.20.5",
