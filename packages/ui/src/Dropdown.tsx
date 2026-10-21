@@ -25,10 +25,13 @@ interface Props<T extends string> {
   onChange: (value: T) => void;
   /** Optional last item under a separator, e.g. "Manage slicers…". */
   action?: { label: string; icon?: ReactNode; onSelect: () => void };
+  /** Replaces the trigger's look, e.g. a pipeline stage card; the trigger stays the same button. */
+  triggerClassName?: string;
+  renderTrigger?: (current: DropdownOption<T> | undefined) => ReactNode;
 }
 
 /** Header dropdown: grouped options with icons, keyboard navigation, closes on outside click or Escape. */
-export function Dropdown<T extends string>({ label, value, groups, onChange, action }: Props<T>) {
+export function Dropdown<T extends string>({ label, value, groups, onChange, action, triggerClassName, renderTrigger }: Props<T>) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -56,10 +59,14 @@ export function Dropdown<T extends string>({ label, value, groups, onChange, act
 
   return (
     <div className={styles.root} ref={root} onKeyDown={onKeyDown}>
-      <button ref={trigger} type="button" className={styles.trigger} aria-haspopup="menu" aria-expanded={open} aria-label={`${label}: ${current?.label ?? 'none'}`} onClick={() => setOpen(!open)}>
-        {current?.icon}
-        {current?.label ?? `Choose ${label.toLowerCase()}`}
-        <span className={styles.chevron}><ChevronDown /></span>
+      <button ref={trigger} type="button" className={triggerClassName ?? styles.trigger} aria-haspopup="menu" aria-expanded={open} aria-label={`${label}: ${current?.label ?? 'none'}`} onClick={() => setOpen(!open)}>
+        {renderTrigger ? renderTrigger(current) : (
+          <>
+            {current?.icon}
+            {current?.label ?? `Choose ${label.toLowerCase()}`}
+            <span className={styles.chevron}><ChevronDown /></span>
+          </>
+        )}
       </button>
       {open && (
         <div className={styles.menu} role="menu" aria-label={label}>

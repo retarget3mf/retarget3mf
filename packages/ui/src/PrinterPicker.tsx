@@ -12,10 +12,11 @@ export function groupByVendor(printers: readonly PrinterDefinition[]): [string, 
 }
 
 export const modelName = (p: PrinterDefinition) => p.displayName.replace(new RegExp(`^${p.vendor} `), '');
-const slotsLabel = (t: UiMessages['printer'], p: PrinterDefinition) =>
+export const slotsLabel = (t: UiMessages['printer'], p: PrinterDefinition) =>
   (p.slots.kind === 'semm' ? t.colours(p.slots.count) : p.slots.kind === 'toolheads' ? t.toolheads(p.slots.count) : t.single);
 
 interface Props { printers: readonly PrinterDefinition[]; value: PrinterId | undefined; onChange: (id: PrinterId) => void }
+type SelectProps = Props & Pick<Parameters<typeof Dropdown<PrinterId>>[0], 'triggerClassName' | 'renderTrigger'>;
 
 export function PrinterPicker({ printers, value, onChange }: Props) {
   const t = useT(UI_MESSAGES).printer;
@@ -41,11 +42,11 @@ export function PrinterPicker({ printers, value, onChange }: Props) {
 }
 
 /** Header variant: the shared dropdown with one group per brand. */
-export function PrinterSelect({ printers, value, onChange }: Props) {
+export function PrinterSelect({ printers, value, onChange, ...trigger }: SelectProps) {
   const t = useT(UI_MESSAGES).printer;
   const groups = groupByVendor(printers).map(([vendor, list]) => ({
     label: vendor,
     options: list.map((p) => ({ value: p.id, label: modelName(p), note: slotsLabel(t, p) })),
   }));
-  return <Dropdown label={t.label} value={value} groups={groups} onChange={onChange} />;
+  return <Dropdown label={t.label} value={value} groups={groups} onChange={onChange} {...trigger} />;
 }

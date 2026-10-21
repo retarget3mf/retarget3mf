@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import type { AppEvent, AppState, ConvertResult, HistoryEntry, InspectResult, Settings } from '../../shared/api.ts';
 import { HistoryList } from './components/HistoryList.tsx';
-import { Header } from './components/Header.tsx';
 import { Onboarding } from './components/Onboarding.tsx';
 import { ResultView } from './components/ResultView.tsx';
 import { applyAccent, ConversionView, DropZone, I18nProvider, ReportView } from '@retarget3mf/ui';
 import { SettingsView } from './components/SettingsView.tsx';
+import { Pipeline, type Phase } from './shell/Pipeline.tsx';
+import { TitleBar } from './shell/TitleBar.tsx';
+import { pickSlicer, slicersFor } from './slicerKinds.ts';
 import styles from './App.module.css';
 
 type Stage =
@@ -61,6 +63,11 @@ export function App() {
     onRemove: async (e: HistoryEntry, trash: boolean) => setHistory(await api.removeHistory(e.id, trash)),
   });
 
+  async function browse() {
+    const path = await api.pickFile();
+    if (path) await open(path);
+  }
+
   async function open(path: string) {
     setError(undefined);
     setStage({ kind: 'busy', message: 'Reading project…' });
@@ -86,12 +93,30 @@ export function App() {
   return (
     <I18nProvider locale="en">
     <div className={styles.app}>
-      <Header state={state} onChange={save} onSettings={() => setStage({ kind: 'settings' })} onHistory={() => setStage({ kind: 'history' })} />
+      <TitleBar
+        section={stage.kind === 'history' || stage.kind === 'settings' ? stage.kind : 'convert'}
+        onHistory={() => setStage({ kind: 'history' })}
+        onSettings={() => setStage({ kind: 'settings' })}
+      />
+      {stage.kind !== 'history' && stage.kind !== 'settings' && (
+        <Pipeline
+          state={state}
+          phase={phaseOf(stage)}
+          project={projectOf(stage)}
+          needsInput={stage.kind === 'review' && tooManyColours(stage.project, state)}
+          opened={stage.kind === 'done' && state.settings.openAfterConvert && !stage.launchError}
+          onPrinter={(printer) => void save({ printer, slicer: pickSlicer(slicersFor(state.printers, printer), state.settings.slicer, state.slicers) })}
+          onSlicer={(slicer) => void save({ slicer })}
+          onManageSlicers={() => setStage({ kind: 'settings' })}
+          onOpenFile={browse}
+          onCloseProject={() => setStage({ kind: 'idle' })}
+        />
+      )}
       <main className={styles.main}>
         {error && <div role="alert" className={styles.error}>{error}</div>}
         {stage.kind === 'idle' && (
           <>
-            <DropZone onFile={(file) => void open(api.pathForFile(file))} onBrowse={async () => { const path = await api.pickFile(); if (path) await open(path); }} />
+            <DropZone onFile={(file) => void open(api.pathForFile(file))} onBrowse={browse} />
             <HistoryList title="Recent conversions" limit={HOME_HISTORY} onShowAll={() => setStage({ kind: 'history' })} entries={history} {...historyActions(undefined)} />
           </>
         )}
@@ -157,4 +182,20 @@ function ConvertActions({ state, onConvert }: { state: AppState; onConvert: (ope
       {!slicer && <span className={styles.muted}>Slicer not found: use “Locate slicer…” above.</span>}
     </>
   );
+}
+
+function phaseOf(stage: Stage): Phase {
+  if (stage.kind === 'busy') return stage.message === 'Converting…' ? 'converting' : 'reading';
+  if (stage.kind === 'review') return 'review';
+  if (stage.kind === 'done' || stage.kind === 'report') return 'done';
+  return 'idle';
+}
+
+function projectOf(stage: Stage): InspectResult | undefined {
+  return stage.kind === 'review' || stage.kind === 'done' ? stage.project : stage.kind === 'report' ? stage.project : undefined;
+}
+
+function tooManyColours(project: InspectResult, state: AppState): boolean {
+  const printer = state.printers.find((p) => p.id === state.settings.printer);
+  return Boolean(printer && project.filaments.filter((f) => f.used).length > printer.slots.count);
 }

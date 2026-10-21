@@ -1,0 +1,12 @@
+/* Draggable like a native title bar; Windows/Linux reserve the overlay controls' area via the titlebar-area env(). */
+.bar {
+  height: 40px; flex: none; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 14px;
+  padding-right: calc(14px + 100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw));
+  -webkit-app-region: drag; user-select: none;
+}
+.mac { padding-left: 78px; }
+.title { color: var(--muted); font-weight: 500; }
+.nav { display: flex; justify-content: flex-end; gap: 4px; -webkit-app-region: no-drag; }
+.nav button { border: none; background: none; padding: 4px 7px; color: var(--muted); border-radius: 6px; }
+.nav button:hover { color: var(--text); }
+.nav button[aria-current='page'] { color: var(--text); font-weight: 500; }

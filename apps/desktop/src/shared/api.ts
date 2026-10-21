@@ -76,6 +76,8 @@ export type AppEvent =
 export type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
 export interface DesktopApi {
+  /** `process.platform` of the main process, for platform-specific chrome (title bar controls). */
+  platform: string;
   getState(): Promise<AppState>;
   saveSettings(patch: Partial<Settings>): Promise<AppState>;
   pickFile(): Promise<string | undefined>;

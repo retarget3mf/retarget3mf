@@ -3,6 +3,7 @@ import type { AppEvent, DesktopApi } from '../shared/api.ts';
 
 // The only surface the renderer gets: typed calls, no raw ipcRenderer.
 const api: DesktopApi = {
+  platform: process.platform,
   getState: () => ipcRenderer.invoke('state'),
   saveSettings: (patch) => ipcRenderer.invoke('settings:save', patch),
   pickFile: () => ipcRenderer.invoke('file:pick'),

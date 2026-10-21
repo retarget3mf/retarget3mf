@@ -5,3 +5,4 @@ dist/
 /fixtures/
 .DS_Store
 .e2e-dist/
+apps/desktop/shots.mts
