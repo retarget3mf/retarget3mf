@@ -24,7 +24,9 @@
 .note { padding: 8px 14px; color: var(--muted); font-size: 12px; }
 .hint { color: var(--muted); font-size: 12px; margin: 0; }
 .link { border: none; background: none; padding: 0; color: var(--accent-ink); font: inherit; font-size: 12px; }
-.ok { color: var(--success); font-size: 12px; }
+/* Status text stays neutral and only its "●" is green, so it never reads like the green (lime) action links beside it. */
+.ok { display: inline-block; color: var(--muted); font-size: 12px; }
+.ok::first-letter { color: var(--success); }
 .muted { color: var(--muted); font-size: 12px; }
 .danger { border: none; background: none; padding: 0; color: var(--warning); font: inherit; }
 
