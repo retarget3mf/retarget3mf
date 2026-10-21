@@ -5,7 +5,10 @@ export interface WebMessages {
   privacy: string;
   stepPrinter: string;
   stepFile: string;
+  yourPrinter: string;
+  change: string;
   slicer: string;
+  openWith: string;
   language: string;
   reading: string;
   converting: string;
@@ -24,7 +27,10 @@ const en: WebMessages = {
   privacy: 'Runs entirely in your browser: files never leave your computer, and it works offline.',
   stepPrinter: '1. Choose your printer',
   stepFile: '2. Open a project',
+  yourPrinter: '1. Your printer',
+  change: 'Change',
   slicer: 'Slicer',
+  openWith: 'Open with',
   language: 'Language',
   reading: 'Reading project…',
   converting: 'Converting…',
@@ -43,7 +49,10 @@ const pl: WebMessages = {
   privacy: 'Wszystko działa w przeglądarce: pliki nie opuszczają Twojego komputera, działa też offline.',
   stepPrinter: '1. Wybierz drukarkę',
   stepFile: '2. Otwórz projekt',
+  yourPrinter: '1. Twoja drukarka',
+  change: 'Zmień',
   slicer: 'Slicer',
+  openWith: 'Otwórz w',
   language: 'Język',
   reading: 'Wczytywanie projektu…',
   converting: 'Konwertowanie…',

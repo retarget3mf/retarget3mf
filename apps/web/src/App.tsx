@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { PrinterId, SlicerId } from '@retarget3mf/core';
 import { PRINTERS } from '@retarget3mf/profiles/printers';
 import {
-  ConversionView, DropZone, Dropdown, I18nProvider, LOCALES, LOCALE_NAMES, PrinterPicker, PrinterSelect, ReportView, ThemeSwitch,
+  ConversionView, DropZone, Dropdown, I18nProvider, LOCALES, LOCALE_NAMES, PrinterPicker, ReportView, ThemeSwitch,
   detectLocale, useT, type Locale, type ProjectSummary, type Theme,
 } from '@retarget3mf/ui';
 import { convertProject, ConverterError, inspectProject } from './converter.ts';
@@ -41,6 +41,7 @@ function Page({ locale, onLocale }: { locale: Locale; onLocale: (l: Locale) => v
   const [printerId, setPrinterId] = useState<PrinterId | undefined>(initialPrinter);
   const [chosenSlicer, setSlicer] = useState<SlicerId | undefined>(() => stored.get('slicer') as SlicerId | undefined);
   const [stage, setStage] = useState<Stage>({ kind: 'idle' });
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [error, setError] = useState<string>();
 
   const printer = PRINTERS.find((p) => p.id === printerId);
@@ -95,10 +96,6 @@ function Page({ locale, onLocale }: { locale: Locale; onLocale: (l: Locale) => v
     <div className={styles.app}>
       <header className={styles.header}>
         <strong className={styles.brand}>Retarget3MF</strong>
-        {printer && <PrinterSelect printers={PRINTERS} value={printer.id} onChange={choosePrinter} />}
-        {printer && slicer && (
-          <Dropdown label={t.slicer} value={slicer} groups={[{ options: printer.slicers.map((s) => ({ value: s, label: SLICER_NAMES[s] })) }]} onChange={chooseSlicer} />
-        )}
         <span className={styles.spacer} />
         <ThemeSwitch value={theme} onChange={chooseTheme} />
         <label className={styles.language}>
@@ -115,13 +112,21 @@ function Page({ locale, onLocale }: { locale: Locale; onLocale: (l: Locale) => v
         {stage.kind === 'idle' && (
           <>
             <p className={styles.tagline}>{t.tagline}</p>
-            {!printer && (
-              <section className={styles.card} aria-labelledby="step-printer">
-                <h2 id="step-printer">{t.stepPrinter}</h2>
-                <PrinterPicker printers={PRINTERS} value={printerId} onChange={choosePrinter} />
-              </section>
-            )}
-            {!printer && <h2 className={styles.step}>{t.stepFile}</h2>}
+            <section className={styles.card} aria-labelledby="step-printer">
+              {printer && !pickerOpen ? (
+                <div className={styles.chosen}>
+                  <h2 id="step-printer">{t.yourPrinter}</h2>
+                  <strong>{printer.displayName}</strong>
+                  <button type="button" onClick={() => setPickerOpen(true)}>{t.change}</button>
+                </div>
+              ) : (
+                <>
+                  <h2 id="step-printer">{t.stepPrinter}</h2>
+                  <PrinterPicker printers={PRINTERS} value={printerId} onChange={(id) => { choosePrinter(id); setPickerOpen(false); }} />
+                </>
+              )}
+            </section>
+            <h2 className={styles.step}>{t.stepFile}</h2>
             <DropZone onFile={(f) => void open(f)} disabled={!printer} />
             <p className={styles.privacy}>{t.privacy}</p>
           </>
@@ -135,7 +140,18 @@ function Page({ locale, onLocale }: { locale: Locale; onLocale: (l: Locale) => v
             project={stage.project}
             printer={printer}
             onCancel={() => setStage({ kind: 'idle' })}
-            renderActions={(map) => <button className="primary" onClick={() => void convert(stage, map)}>{t.convert}</button>}
+            renderActions={(map) => (
+              <>
+                {/* The output differs per slicer (option names, filament presets); it defaults to the printer maker's own. */}
+                {slicer && (
+                  <span className={styles.openWith}>
+                    {t.openWith}
+                    <Dropdown label={t.slicer} value={slicer} groups={[{ options: printer.slicers.map((s) => ({ value: s, label: SLICER_NAMES[s] })) }]} onChange={chooseSlicer} />
+                  </span>
+                )}
+                <button className="primary" onClick={() => void convert(stage, map)}>{t.convert}</button>
+              </>
+            )}
           />
         )}
 

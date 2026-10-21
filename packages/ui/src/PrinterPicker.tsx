@@ -27,7 +27,8 @@ export function PrinterPicker({ printers, value, onChange }: Props) {
           <div className={styles.grid}>
             {list.map((p) => (
               <label key={p.id} className={`${styles.card} ${value === p.id ? styles.selected : ''}`}>
-                <input type="radio" name="printer" value={p.id} checked={value === p.id} onChange={() => onChange(p.id)} aria-label={p.displayName} />
+                {/* A checked radio fires no change event, so re-choosing the current printer goes through click. */}
+                <input type="radio" name="printer" value={p.id} checked={value === p.id} onChange={() => onChange(p.id)} onClick={() => value === p.id && onChange(p.id)} aria-label={p.displayName} />
                 <strong>{modelName(p)}</strong>
                 <span>{slotsLabel(t, p)}</span>
               </label>

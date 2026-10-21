@@ -16,3 +16,7 @@
 .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .language select { padding: 6px 8px; }
 .visuallyHidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.openWith { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); }
+.chosen { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; width: 100%; }
+.chosen h2 { margin: 0; color: var(--muted); font-weight: 500; }
+.chosen strong { font-size: 18px; margin-right: auto; }

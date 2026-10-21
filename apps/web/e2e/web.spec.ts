@@ -12,8 +12,15 @@ test('printer first, then convert and download, without leaving the site', async
   await page.goto('./');
   await expect(page.getByRole('button', { name: 'Open file…' })).toBeDisabled();
   await printerCard(page, 'Flashforge AD5X').click();
+  // The picker collapses to one line and reopens with Change.
+  await expect(page.getByText('Flashforge AD5X', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Change' }).click();
+  await printerCard(page, 'Flashforge AD5X').click();
+  await expect(page.getByRole('button', { name: 'Change' })).toBeVisible();
 
   await page.locator('input[type=file]').setInputFiles(project);
+  // The target slicer is chosen next to Convert and defaults to the printer maker's own.
+  await expect(page.getByRole('button', { name: /^Slicer: Flash Studio/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Test cube' })).toBeVisible();
   await expect(page.getByText('not used by any object, will be removed')).toHaveCount(2);
   await page.getByRole('button', { name: 'Convert', exact: true }).click();
