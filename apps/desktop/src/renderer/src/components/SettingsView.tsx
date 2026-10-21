@@ -1,4 +1,5 @@
 import type { AppState, Settings, SlicerKind } from '../../../shared/api.ts';
+import { BrowserSupport } from './BrowserSupport.tsx';
 import { SlicerCards } from './SlicerCards.tsx';
 import { slicersFor } from '../slicerKinds.ts';
 import { PrinterPicker, ThemeSwitch } from '@retarget3mf/ui';
@@ -56,15 +57,7 @@ export function SettingsView({ state, onChange, onLocate, onRescan, onBack }: Pr
 
       <h3>Browser extension</h3>
       <p className={styles.muted}>The extension adds an “Open for your printer” row to the download menus of MakerWorld, Printables, Creality Cloud and Snapmaker Space and hands the project to this app.</p>
-      {state.browsers.length === 0 && <p className={styles.muted}>No supported browser found (Chrome, Edge, Brave, Arc, Dia, Vivaldi, Opera, Chromium, Firefox).</p>}
-      <ul className={styles.browsers}>
-        {state.browsers.map((b) => (
-          <li key={b.browser}>
-            <span>{b.browser}</span>
-            <span className={b.registered ? styles.ok : styles.muted}>{b.registered ? '● Ready for the extension' : 'Could not connect'}</span>
-          </li>
-        ))}
-      </ul>
+      <BrowserSupport browsers={state.browsers} />
 
       <h3>Appearance</h3>
       <ThemeSwitch value={settings.theme} onChange={(theme) => onChange({ theme })} />

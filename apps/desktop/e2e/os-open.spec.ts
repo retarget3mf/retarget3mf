@@ -63,8 +63,10 @@ test('too many colours for the printer opens the review screen instead', async (
 });
 
 test('settings: theme, brand groups and slicer cards', async () => {
-  const { userData } = profile({ printer: 'ad5x-0.4' });
-  const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`], env: { ...process.env, RETARGET3MF_E2E_HOME: tmpdir() } });
+  const { dir, userData } = profile({ printer: 'ad5x-0.4' });
+  // Chrome and Dia "installed" in the throwaway home (macOS and Linux layouts).
+  for (const p of ['Library/Application Support/Google/Chrome', 'Library/Application Support/Dia/User Data', '.config/google-chrome']) mkdirSync(join(dir, p), { recursive: true });
+  const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`], env: { ...process.env, RETARGET3MF_E2E_HOME: dir } });
   const page = await app.firstWindow();
   // Playwright emulates a light scheme by default, which would hide Electron's nativeTheme.
   await page.emulateMedia({ colorScheme: null });
@@ -78,6 +80,13 @@ test('settings: theme, brand groups and slicer cards', async () => {
   await page.getByRole('radio', { name: 'Light' }).first().click();
   await expect.poll(() => page.evaluate(() => matchMedia('(prefers-color-scheme: dark)').matches)).toBe(false);
   await page.screenshot({ path: 'e2e/.results/settings-light.png', fullPage: true });
+
+  // Chromium browsers share one row; Firefox and Safari are always listed.
+  await expect(page.getByText('Chrome and Chromium browsers')).toBeVisible();
+  await expect(page.getByText('Not supported yet')).toBeVisible();
+  await page.getByRole('button', { name: 'Which browsers?' }).click();
+  await expect(page.getByText(/Set up on this computer: Chrome/)).toBeVisible();
+  await page.screenshot({ path: 'e2e/.results/settings-browsers.png', fullPage: true });
   await app.close();
 });
 

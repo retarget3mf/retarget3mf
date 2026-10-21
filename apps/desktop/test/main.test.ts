@@ -11,6 +11,7 @@ import { outputPathFor } from '../src/main/paths.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings } from '../src/main/settings.ts';
 import { launchCommand } from '../src/main/slicers.ts';
 import { pickSlicer, slicersFor } from '../src/renderer/src/slicerKinds.ts';
+import { browserRows } from '../src/renderer/src/components/BrowserSupport.tsx';
 
 describe('sanitizeSettings', () => {
   it('keeps valid fields and drops unknown or malformed ones', () => {
@@ -118,5 +119,17 @@ describe('projectPathsFromArgv', () => {
 describe('groupByVendor', () => {
   it('groups printers by brand in data order', () => {
     expect(groupByVendor(PRINTERS).map(([vendor, list]) => [vendor, list.length])).toEqual([['Flashforge', 5], ['Bambu Lab', 9]]);
+  });
+});
+
+describe('browserRows', () => {
+  it('merges Chromium browsers into one row and always lists Firefox and Safari', () => {
+    expect(browserRows([{ browser: 'Chrome', registered: true }, { browser: 'Dia', registered: true }, { browser: 'Edge', registered: false }])).toEqual([
+      { name: 'Chrome and Chromium browsers', state: 'ready', found: ['Chrome', 'Dia'] },
+      { name: 'Firefox', state: 'missing' },
+      { name: 'Safari', state: 'unsupported' },
+    ]);
+    expect(browserRows([{ browser: 'Firefox', registered: true }])[0]!.state).toBe('missing');
+    expect(browserRows([{ browser: 'Firefox', registered: true }])[1]!.state).toBe('ready');
   });
 });
