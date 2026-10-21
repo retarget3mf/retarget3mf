@@ -1,6 +1,7 @@
 // Converts fixtures for each target and slices them with the real slicer CLIs; the G-code header must show the
 // values the converted project carries. Usage: node packages/core/scripts/slice-check.ts [--quick] [--slicer <id>]
-// Slicer binaries: ORCA_CLI, BAMBU_CLI, FLASHSTUDIO_CLI (default: the macOS app bundles). Missing ones are skipped.
+// Slicer binaries: ORCA_CLI, BAMBU_CLI, FLASHSTUDIO_CLI, CREALITY_CLI, QIDI_CLI, ELEGOO_CLI, PRUSA_CLI (default: the macOS app
+// bundles). Missing ones are skipped.
 import { execFile } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -16,14 +17,16 @@ const MAC_APPS: Record<SlicerId, string> = {
   crealityprint: '/Applications/Creality Print.app/Contents/MacOS/CrealityPrint',
   qidistudio: '/Applications/QIDIStudio.app/Contents/MacOS/QIDIStudio',
   elegooslicer: '/Applications/ElegooSlicer.app/Contents/MacOS/ElegooSlicer',
+  prusaslicer: '/Applications/Original Prusa Drivers/PrusaSlicer.app/Contents/MacOS/PrusaSlicer',
 };
-const ENV: Record<SlicerId, string> = { orca: 'ORCA_CLI', bambustudio: 'BAMBU_CLI', flashstudio: 'FLASHSTUDIO_CLI', crealityprint: 'CREALITY_CLI', qidistudio: 'QIDI_CLI', elegooslicer: 'ELEGOO_CLI' };
+const ENV: Record<SlicerId, string> = { orca: 'ORCA_CLI', bambustudio: 'BAMBU_CLI', flashstudio: 'FLASHSTUDIO_CLI', crealityprint: 'CREALITY_CLI', qidistudio: 'QIDI_CLI', elegooslicer: 'ELEGOO_CLI', prusaslicer: 'PRUSA_CLI' };
 // Creality Print opens its GUI unless told otherwise, and keeps G-code in a temp folder unless asked to write it.
 const EXTRA_ARGS: Partial<Record<SlicerId, string[]>> = { crealityprint: ['--cli', '--need-gcode-file'] };
 const SLICE_TIMEOUT_MS = 10 * 60_000;
 const PARALLEL = Number(process.env.SLICE_PARALLEL) || 3;
 // Values every slicer writes into the G-code config block, compared with what the converted project holds.
 const CHECKED_KEYS = ['printer_settings_id', 'print_settings_id', 'layer_height', 'wall_loops', 'sparse_infill_density', 'filament_type', 'nozzle_temperature', 'enable_prime_tower'];
+const PRUSA_CHECKED_KEYS = ['printer_settings_id', 'print_settings_id', 'filament_settings_id', 'layer_height', 'perimeters', 'fill_density', 'filament_type', 'temperature', 'support_material'];
 
 const fixture = (path: string) => new Uint8Array(readFileSync(new URL(`../test/fixtures/${path}`, import.meta.url)));
 const FIXTURES: Record<string, () => Uint8Array> = {
@@ -44,7 +47,7 @@ function cases(available: SlicerId[]): Case[] {
       out.push({ fixture: 'bambu-cube', printer: p.id, slicer });
       if (quick || !REPRESENTATIVE.includes(p.id)) continue;
       out.push({ fixture: 'prusa-wipe-tower', printer: p.id, slicer }, { fixture: 'creality-multicolor', printer: p.id, slicer });
-      if (p.id === 'bambu-x1c-0.4' || p.id === 'ad5x-0.4') out.push({ fixture: 'prusa-roundtrip', printer: p.id, slicer });
+      if (p.id === 'bambu-x1c-0.4' || p.id === 'ad5x-0.4' || p.id === 'prusa-mk4s-0.4') out.push({ fixture: 'prusa-roundtrip', printer: p.id, slicer });
     }
   }
   return out;
@@ -72,9 +75,12 @@ async function check(c: Case, bin: string, root: string): Promise<string[]> {
   mkdirSync(dir, { recursive: true });
   const input = join(dir, 'project.3mf');
   writeFileSync(input, output);
-  const project = JSON.parse(strFromU8(unzipSync(output)['Metadata/project_settings.config']!)) as Record<string, string | string[]>;
+  const files = unzipSync(output);
+  const isPrusa = c.slicer === 'prusaslicer';
+  const project = isPrusa ? gcodeConfig(strFromU8(files['Metadata/Slic3r_PE.config']!)) : JSON.parse(strFromU8(files['Metadata/project_settings.config']!)) as Record<string, string | string[]>;
   // The slicer's working directory is the case folder: some profiles make it write files relative to it.
-  const { code, log } = await run(bin, [...(EXTRA_ARGS[c.slicer] ?? []), '--slice', '0', '--outputdir', dir, input], dir);
+  const args = isPrusa ? ['--export-gcode', '--no-binary-gcode', '--output', join(dir, 'project.gcode'), input] : [...(EXTRA_ARGS[c.slicer] ?? []), '--slice', '0', '--outputdir', dir, input];
+  const { code, log } = await run(bin, args, dir);
   writeFileSync(join(dir, 'slicer.log'), log);
   const gcodes = readdirSync(dir).filter((f) => f.endsWith('.gcode'));
   if (code !== 0 || gcodes.length === 0) {
@@ -82,7 +88,7 @@ async function check(c: Case, bin: string, root: string): Promise<string[]> {
     return [`slicer exit ${code}, ${gcodes.length} G-code file(s); log ${dir}/slicer.log ends with:`, ...tail];
   }
   const header = gcodeConfig(readFileSync(join(dir, gcodes[0]!), 'utf8'));
-  return CHECKED_KEYS.flatMap((k) => {
+  return (isPrusa ? PRUSA_CHECKED_KEYS : CHECKED_KEYS).flatMap((k) => {
     if (project[k] === undefined) return [];
     const [want, got] = [norm(project[k]), norm(header[k])];
     return JSON.stringify(want) === JSON.stringify(got) ? [] : [`${k}: project ${want.join(';')} ≠ G-code ${got.join(';') || '(missing)'}`];

@@ -74,6 +74,16 @@ export const SLICERS: Record<SlicerKind, SlicerSpec> = {
     flatpakIds: [],
     appImage: /^elegoo[_-]?slicer.*\.appimage$/i,
   },
+  // PrusaSlicer 2.9.6 on macOS really declares "com.prusa3d.slic3r/" (trailing slash).
+  prusaslicer: {
+    name: 'PrusaSlicer',
+    macBundleIds: ['com.prusa3d.slic3r/', 'com.prusa3d.slic3r'],
+    winDisplayName: /^PrusaSlicer\b/i,
+    winExe: 'prusa-slicer.exe',
+    linuxBins: ['prusa-slicer', 'PrusaSlicer'],
+    flatpakIds: ['com.prusa3d.PrusaSlicer'],
+    appImage: /^prusaslicer.*\.appimage$/i,
+  },
 };
 export const SLICER_NAMES = Object.fromEntries(Object.entries(SLICERS).map(([k, s]) => [k, s.name])) as Record<SlicerKind, string>;
 const FLATPAK = 'flatpak:';

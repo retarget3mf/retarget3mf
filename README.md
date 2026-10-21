@@ -18,9 +18,9 @@ Everything runs on your computer. Nothing is uploaded, there is no account and n
 | **Prusa** | MK4S, MK3S, MINI, CORE One, XL (single tool) |
 | **Creality** | K1C, K1 Max, K2 Plus (CFS), Hi (CFS), Ender-3 V3 KE, Ender-3 V3 SE |
 | **Elegoo, Anycubic, Qidi, Sovol** | Centauri Carbon, Neptune 4 Pro / 4 Max · Kobra S1 and Kobra 3 (ACE Pro), Kobra 2 Neo · Q1 Pro, Plus4, Q2 · SV06, SV08 |
-| **Target slicers** | Flash Studio and OrcaSlicer for Flashforge; Bambu Studio and OrcaSlicer for Bambu Lab; Creality Print and OrcaSlicer for Creality; QIDI Studio and OrcaSlicer for Qidi; ElegooSlicer and OrcaSlicer for Elegoo; OrcaSlicer for the other brands |
+| **Target slicers** | Flash Studio and OrcaSlicer for Flashforge; Bambu Studio and OrcaSlicer for Bambu Lab; Creality Print and OrcaSlicer for Creality; QIDI Studio and OrcaSlicer for Qidi; ElegooSlicer and OrcaSlicer for Elegoo; PrusaSlicer and OrcaSlicer for Prusa; OrcaSlicer for the other brands |
 
-Profiles come from OrcaSlicer v2.4.2, Flash Studio 1.7.15, Bambu Studio 02.08.04.57, Creality Print 7.3.0, QIDI Studio 2.07.02.73 and ElegooSlicer 1.5.3.5. Every release is checked by slicing converted projects for every printer with the real slicers.
+Profiles come from OrcaSlicer v2.4.2, Flash Studio 1.7.15, Bambu Studio 02.08.04.57, Creality Print 7.3.0, QIDI Studio 2.07.02.73, ElegooSlicer 1.5.3.5 and PrusaSlicer 2.9.6. Every release is checked by slicing converted projects for every printer with the real slicers.
 
 ## What happens to the settings
 
@@ -76,7 +76,7 @@ pnpm test
 | `pnpm web` | web app with hot reload (`pnpm -C apps/web build` for the static site in `apps/web/dist`) |
 | `pnpm extension` | builds the extension into `apps/extension/dist/` (Chrome and Firefox) |
 | `pnpm test`, `pnpm typecheck`, `pnpm e2e` | unit tests, types, end-to-end tests (Electron and Chromium) |
-| `pnpm slice-check` | converts fixtures for every printer and slices them with the installed slicers (`ORCA_CLI`, `BAMBU_CLI`, `FLASHSTUDIO_CLI`, `CREALITY_CLI`, `QIDI_CLI`, `ELEGOO_CLI`; defaults to the macOS apps) |
+| `pnpm slice-check` | converts fixtures for every printer and slices them with the installed slicers (`ORCA_CLI`, `BAMBU_CLI`, `FLASHSTUDIO_CLI`, `CREALITY_CLI`, `QIDI_CLI`, `ELEGOO_CLI`, `PRUSA_CLI`; defaults to the macOS apps) |
 | `pnpm sync-profiles` | regenerates `packages/profiles/src/generated` from slicer checkouts in `research/` |
 
 Layout: `packages/core` (conversion), `packages/profiles` (printer definitions and slicer profiles), `packages/bridge` (extension ↔ app protocol), `packages/ui` (shared React components and translations), `apps/desktop` (Electron), `apps/web` (static PWA), `apps/extension` (WXT). Decisions are recorded in [docs/decisions](docs/decisions).

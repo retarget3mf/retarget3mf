@@ -1,5 +1,6 @@
 import profiles from './generated/profiles.json' with { type: 'json' };
 import options from './generated/options.json' with { type: 'json' };
+import prusa from './generated/prusaslicer.json' with { type: 'json' };
 import { PRINTERS, SLICER_NAMES, type PrinterDefinition, type PrinterId, type SlicerId } from './printers.ts';
 
 export { PRINTERS, SLICER_NAMES, type PrinterDefinition, type PrinterId, type SlicerId };
@@ -73,5 +74,39 @@ export function getTargetProfiles(id: PrinterId, slicer?: SlicerId): TargetProfi
 }
 
 export function getOptions(slicer: SlicerId): Readonly<Record<string, OptionInfo>> {
-  return (options as Record<SlicerId, Record<string, OptionInfo>>)[slicer];
+  const table = (options as Partial<Record<SlicerId, Record<string, OptionInfo>>>)[slicer];
+  if (!table) throw new Error(`No option table for ${slicer}`);
+  return table;
+}
+
+/** A PrusaSlicer preset as its INI holds it: every value is the raw string after `key = `. */
+export type IniPreset = Readonly<Record<string, string>>;
+export interface PrusaProfiles {
+  printerName: string;
+  printName: string;
+  printer: IniPreset;
+  print: IniPreset;
+  /** Filament preset per filament type (upper case); PLA is always present. */
+  filaments: Readonly<Record<string, { name: string; preset: IniPreset }>>;
+  /** Accepted values of PrusaSlicer's enum options. */
+  enums: Readonly<Record<string, readonly string[]>>;
+  version: string;
+}
+
+type PrusaBundle = { source: { tag: string }; printers: Record<string, { printer: string; print: string; filaments: Record<string, string> }>; presets: Record<'printer' | 'print' | 'filament', Record<string, Record<string, string>>>; enums: Record<string, string[]> };
+
+export function getPrusaProfiles(id: PrinterId): PrusaProfiles {
+  const name = getPrinter(id)?.ownSlicerPresets?.prusaslicer;
+  const b = prusa as PrusaBundle;
+  const entry = name ? b.printers[name] : undefined;
+  if (!entry) throw new Error(`No PrusaSlicer profiles for "${id}"; run sync-profiles`);
+  return {
+    printerName: entry.printer,
+    printName: entry.print,
+    printer: b.presets.printer[entry.printer]!,
+    print: b.presets.print[entry.print]!,
+    filaments: Object.fromEntries(Object.entries(entry.filaments).map(([type, n]) => [type, { name: n, preset: b.presets.filament[n]! }])),
+    enums: b.enums,
+    version: b.source.tag.replace(/^version_/, ''),
+  };
 }

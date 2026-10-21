@@ -40,7 +40,7 @@ export function plateOrigin(index: number, count: number, bed: Bed): [number, nu
   return [(index % cols) * strideX, -Math.floor(index / cols) * strideY];
 }
 
-function itemPlates(geo: ModelGeometry, settings: ModelSettings): number[] {
+export function itemPlates(geo: ModelGeometry, settings: ModelSettings): number[] {
   const seen = new Map<string, number>();
   return geo.items.map((item) => {
     const instanceId = seen.get(item.objectId) ?? 0;

@@ -12,7 +12,15 @@ describe('matchesCondition', () => {
     expect(matchesCondition('single_extruder_multi_material', mk4s)).toBe(false);
   });
 
+  it('handles negation, grouping, or and ordering comparisons', () => {
+    const mmu = '! (printer_notes=~/.*PRINTER_VENDOR_PRUSA3D.*/ and printer_notes=~/.*PRINTER_MODEL_MK(2.5|3).*/ and single_extruder_multi_material)';
+    expect(matchesCondition(`nozzle_diameter[0]>=0.4 and printer_notes!~/.*MINI.*/ and ${mmu}`, mk4s)).toBe(true);
+    expect(matchesCondition('nozzle_diameter[0]>0.4 or printer_model=="MK4S"', { ...mk4s, printer_model: 'MK4S' })).toBe(true);
+    expect(matchesCondition('! nozzle_high_flow[0]', { ...mk4s, nozzle_high_flow: ['0'] })).toBe(true);
+  });
+
   it('refuses forms it does not understand', () => {
-    expect(() => matchesCondition('(a or b)', mk4s)).toThrow(/unsupported/);
+    expect(() => matchesCondition('one_of(printer_model, "MK4")', mk4s)).toThrow(/unsupported/);
+    expect(() => matchesCondition('(nozzle_diameter[0]==0.4', mk4s)).toThrow(/unsupported/);
   });
 });

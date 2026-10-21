@@ -1,5 +1,5 @@
-import { getOptions, getPrinter, getTargetProfiles, PROFILE_SOURCE, type PrinterId, type SlicerId } from '@retarget3mf/profiles';
-import { asList, first, serializeProjectConfig } from './config.ts';
+import { getOptions, getPrinter, getPrusaProfiles, getTargetProfiles, PROFILE_SOURCE, type OptionInfo, type PrinterId, type SlicerId } from '@retarget3mf/profiles';
+import { asList, first, sameValue, serializeProjectConfig, type Config, type ConfigValue } from './config.ts';
 import { ConversionError } from './errors.ts';
 import { MAIN_MODEL, moveItems, readGeometry, remapPaintInText, setModelMetadata } from './model.ts';
 import { editModelSettings, MODEL_SETTINGS, readModelSettings } from './modelSettings.ts';
@@ -9,7 +9,9 @@ import { detectSource, PROJECT_SETTINGS } from './stages/detect.ts';
 import { applyFilamentMap, padToToolheads, planFilaments, remapRef, type FilamentMap } from './stages/filaments.ts';
 import { parseBed, planPlacement } from './stages/placement.ts';
 import { buildSettings, SLICER_NAMES, type SettingsResult } from './stages/settings.ts';
+import { carriesToPrusa } from './rules/toPrusa.ts';
 import { optionsInOrcaSpace } from './targets/bambuStudio.ts';
+import { toPrusaSlicer } from './targets/prusaSlicer.ts';
 
 type OverrideConverter = SettingsResult['convertOverride'];
 import { validateConfig } from './stages/validate.ts';
@@ -51,13 +53,16 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
 
   const source = detectSource(readArchive(input));
   const { archive } = source;
-  const target = getTargetProfiles(printer.id, slicer);
+  // PrusaSlicer projects are built as OrcaSlicer ones (from Orca's Prusa profiles), then repackaged at the end.
+  const isPrusa = slicer === 'prusaslicer';
+  const pipelineSlicer = isPrusa ? 'orca' : slicer;
+  const target = getTargetProfiles(printer.id, pipelineSlicer);
   // Bambu Studio and OrcaSlicer-based vendor slicers get a final rewrite into their own option names.
-  const writer = slicer === 'bambustudio' ? 'bambustudio' : printer.ownSlicerPresets?.[slicer] ? 'own' : undefined;
+  const writer = slicer === 'bambustudio' ? 'bambustudio' : !isPrusa && printer.ownSlicerPresets?.[slicer] ? 'own' : undefined;
   const orca = getOptions('orca');
   const options = writer
     ? { orca, slicer: optionsInOrcaSpace(orca, getOptions(slicer)), native: getOptions(slicer) }
-    : { orca, slicer: getOptions(slicer) };
+    : { orca, slicer: getOptions(pipelineSlicer) };
   const settings = readModelSettings(readText(archive, MODEL_SETTINGS));
   const geo = readGeometry(archive);
   const used = planFilaments(source.config, settings, geo, readText(archive, CUSTOM_GCODE));
@@ -71,7 +76,7 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
     ...(source.config.wipe_tower_x && source.config.wipe_tower_y && { wipeTower: { x: source.config.wipe_tower_x, y: source.config.wipe_tower_y } }),
   }, parseBed(target.machine.printable_area));
 
-  const result = buildSettings({ source: source.config, plan, usedFilaments: mapped.keep.length, target, slicer, options, ...(writer && { writer }), ...(placement.wipeTower && { wipeTower: placement.wipeTower }) });
+  const result = buildSettings({ source: source.config, plan, usedFilaments: mapped.keep.length, target, slicer: pipelineSlicer, options, ...(writer && { writer }), ...(placement.wipeTower && { wipeTower: placement.wipeTower }) });
   const problems = validateConfig(result.config, options.native ?? options.slicer);
   if (problems.length) throw new ConversionError('invalid-project', `Internal error while converting (${problems.join('; ')}). Please report this file.`);
 
@@ -93,22 +98,25 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
   if (merged > 0) warnings.push(`${merged} colour(s) were merged onto shared slots as you chose.`);
   for (const p of placement.plates) if (!p.fits) warnings.push(`Plate ${p.id} is larger than the ${printer.displayName} bed; the objects were centred but not scaled.`);
 
+  const finalArchive = isPrusa ? toPrusaSlicer(output, result.config, getPrusaProfiles(printer.id)) : output;
+  const changes = isPrusa ? forPrusa(result.changes, orcaPreset(target, result.config), orca) : result.changes;
+
   const title = readText(archive, MAIN_MODEL)?.match(/<metadata name="Title">([^<]*)<\/metadata>/)?.[1] ?? '';
   const thumbnail = archive.get('Metadata/plate_1.png');
   return {
     preview: { title, ...(thumbnail && { thumbnail }) },
-    output: writeArchive(output),
+    output: writeArchive(finalArchive),
     report: {
       source: { kind: source.kind, slicer: source.slicer, application: source.application, printer: first(source.config.printer_settings_id) ?? 'unknown' },
       target: {
         printer: printer.displayName, slicer: SLICER_NAMES[slicer],
-        profiles: slicer === 'bambustudio' ? `Bambu Studio ${PROFILE_SOURCE.bambuStudio.tag}`
+        profiles: isPrusa ? `PrusaSlicer ${getPrusaProfiles(printer.id).version}` : slicer === 'bambustudio' ? `Bambu Studio ${PROFILE_SOURCE.bambuStudio.tag}`
           : writer === 'own' ? `${SLICER_NAMES[slicer]} ${(PROFILE_SOURCE as Record<string, { tag: string }>)[slicer]!.tag}` : `OrcaSlicer ${PROFILE_SOURCE.orca.tag}`,
       },
       warnings,
       filaments: result.filaments,
       plates: placement.plates,
-      settings: result.changes,
+      settings: changes,
     },
   };
 }
@@ -169,4 +177,20 @@ function rewriteSideFiles(archive: Archive, map: ReadonlyMap<number, number>, co
   if (!ranges) return;
   setText(archive, LAYER_RANGES, ranges.replace(/<option opt_key="([^"]+)">([^<]*)<\/option>/g, (_, key: string, value: string) =>
     convertOverride(key, value, 'height range').map(([k, v]) => `<option opt_key="${k}">${v}</option>`).join('')));
+}
+
+/** The OrcaSlicer presets the pipeline built on, merged: what the target printer would use without the author. */
+function orcaPreset(target: ReturnType<typeof getTargetProfiles>, config: Config): Readonly<Record<string, ConfigValue>> {
+  const filament = target.filaments[first(config.filament_settings_id) ?? ''];
+  return { ...target.machine, ...Object.values(target.processes)[0], ...filament };
+}
+
+/** Author settings PrusaSlicer has no equivalent for are reported as dropped, unless the printer's preset agrees anyway. */
+function forPrusa(changes: ConversionReport['settings'], preset: Readonly<Record<string, ConfigValue>>, orca: Readonly<Record<string, OptionInfo>>): ConversionReport['settings'] {
+  return changes.flatMap((c) => {
+    if ((c.outcome !== 'kept' && c.outcome !== 'clamped') || carriesToPrusa(c.key)) return [c];
+    const value = c.to ?? c.from;
+    if (sameValue(value, preset[c.key]) || asList(value).every((v) => v === orca[c.key]?.default)) return [];
+    return [{ ...c, outcome: 'dropped' as const, reason: 'PrusaSlicer has no equivalent setting' }];
+  });
 }

@@ -1,7 +1,7 @@
-export type SlicerId = 'orca' | 'flashstudio' | 'bambustudio' | 'crealityprint' | 'qidistudio' | 'elegooslicer';
+export type SlicerId = 'orca' | 'flashstudio' | 'bambustudio' | 'crealityprint' | 'qidistudio' | 'elegooslicer' | 'prusaslicer';
 
 export const SLICER_NAMES: Record<SlicerId, string> = {
-  flashstudio: 'Flash Studio', orca: 'OrcaSlicer', bambustudio: 'Bambu Studio', crealityprint: 'Creality Print', qidistudio: 'QIDI Studio', elegooslicer: 'ElegooSlicer',
+  flashstudio: 'Flash Studio', orca: 'OrcaSlicer', bambustudio: 'Bambu Studio', crealityprint: 'Creality Print', qidistudio: 'QIDI Studio', elegooslicer: 'ElegooSlicer', prusaslicer: 'PrusaSlicer',
 };
 
 export type PrinterId =
@@ -26,7 +26,7 @@ export interface PrinterDefinition {
   maxBedTemp: number;
   /** Slicers that ship this printer's profiles, preferred first. */
   slicers: readonly SlicerId[];
-  /** Machine preset names in OrcaSlicer-based vendor slicers whose own presets are used for them (Creality Print). */
+  /** Machine preset names in vendor slicers whose own presets are used for them (Creality Print, PrusaSlicer). */
   ownSlicerPresets?: Partial<Record<SlicerId, string>>;
 }
 
@@ -121,11 +121,11 @@ export const PRINTERS: readonly PrinterDefinition[] = [
   bambu('bambu-h2s-0.4', 'H2S', 16, 350, 120),
   // Hardware maxima from the makers' spec pages; they only clamp, never raise. Multi-colour: Creality CFS (K2 Plus up
   // to four units, Hi one), Anycubic ACE Pro (up to two units).
-  orca('prusa-mk4s-0.4', 'Prusa', 'MK4S', 'Prusa MK4S 0.4 nozzle', 1, 'single', 290, 120),
-  orca('prusa-mk3s-0.4', 'Prusa', 'MK3S', 'Prusa MK3S 0.4 nozzle', 1, 'single', 300, 120),
-  orca('prusa-mini-0.4', 'Prusa', 'MINI', 'Prusa MINI 0.4 nozzle', 1, 'single', 280, 100),
-  orca('prusa-core-one-0.4', 'Prusa', 'CORE One', 'Prusa CORE One 0.4 nozzle', 1, 'single', 290, 120),
-  orca('prusa-xl-0.4', 'Prusa', 'XL', 'Prusa XL 0.4 nozzle', 1, 'single', 290, 120),
+  orca('prusa-mk4s-0.4', 'Prusa', 'MK4S', 'Prusa MK4S 0.4 nozzle', 1, 'single', 290, 120, { slicer: 'prusaslicer', machinePreset: 'Original Prusa MK4S 0.4 nozzle' }),
+  orca('prusa-mk3s-0.4', 'Prusa', 'MK3S', 'Prusa MK3S 0.4 nozzle', 1, 'single', 300, 120, { slicer: 'prusaslicer', machinePreset: 'Original Prusa i3 MK3S & MK3S+' }),
+  orca('prusa-mini-0.4', 'Prusa', 'MINI', 'Prusa MINI 0.4 nozzle', 1, 'single', 280, 100, { slicer: 'prusaslicer', machinePreset: 'Original Prusa MINI & MINI+' }),
+  orca('prusa-core-one-0.4', 'Prusa', 'CORE One', 'Prusa CORE One 0.4 nozzle', 1, 'single', 290, 120, { slicer: 'prusaslicer', machinePreset: 'Prusa CORE One 0.4 nozzle' }),
+  orca('prusa-xl-0.4', 'Prusa', 'XL', 'Prusa XL 0.4 nozzle', 1, 'single', 290, 120, { slicer: 'prusaslicer', machinePreset: 'Original Prusa XL Input Shaper 0.4 nozzle' }),
   orca('creality-k1c-0.4', 'Creality', 'K1C', 'Creality K1C 0.4 nozzle', 1, 'single', 300, 100, { slicer: 'crealityprint', machinePreset: 'Creality K1C 0.4 nozzle' }),
   orca('creality-k1-max-0.4', 'Creality', 'K1 Max', 'Creality K1 Max (0.4 nozzle)', 1, 'single', 300, 100, { slicer: 'crealityprint', machinePreset: 'Creality K1 Max 0.4 nozzle' }),
   orca('creality-k2-plus-0.4', 'Creality', 'K2 Plus', 'Creality K2 Plus 0.4 nozzle', 16, 'semm', 350, 120, { slicer: 'crealityprint', machinePreset: 'Creality K2 Plus 0.4 nozzle' }),

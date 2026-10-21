@@ -6,6 +6,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PRINTERS } from '../src/printers.ts';
 import { matchesCondition } from './condition.ts';
+import { readPrusaBundle } from './prusa-bundle.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../../..');
 const OUT = join(ROOT, 'packages/profiles/src/generated');
@@ -178,9 +179,10 @@ const bambuDir = arg('--bambustudio', join(ROOT, 'research/BambuStudio'));
 const crealityDir = arg('--crealityprint', join(ROOT, 'research/CrealityPrint-7.3.0'));
 const qidiDir = arg('--qidistudio', join(ROOT, 'research/QIDIStudio-2.07.02.73'));
 const elegooDir = arg('--elegooslicer', join(ROOT, 'research/ElegooSlicer-1.5.3.5'));
+const prusaDir = arg('--prusaslicer', join(ROOT, 'research/PrusaSlicer-2.9.6'));
 const profilesOf = (dir: string, vendors: string[]) => indexPresets(join(dir, 'resources/profiles'), vendors);
 
-type SlicerId = 'orca' | 'flashstudio' | 'bambustudio' | 'crealityprint' | 'qidistudio' | 'elegooslicer';
+type SlicerId = 'orca' | 'flashstudio' | 'bambustudio' | 'crealityprint' | 'qidistudio' | 'elegooslicer' | 'prusaslicer';
 
 /** OrcaSlicer-based vendor slicers whose own presets (names and values) are used for their printers. */
 const OWN_SLICERS: Partial<Record<SlicerId, { dir: string; presets: Map<string, Json> }>> = {
@@ -241,6 +243,7 @@ for (const printer of PRINTERS) {
   for (const n of new Set(Object.values(names).flat())) filaments[n] = lean(flatten(vendor.presets, 'filament', n));
   compat[m] = { processes: proc, filaments: names };
   for (const [slicer, name] of Object.entries(printer.ownSlicerPresets ?? {}) as [SlicerId, string][]) {
+    if (slicer === 'prusaslicer') continue;
     const idx = OWN_SLICERS[slicer]?.presets;
     const options = ownOptions[slicer];
     if (!idx || !options) throw new Error(`No presets for ${slicer}`);
@@ -267,4 +270,6 @@ write('options.json', {
   bambustudio: extractOptions(join(bambuDir, 'src/libslic3r/PrintConfig.cpp')),
   ...ownOptions,
 });
+const prusaPrinters = PRINTERS.flatMap((p) => p.ownSlicerPresets?.prusaslicer ?? []);
+write('prusaslicer.json', { source: gitInfo(prusaDir), ...readPrusaBundle(prusaDir, prusaPrinters) });
 console.log(`machines ${Object.keys(machines).length}, processes ${Object.keys(processes).length}, filaments ${Object.keys(filaments).length}`);

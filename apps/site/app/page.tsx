@@ -13,7 +13,7 @@ const STEPS = [
 const FEATURES = [
   { title: 'Keeps what matters', body: 'Layer height, walls, infill, supports, seams, ironing and painted colours carry over. Speeds and calibration come from your printer’s profile.' },
   { title: 'Colours that fit', body: 'Filaments are mapped to your AMS, IFS, CFS or ACE Pro slots, or Creator 5 toolheads. Too many colours? Similar ones are merged, and you can adjust.' },
-  { title: 'Checked in real slicers', body: 'Every release converts test projects for every printer and slices them in OrcaSlicer, Bambu Studio, Flash Studio, Creality Print, QIDI Studio and ElegooSlicer.' },
+  { title: 'Checked in real slicers', body: 'Every release converts test projects for every printer and slices them in OrcaSlicer, Bambu Studio, Flash Studio, Creality Print, QIDI Studio, ElegooSlicer and PrusaSlicer.' },
   { title: 'Private by design', body: 'Everything runs on your computer. No account, no upload, no tracking. Open source under AGPL-3.0.' },
 ];
 

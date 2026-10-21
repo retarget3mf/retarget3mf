@@ -2,7 +2,7 @@ import { attrs, buildXml, childrenOf, elements, parseXml, tagOf, type XmlNode } 
 
 export const MODEL_SETTINGS = 'Metadata/model_settings.config';
 
-export interface PartSettings { id: string; subtype: string; config: Record<string, string> }
+export interface PartSettings { id: string; name: string; subtype: string; config: Record<string, string> }
 export interface ObjectSettings { id: string; name: string; config: Record<string, string>; parts: PartSettings[] }
 export interface PlateSettings { id: number; instances: { objectId: string; instanceId: number }[] }
 export interface ModelSettings { objects: ObjectSettings[]; plates: PlateSettings[] }
@@ -33,7 +33,10 @@ export function readModelSettings(text: string | undefined): ModelSettings {
       id: attrs(o).id ?? '',
       name: (meta && attrs(meta).value) ?? '',
       config: metadataConfig(kids),
-      parts: elements(kids, 'part').map((p) => ({ id: attrs(p).id ?? '', subtype: attrs(p).subtype ?? 'normal_part', config: metadataConfig(childrenOf(p)) })),
+      parts: elements(kids, 'part').map((p) => {
+        const name = elements(childrenOf(p), 'metadata').find((m) => attrs(m).key === 'name');
+        return { id: attrs(p).id ?? '', name: (name && attrs(name).value) ?? '', subtype: attrs(p).subtype ?? 'normal_part', config: metadataConfig(childrenOf(p)) };
+      }),
     };
   });
   const plates = elements(nodes, 'plate').map((p, index) => {
