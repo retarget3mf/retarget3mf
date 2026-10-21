@@ -10,7 +10,8 @@
     "./icon.svg": "./src/brand/icon.svg",
     "./logo": "./src/Logo.tsx",
     "./accent": "./src/accent.ts",
-    "./links": "./src/links.ts"
+    "./links": "./src/links.ts",
+    "./plural": "./src/plural.ts"
   },
   "dependencies": {
     "@fontsource-variable/geist": "5.3.0",

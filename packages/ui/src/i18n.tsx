@@ -1,7 +1,7 @@
 import { createContext, useContext, type ReactNode } from 'react';
+import { LOCALES, type Locale } from './plural.ts';
 
-export const LOCALES = ['en', 'pl'] as const;
-export type Locale = (typeof LOCALES)[number];
+export { LOCALES, type Locale };
 export const LOCALE_NAMES: Record<Locale, string> = { en: 'English', pl: 'Polski' };
 
 const LocaleContext = createContext<Locale>('en');
@@ -26,10 +26,4 @@ export function detectLocale(languages: readonly string[]): Locale {
   return 'en';
 }
 
-type PluralForms = Partial<Record<Intl.LDMLPluralRule, string>> & { other: string };
-
-/** `{n}` in the chosen form is replaced by the number. */
-export function plural(locale: Locale, n: number, forms: PluralForms): string {
-  const form = forms[new Intl.PluralRules(locale).select(n)] ?? forms.other;
-  return form.replace('{n}', String(n));
-}
+export { plural } from './plural.ts';

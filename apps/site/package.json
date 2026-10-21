@@ -9,6 +9,8 @@
     "build": "next build"
   },
   "devDependencies": {
+    "@fontsource-variable/geist": "5.3.0",
+    "@fontsource-variable/geist-mono": "5.3.0",
     "@retarget3mf/profiles": "workspace:*",
     "@retarget3mf/ui": "workspace:*",
     "@types/react": "19.3.0",

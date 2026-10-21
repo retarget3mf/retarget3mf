@@ -27,7 +27,7 @@ jobs:
         uses: actions/configure-pages@v5
       # Landing page at the root, the web app next to it at app/ (it uses relative paths).
       - run: pnpm -C apps/site build
-        env: { PAGES_BASE_PATH: '${{ steps.pages.outputs.base_path }}', NEXT_TELEMETRY_DISABLED: '1' }
+        env: { PAGES_BASE_PATH: '${{ steps.pages.outputs.base_path }}', SITE_URL: '${{ steps.pages.outputs.base_url }}', NEXT_TELEMETRY_DISABLED: '1' }
       - run: pnpm -C apps/web build && cp -R apps/web/dist apps/site/out/app
       - uses: actions/upload-pages-artifact@v3
         with: { path: apps/site/out }

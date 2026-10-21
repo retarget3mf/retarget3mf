@@ -1,4 +1,4 @@
-import { plural, type Locale } from '@retarget3mf/ui';
+import { plural, type Locale } from '@retarget3mf/ui/plural';
 
 interface Os { os: string; req: string; button: string }
 
