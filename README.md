@@ -69,6 +69,7 @@ pnpm test
 | Command | What it does |
 |---|---|
 | `pnpm desktop` | desktop app with hot reload |
+| `pnpm site` | landing page (Next.js, static export; deployed with the web app under `app/`) |
 | `pnpm web` | web app with hot reload (`pnpm -C apps/web build` for the static site in `apps/web/dist`) |
 | `pnpm extension` | builds the extension into `apps/extension/dist/` (Chrome and Firefox) |
 | `pnpm test`, `pnpm typecheck`, `pnpm e2e` | unit tests, types, end-to-end tests (Electron and Chromium) |

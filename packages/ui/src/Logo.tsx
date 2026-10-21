@@ -1,5 +1,7 @@
 /// <reference path="./assets.d.ts" />
-import iconUrl from './brand/icon.svg';
+import icon from './brand/icon.svg';
+
+const iconUrl = typeof icon === 'string' ? icon : icon.src;
 import styles from './Logo.module.css';
 
 /** App icon plus the "Retarget3MF" wordmark (Claude Design, option 1d). */

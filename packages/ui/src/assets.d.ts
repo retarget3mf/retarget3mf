@@ -1,4 +1,5 @@
 declare module '*.svg' {
-  const url: string;
-  export default url;
+  /** Vite gives a URL string; Next.js a static image object. */
+  const asset: string | { src: string };
+  export default asset;
 }

@@ -7,7 +7,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./tokens.css": "./src/tokens.css",
-    "./icon.svg": "./src/brand/icon.svg"
+    "./icon.svg": "./src/brand/icon.svg",
+    "./logo": "./src/Logo.tsx"
   },
   "dependencies": {
     "@retarget3mf/core": "workspace:*"
