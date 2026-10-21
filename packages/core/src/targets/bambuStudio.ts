@@ -49,9 +49,17 @@ export function toBambuKey(key: string): string {
   return RENAMES[key] ?? key;
 }
 
-/** OrcaSlicer's option table restricted to keys a Bambu-family slicer has (under its own name). */
-export function optionsInOrcaSpace(orca: Options, bambu: Options): Options {
-  return Object.fromEntries(Object.entries(orca).filter(([k]) => bambu[toBambuKey(k)]));
+/**
+ * OrcaSlicer's option table restricted to keys the target slicer has (under its own name), with the target's limits
+ * and accepted values: a value OrcaSlicer allows can still be out of range there (wipe_tower_extra_flow in Creality Print).
+ */
+export function optionsInOrcaSpace(orca: Options, target: Options): Options {
+  return Object.fromEntries(Object.entries(orca).flatMap(([k, info]) => {
+    const own = target[k] ?? target[toBambuKey(k)];
+    if (!own) return [];
+    const { min: _min, max: _max, values: _values, ...base } = info;
+    return [[k, { ...base, nullable: own.nullable, ...(own.min !== undefined && { min: own.min }), ...(own.max !== undefined && { max: own.max }), ...(own.values && { values: own.values }) }]];
+  }));
 }
 
 /** One Orca-space key/value as Bambu Studio writes it. */

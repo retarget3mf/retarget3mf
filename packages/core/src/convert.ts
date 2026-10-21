@@ -32,6 +32,10 @@ const LAYER_RANGES = 'Metadata/layer_config_ranges.xml';
 const STALE = /^Metadata\/(plate_\d+\.gcode(\.md5)?|plate_\d+\.json|slice_info\.config|filament_sequence\.json|_rels\/model_settings\.config\.rels)$/;
 const STALE_PLATE_KEYS = new Set(['gcode_file', 'pattern_bbox_file', 'filament_volume_maps']);
 const APPLICATION = 'BambuStudio-2.3.0';
+// Creality Print only accepts its own stamp for a current file; the version is that of the synced profiles.
+const OWN_STAMPS: Partial<Record<SlicerId, { application: string; version: string }>> = {
+  crealityprint: { application: 'Creality_Print V7.3.0.0', version: '7.3.0.0' },
+};
 const ORCA_TAG = '2.4.2';
 
 export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<ConvertResult> {
@@ -71,8 +75,10 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
 
   const output: Archive = new Map();
   for (const [path, data] of archive) if (!STALE.test(path)) output.set(path, data);
+  const stamp = OWN_STAMPS[slicer];
+  if (stamp) result.config.version = stamp.version;
   setText(output, PROJECT_SETTINGS, serializeProjectConfig(result.config));
-  const unmappedPaint = rewriteModels(output, plan.map, placement.shifts);
+  const unmappedPaint = rewriteModels(output, plan.map, placement.shifts, stamp?.application ?? APPLICATION);
   rewriteModelSettings(output, plan.keep.length, printer.slots.kind === 'toolheads', result.convertOverride);
   rewriteSideFiles(output, plan.map, result.convertOverride);
 
@@ -122,7 +128,7 @@ function mapFilaments(plan: ReturnType<typeof planFilaments>, map: FilamentMap) 
 }
 
 /** Returns paint states that had no target filament. */
-function rewriteModels(archive: Archive, map: ReadonlyMap<number, number>, shifts: readonly [number, number][]): Set<number> {
+function rewriteModels(archive: Archive, map: ReadonlyMap<number, number>, shifts: readonly [number, number][], application: string): Set<number> {
   const identity = [...map].every(([from, to]) => from === to);
   const unmapped = new Set<number>();
   for (const path of archive.keys()) {
@@ -131,7 +137,7 @@ function rewriteModels(archive: Archive, map: ReadonlyMap<number, number>, shift
     if (!identity) text = remapPaintInText(text, (hex) => remapPaint(hex, map, (s) => unmapped.add(s)));
     if (path === MAIN_MODEL) {
       text = moveItems(text, shifts);
-      text = setModelMetadata(text, 'Application', APPLICATION);
+      text = setModelMetadata(text, 'Application', application);
       text = setModelMetadata(text, 'OrcaSlicer', ORCA_TAG);
       text = setModelMetadata(text, 'BambuStudio:3mfVersion', '1');
     }

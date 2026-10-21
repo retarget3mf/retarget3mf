@@ -45,7 +45,7 @@ export const SLICERS: Record<SlicerKind, SlicerSpec> = {
     flatpakIds: ['com.bambulab.BambuStudio'],
     appImage: /^bambu[_-]?studio.*\.appimage$/i,
   },
-  // Names from Creality Print 7.3 release assets; the bundle id is a guess until checked against an installed app.
+  // Bundle id from the installed Creality Print 7.3.0; Windows/Linux names from its release assets.
   crealityprint: {
     name: 'Creality Print',
     macBundleIds: ['com.creality.crealityprint', 'com.creality.CrealityPrint'],

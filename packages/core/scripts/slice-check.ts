@@ -1,5 +1,5 @@
 // Converts fixtures for each target and slices them with the real slicer CLIs; the G-code header must show the
-// values the converted project carries. Usage: node packages/core/scripts/slice-check.ts [--quick]
+// values the converted project carries. Usage: node packages/core/scripts/slice-check.ts [--quick] [--slicer <id>]
 // Slicer binaries: ORCA_CLI, BAMBU_CLI, FLASHSTUDIO_CLI (default: the macOS app bundles). Missing ones are skipped.
 import { execFile } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -13,9 +13,11 @@ const MAC_APPS: Record<SlicerId, string> = {
   orca: '/Applications/OrcaSlicer.app/Contents/MacOS/OrcaSlicer',
   bambustudio: '/Applications/BambuStudio.app/Contents/MacOS/BambuStudio',
   flashstudio: '/Applications/Flash Studio.app/Contents/MacOS/Flash Studio',
-  crealityprint: '/Applications/CrealityPrint.app/Contents/MacOS/CrealityPrint',
+  crealityprint: '/Applications/Creality Print.app/Contents/MacOS/CrealityPrint',
 };
 const ENV: Record<SlicerId, string> = { orca: 'ORCA_CLI', bambustudio: 'BAMBU_CLI', flashstudio: 'FLASHSTUDIO_CLI', crealityprint: 'CREALITY_CLI' };
+// Creality Print opens its GUI unless told otherwise, and keeps G-code in a temp folder unless asked to write it.
+const EXTRA_ARGS: Partial<Record<SlicerId, string[]>> = { crealityprint: ['--cli', '--need-gcode-file'] };
 const SLICE_TIMEOUT_MS = 10 * 60_000;
 const PARALLEL = Number(process.env.SLICE_PARALLEL) || 3;
 // Values every slicer writes into the G-code config block, compared with what the converted project holds.
@@ -70,7 +72,7 @@ async function check(c: Case, bin: string, root: string): Promise<string[]> {
   writeFileSync(input, output);
   const project = JSON.parse(strFromU8(unzipSync(output)['Metadata/project_settings.config']!)) as Record<string, string | string[]>;
   // The slicer's working directory is the case folder: some profiles make it write files relative to it.
-  const { code, log } = await run(bin, ['--slice', '0', '--outputdir', dir, input], dir);
+  const { code, log } = await run(bin, [...(EXTRA_ARGS[c.slicer] ?? []), '--slice', '0', '--outputdir', dir, input], dir);
   writeFileSync(join(dir, 'slicer.log'), log);
   const gcodes = readdirSync(dir).filter((f) => f.endsWith('.gcode'));
   if (code !== 0 || gcodes.length === 0) {
@@ -85,7 +87,8 @@ async function check(c: Case, bin: string, root: string): Promise<string[]> {
   });
 }
 
-const available = (Object.keys(MAC_APPS) as SlicerId[]).filter((s) => existsSync(process.env[ENV[s]] ?? MAC_APPS[s]));
+const only = process.argv.includes('--slicer') ? process.argv[process.argv.indexOf('--slicer') + 1] : undefined;
+const available = (Object.keys(MAC_APPS) as SlicerId[]).filter((s) => (!only || s === only) && existsSync(process.env[ENV[s]] ?? MAC_APPS[s]));
 const all = cases(available);
 const root = mkdtempSync(join(tmpdir(), 'slice-check-'));
 console.log(`Slicers: ${available.join(', ') || 'none'} · ${all.length} case(s) · output in ${root}`);

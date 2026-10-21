@@ -18,9 +18,9 @@ Everything runs on your computer. Nothing is uploaded, there is no account and n
 | **Prusa** | MK4S, MK3S, MINI, CORE One, XL (single tool) |
 | **Creality** | K1C, K1 Max, K2 Plus (CFS), Hi (CFS), Ender-3 V3 KE, Ender-3 V3 SE |
 | **Elegoo, Anycubic, Qidi, Sovol** | Centauri Carbon, Neptune 4 Pro / 4 Max · Kobra S1 and Kobra 3 (ACE Pro), Kobra 2 Neo · Q1 Pro, Plus4, Q2 · SV06, SV08 |
-| **Target slicers** | Flash Studio and OrcaSlicer for Flashforge; Bambu Studio and OrcaSlicer for Bambu Lab; OrcaSlicer for the other brands |
+| **Target slicers** | Flash Studio and OrcaSlicer for Flashforge; Bambu Studio and OrcaSlicer for Bambu Lab; Creality Print and OrcaSlicer for Creality; OrcaSlicer for the other brands |
 
-Profiles come from OrcaSlicer v2.4.2, Flash Studio 1.7.15 and Bambu Studio 02.08.04.57. Every release is checked by slicing converted projects for every printer with the real slicers.
+Profiles come from OrcaSlicer v2.4.2, Flash Studio 1.7.15, Bambu Studio 02.08.04.57 and Creality Print 7.3.0. Every release is checked by slicing converted projects for every printer with the real slicers.
 
 ## What happens to the settings
 
