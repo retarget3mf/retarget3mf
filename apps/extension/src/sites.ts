@@ -11,27 +11,29 @@ export interface SiteAdapter {
   /** Confirm button of the site's first-time "import into <slicer>" dialog, if it has one. */
   importText?: string;
   slicerName: string;
+  /** The printer brand whose own slicer the site opens; with such a printer chosen, the site's button already does the job. */
+  ownVendor: string;
   /** For menus shared by every file of a model: whether the control that opened it belongs to a 3MF project. */
   isProjectMenu?: (opener: Element) => boolean;
 }
 
 export const SITES: SiteAdapter[] = [
   {
-    id: 'makerworld', hosts: ['makerworld.com'], slicerName: 'Bambu Studio',
+    id: 'makerworld', hosts: ['makerworld.com'], slicerName: 'Bambu Studio', ownVendor: 'Bambu Lab',
     slicerText: 'Open in Bambu Studio', menuTexts: ['Open in Bambu Studio', 'Download 3MF', 'Download STL/CAD Files'],
     importText: 'Import into Bambu Studio',
   },
   {
-    id: 'crealitycloud', hosts: ['www.crealitycloud.com', 'crealitycloud.com'], slicerName: 'Creality Print',
+    id: 'crealitycloud', hosts: ['www.crealitycloud.com', 'crealitycloud.com'], slicerName: 'Creality Print', ownVendor: 'Creality',
     slicerText: 'Open in Creality Print', menuTexts: ['Open in Creality Print', 'Download 3MF', 'View STL/CAD Files'],
   },
   {
-    id: 'snapmaker', hosts: ['space.snapmaker.com'], slicerName: 'Snapmaker Orca',
+    id: 'snapmaker', hosts: ['space.snapmaker.com'], slicerName: 'Snapmaker Orca', ownVendor: 'Snapmaker',
     slicerText: 'Open in Snapmaker Orca', menuTexts: ['Open in Snapmaker Orca', 'Download 3MF'],
   },
   {
     // Each file row has its own "Slice" menu, mounted outside the row; the row's badge names the file type.
-    id: 'printables', hosts: ['www.printables.com', 'printables.com'], slicerName: 'PrusaSlicer',
+    id: 'printables', hosts: ['www.printables.com', 'printables.com'], slicerName: 'PrusaSlicer', ownVendor: 'Prusa',
     slicerText: 'Open in PrusaSlicer', menuTexts: ['Open in PrusaSlicer', 'Open in OrcaSlicer', 'Open in Bambu Studio'],
     importText: 'Open file in PrusaSlicer',
     isProjectMenu: (opener) => opener.closest('.download-item')?.querySelector('.badge')?.textContent?.trim().toLowerCase() === '3mf',

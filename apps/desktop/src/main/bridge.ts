@@ -34,8 +34,8 @@ function bridgeDeps(ctx: AppContext): BridgeDeps {
   return {
     version: app.getVersion(),
     status: () => {
-      const printer = PRINTERS.find((p) => p.id === ctx.settings.printer)?.displayName;
-      return { ...(printer && { printer }), slicer: SLICER_NAMES[ctx.settings.slicer] };
+      const printer = PRINTERS.find((p) => p.id === ctx.settings.printer);
+      return { ...(printer && { printer: printer.displayName, vendor: printer.vendor }), slicer: SLICER_NAMES[ctx.settings.slicer] };
     },
     download: (url, name) => downloadProject(url, name, testHome() ?? app.getPath('downloads'), testFetch() ?? fetch),
     open: (path, origin) => {

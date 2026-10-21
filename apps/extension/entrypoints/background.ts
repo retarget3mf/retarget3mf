@@ -38,7 +38,7 @@ export default defineBackground(() => {
     const timer = setTimeout(() => resolve({ connected: false }), 25_000);
     request({ type: 'ping' }, (r) => {
       clearTimeout(timer);
-      resolve(r.type === 'pong' ? { connected: true, version: r.version, ...(r.printer && { printer: r.printer }), ...(r.slicer && { slicer: r.slicer }) } : { connected: false });
+      resolve(r.type === 'pong' ? { connected: true, version: r.version, ...(r.printer && { printer: r.printer }), ...(r.vendor && { vendor: r.vendor }), ...(r.slicer && { slicer: r.slicer }) } : { connected: false });
     });
   });
 

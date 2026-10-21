@@ -13,7 +13,7 @@ export type ButtonState =
   | { kind: 'done'; label: string }
   | { kind: 'error'; label: string; installHint?: boolean };
 
-export interface AppStatus { connected: boolean; printer?: string; slicer?: string; version?: string }
+export interface AppStatus { connected: boolean; printer?: string; vendor?: string; slicer?: string; version?: string }
 
 /** What the button says for a bridge response; `printer` personalises the idle label. */
 export function stateFor(response: BridgeResponse | { type: 'no-app' }): ButtonState {

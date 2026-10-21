@@ -37,8 +37,11 @@ export default defineContentScript({
       const target = e.target as Element;
       if (!target.closest(`[${MARKER}]`)) opener = target;
     }, true);
+    // The site's own "Open in <slicer>" already serves printers of its brand; a second button would only confuse.
+    const isOwnPrinter = () => status.vendor === site.ownVendor;
     const refreshStatus = () => browser.runtime.sendMessage({ type: 'status' } satisfies ToBackground).then((s) => {
       status = s as AppStatus;
+      if (isOwnPrinter()) rows.forEach((r) => r.remove());
       rows.forEach((r) => { r.textContent = idleLabel(status.printer); });
     });
     void refreshStatus();
@@ -154,7 +157,7 @@ export default defineContentScript({
     /** Adds our row to the site's download menu, copied from one of its own rows so it matches the site's style. */
     const attach = () => {
       const menu = findMenu(document, site);
-      if (!menu) return;
+      if (!menu || isOwnPrinter()) return;
       const existing = menu.rows[0]?.parentElement?.querySelector(`[${MARKER}="row"]`);
       if (site.isProjectMenu && !(opener && site.isProjectMenu(opener))) { existing?.remove(); return; }
       if (existing) return;
