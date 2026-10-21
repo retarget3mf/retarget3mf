@@ -9,6 +9,7 @@ type RequestBody = DistributiveOmit<WorkerRequest, 'id'>;
 
 let child: UtilityProcess | undefined;
 let nextId = 1;
+let cancelling = false;
 const pending = new Map<number, Pending>();
 
 function worker(): UtilityProcess {
@@ -20,7 +21,9 @@ function worker(): UtilityProcess {
   });
   proc.on('exit', () => {
     child = undefined;
-    for (const [id, resolve] of pending) resolve({ id, ok: false, error: 'The converter stopped unexpectedly. Try again; if it repeats, report the file.' });
+    const error = cancelling ? CANCELLED : 'The converter stopped unexpectedly. Try again; if it repeats, report the file.';
+    cancelling = false;
+    for (const [id, resolve] of pending) resolve({ id, ok: false, error });
     pending.clear();
   });
   child = proc;
@@ -33,4 +36,13 @@ export function runWorker<T>(body: RequestBody): Promise<Result<T>> {
     pending.set(id, (r) => resolve(r.ok ? { ok: true, value: r.value as T } : { ok: false, error: r.error }));
     worker().postMessage({ ...body, id });
   });
+}
+
+export const CANCELLED = 'Conversion cancelled.';
+
+/** Stops the running conversion before it writes its file; the next request starts a fresh worker. */
+export function cancelWorker(): void {
+  if (!child || pending.size === 0) return;
+  cancelling = true;
+  child.kill();
 }

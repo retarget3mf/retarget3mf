@@ -5,6 +5,7 @@ import { reportToMarkdown } from '@retarget3mf/core';
 import type { ConvertRequest, ConvertResult, SlicerKind } from '../shared/api.ts';
 import type { AppContext } from './context.ts';
 import { assertProjectPath, convertProject, inspectProject, openInSlicer } from './conversion.ts';
+import { cancelWorker } from './converter.ts';
 import { sanitizeSettings } from './settings.ts';
 import { SLICER_NAMES } from './slicers.ts';
 
@@ -31,6 +32,7 @@ export function registerIpc(ctx: AppContext): void {
   });
   ipcMain.handle('inspect', (_e, path: unknown) => inspectProject(assertProjectPath(path)));
   ipcMain.handle('convert', (_e, request: ConvertRequest) => convertProject(ctx, request));
+  ipcMain.handle('convert:cancel', () => cancelWorker());
   ipcMain.handle('slicer:open', (_e, path: string, kind: SlicerKind) => openInSlicer(ctx, path, kind));
   ipcMain.handle('file:show', (_e, path: string) => shell.showItemInFolder(assertProjectPath(path)));
   ipcMain.handle('report:export', async (_e, result: ConvertResult, format: 'md' | 'json') => {

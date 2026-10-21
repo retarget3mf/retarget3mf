@@ -1,11 +1,12 @@
 import type { PrinterId } from '@retarget3mf/core';
-import { Dropdown, modelName, PrinterSelect, slotsLabel, UI_MESSAGES, useT } from '@retarget3mf/ui';
+import { Dropdown, modelName, slotsLabel, UI_MESSAGES, useT } from '@retarget3mf/ui';
 import type { AppState, HistoryEntry, SlicerKind } from '../../../shared/api.ts';
 import { DESKTOP_MESSAGES } from '../messages.ts';
 import { shortcut } from '../shell/Pipeline.tsx';
 import { SlicerIcon } from '../shell/SlicerIcon.tsx';
 import { Arrow, StageBody, stageClass } from '../shell/Stage.tsx';
 import { SLICER_KINDS, slicersFor } from '../slicerKinds.ts';
+import { stamp } from '../history/HistoryView.tsx';
 import styles from './Home.module.css';
 
 interface Props {
@@ -14,23 +15,17 @@ interface Props {
   dragging: boolean;
   onOpenFile: () => void;
   onPrinter: (printer: PrinterId) => void;
-  /** One saved printer: the card's menu swaps it for another. */
-  onReplacePrinter: (printer: PrinterId) => void;
-  onAddPrinter: (printer: PrinterId) => void;
+  /** Opens the printer catalogue to add a printer, or to swap the only one. */
+  onCatalogue: (mode: 'add' | 'replace') => void;
   onSlicer: (slicer: SlicerKind) => void;
   onManageSlicers: () => void;
   onHistory: () => void;
 }
 
 const RECENT = 3;
-const stamp = (iso: string) => {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-};
 
 /** Returning home: the drop zone is the only open step; printer and slicer are small saved cards (or a list with 2+ printers). */
-export function Home({ state, history, dragging, onOpenFile, onPrinter, onReplacePrinter, onAddPrinter, onSlicer, onManageSlicers, onHistory }: Props) {
+export function Home({ state, history, dragging, onOpenFile, onPrinter, onCatalogue, onSlicer, onManageSlicers, onHistory }: Props) {
   const t = useT(DESKTOP_MESSAGES);
   const tu = useT(UI_MESSAGES);
   const { settings } = state;
@@ -38,17 +33,7 @@ export function Home({ state, history, dragging, onOpenFile, onPrinter, onReplac
   const several = settings.printers.length > 1;
   const install = state.slicers.find((s) => s.kind === settings.slicer);
   const slicerName = SLICER_KINDS[settings.slicer].name;
-  const others = state.printers.filter((p) => !settings.printers.some((s) => s.model === p.id));
-
-  const addPrinter = (
-    <PrinterSelect
-      printers={others}
-      value={undefined}
-      onChange={onAddPrinter}
-      triggerClassName={several ? styles.addRow : styles.addLink}
-      renderTrigger={() => t.home.addPrinter}
-    />
-  );
+  const addPrinter = <button type="button" className={several ? styles.addRow : styles.addLink} onClick={() => onCatalogue('add')}>{t.home.addPrinter}</button>;
 
   return (
     <div className={styles.home}>
@@ -80,13 +65,9 @@ export function Home({ state, history, dragging, onOpenFile, onPrinter, onReplac
             </>
           ) : (
             <>
-              <PrinterSelect
-                printers={state.printers}
-                value={printer.id}
-                onChange={onReplacePrinter}
-                triggerClassName={stageClass('idle')}
-                renderTrigger={() => <StageBody label={t.stage.printer} note={t.stage.saved} value={modelName(printer)} chevron />}
-              />
+              <button type="button" className={stageClass('idle')} aria-label={`${tu.printer.label}: ${modelName(printer)}`} onClick={() => onCatalogue('replace')}>
+                <StageBody label={t.stage.printer} note={t.stage.saved} value={modelName(printer)} chevron />
+              </button>
               <span className={styles.help}>{t.home.usedForEvery}</span>
               {addPrinter}
             </>

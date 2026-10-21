@@ -31,6 +31,22 @@ export interface DesktopMessages {
     openIn: (slicer: string) => string;
     hint: string;
   };
+  review: { inProject: string; onPrinter: string; removed: string; unused: string; output: (folder: string) => string };
+  log: {
+    read: (file: string, filaments: number, plates: number) => string;
+    source: (printer: string, slicer: string) => string;
+    mapping: (merged: string, removed: string) => string;
+    slots: (filaments: number[], slot: string) => string;
+    removed: (filaments: number[]) => string;
+    rewriting: (printer: string) => string;
+    save: (folder: string, slicer: string | undefined) => string;
+  };
+  history: {
+    title: string; all: (n: number) => string; search: string; empty: string; noMatch: string; missing: string;
+    cols: { project: string; source: string; printer: string; slicer: string; converted: string; warn: string };
+    open: string; show: string; report: string; remove: (title: string) => string; removeFromList: string; trash: string; reportGone: string;
+  };
+  catalogue: { title: string; search: string; all: string; multi: string; single: string; colours: (n: number) => string; heads: (n: number) => string; close: string };
 }
 
 const en: DesktopMessages = {
@@ -69,6 +85,27 @@ const en: DesktopMessages = {
     review: 'Review settings', another: 'Drop another', openIn: (s) => `Open in ${s}`,
     hint: 'If you open it yourself, use File → Open Project in the slicer. Dragging it onto the plate imports only the geometry.',
   },
+  review: { inProject: 'IN PROJECT', onPrinter: 'ON PRINTER', removed: 'Removed', unused: 'unused', output: (f) => `→ ${f}` },
+  log: {
+    read: (file, f, p) => `read ${file} · ${plural('en', f, { one: '{n} filament', other: '{n} filaments' })} · ${plural('en', p, { one: '{n} plate', other: '{n} plates' })}`,
+    source: (printer, slicer) => `source profile: ${printer} (${slicer})`,
+    mapping: (merged, removed) => [merged, removed].filter(Boolean).join(' · '),
+    slots: (f, slot) => `filament ${f.join(', ')} → ${slot}`,
+    removed: (f) => `filament ${f.join(', ')} removed (unused)`,
+    rewriting: (p) => `rewriting plate settings for ${p}…`,
+    save: (folder, slicer) => (slicer ? `save to ${folder} and open ${slicer}` : `save to ${folder}`),
+  },
+  history: {
+    title: 'History', all: (n) => `All · ${n}`, search: 'Search', noMatch: 'Nothing matches.', missing: 'file moved or deleted',
+    empty: 'No conversions yet. Projects you convert, from here, Finder or the browser extension, appear here.',
+    cols: { project: 'PROJECT', source: 'SOURCE', printer: 'PRINTER', slicer: 'SLICER', converted: 'CONVERTED', warn: 'WARN' },
+    open: 'Open', show: 'Show', report: 'Report', remove: (t) => `Remove ${t}`, removeFromList: 'Remove from list', trash: 'Also move file to Trash',
+    reportGone: 'The report for this conversion is no longer available.',
+  },
+  catalogue: {
+    title: 'Printers', search: 'Search printers…', all: 'All', multi: 'Multi-colour', single: 'Single colour',
+    colours: (n) => `${n}c`, heads: (n) => `${n} heads`, close: 'Close',
+  },
 };
 
 const pl: DesktopMessages = {
@@ -106,6 +143,27 @@ const pl: DesktopMessages = {
     show: { darwin: 'Pokaż w Finderze', win32: 'Pokaż w Eksploratorze', other: 'Pokaż w folderze' },
     review: 'Przejrzyj ustawienia', another: 'Upuść kolejny', openIn: (s) => `Otwórz w ${s}`,
     hint: 'Otwierając samodzielnie, użyj w slicerze Plik → Otwórz projekt. Przeciągnięcie na stół importuje tylko geometrię.',
+  },
+  review: { inProject: 'W PROJEKCIE', onPrinter: 'NA DRUKARCE', removed: 'Usunięty', unused: 'nieużywany', output: (f) => `→ ${f}` },
+  log: {
+    read: (file, f, p) => `wczytano ${file} · ${plural('pl', f, { one: '{n} filament', few: '{n} filamenty', other: '{n} filamentów' })} · ${plural('pl', p, { one: '{n} stół', few: '{n} stoły', other: '{n} stołów' })}`,
+    source: (printer, slicer) => `profil źródłowy: ${printer} (${slicer})`,
+    mapping: (merged, removed) => [merged, removed].filter(Boolean).join(' · '),
+    slots: (f, slot) => `filament ${f.join(', ')} → ${slot}`,
+    removed: (f) => `filament ${f.join(', ')} usunięty (nieużywany)`,
+    rewriting: (p) => `przepisuję ustawienia stołu dla ${p}…`,
+    save: (folder, slicer) => (slicer ? `zapis do ${folder} i otwarcie w ${slicer}` : `zapis do ${folder}`),
+  },
+  history: {
+    title: 'Historia', all: (n) => `Wszystkie · ${n}`, search: 'Szukaj', noMatch: 'Brak wyników.', missing: 'plik przeniesiony lub usunięty',
+    empty: 'Brak konwersji. Pojawią się tu projekty przekonwertowane tutaj, z Findera lub rozszerzenia przeglądarki.',
+    cols: { project: 'PROJEKT', source: 'ŹRÓDŁO', printer: 'DRUKARKA', slicer: 'SLICER', converted: 'KIEDY', warn: 'OSTRZ.' },
+    open: 'Otwórz', show: 'Pokaż', report: 'Raport', remove: (t) => `Usuń ${t}`, removeFromList: 'Usuń z listy', trash: 'Przenieś też plik do Kosza',
+    reportGone: 'Raport tej konwersji nie jest już dostępny.',
+  },
+  catalogue: {
+    title: 'Drukarki', search: 'Szukaj drukarki…', all: 'Wszystkie', multi: 'Wielokolorowe', single: 'Jednokolorowe',
+    colours: (n) => `${n}k`, heads: (n) => plural('pl', n, { one: '{n} głowica', few: '{n} głowice', other: '{n} głowic' }), close: 'Zamknij',
   },
 };
 

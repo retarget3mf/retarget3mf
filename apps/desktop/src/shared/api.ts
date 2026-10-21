@@ -99,6 +99,8 @@ export interface DesktopApi {
   pathForFile(file: File): string;
   inspect(path: string): Promise<Result<InspectResult>>;
   convert(request: ConvertRequest): Promise<Result<ConvertResult>>;
+  /** Stops the conversion in progress; its `convert` call then fails. */
+  cancelConversion(): Promise<void>;
   openInSlicer(path: string, slicer: SlicerKind): Promise<Result<void>>;
   showInFolder(path: string): Promise<void>;
   exportReport(result: ConvertResult, format: 'md' | 'json'): Promise<void>;

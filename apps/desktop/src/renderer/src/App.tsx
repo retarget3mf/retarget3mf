@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { PrinterId } from '@retarget3mf/core';
 import { suggestFilamentMap } from '@retarget3mf/core/suggest';
-import { applyAccent, ConversionView, I18nProvider, ReportView, useT } from '@retarget3mf/ui';
+import { applyAccent, I18nProvider, ReportView, useT } from '@retarget3mf/ui';
 import type { AppEvent, AppState, ConvertResult, HistoryEntry, InspectResult, SavedPrinter, Settings } from '../../shared/api.ts';
-import { HistoryList } from './components/HistoryList.tsx';
 import { SettingsView } from './components/SettingsView.tsx';
 import { ChoosePrinter } from './flow/ChoosePrinter.tsx';
+import { ConvertingView } from './flow/ConvertingView.tsx';
+import { ReviewView } from './flow/ReviewView.tsx';
+import { HistoryView } from './history/HistoryView.tsx';
+import { Catalogue } from './shell/Catalogue.tsx';
 import { DoneView } from './flow/DoneView.tsx';
 import { MergeStep } from './flow/MergeStep.tsx';
 import { Home } from './home/Home.tsx';
@@ -17,13 +20,15 @@ import { detectSlicer, SLICER_KINDS, slicersFor } from './slicerKinds.ts';
 import styles from './App.module.css';
 
 type Origin = 'drop' | 'os';
+/** performance.now() when the file arrived and when it had been read. */
+interface Marks { dropped: number; read: number }
 type Stage =
   | { kind: 'idle' }
   | { kind: 'reading' }
   | { kind: 'choose'; project: InspectResult; origin: Origin }
   | { kind: 'merge'; project: InspectResult; target: SavedPrinter }
   | { kind: 'review'; project: InspectResult; target: SavedPrinter }
-  | { kind: 'converting'; project: InspectResult; target: SavedPrinter }
+  | { kind: 'converting'; project: InspectResult; target: SavedPrinter; map: Record<number, number>; openAfter: boolean; times: Marks & { started: number } }
   | { kind: 'done'; project: InspectResult; result: ConvertResult; target: SavedPrinter; opened: boolean; elapsed?: number; launchError?: string }
   | { kind: 'report'; result: ConvertResult; back: Stage }
   | { kind: 'history' }
@@ -51,6 +56,10 @@ function Main() {
   const [pending, setPending] = useState<AppEvent[]>([]);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [dragging, setDragging] = useState(false);
+  /** 'add' a printer, or 'replace' the only one. */
+  const [catalogue, setCatalogue] = useState<'add' | 'replace'>();
+  const marks = useRef<Marks>({ dropped: 0, read: 0 });
+  const cancelled = useRef(false);
 
   useEffect(() => { void api.getState().then(setState); }, []);
   useEffect(() => { if (state) applyAccent(state.settings.accent); }, [state?.settings.accent]);
@@ -99,8 +108,10 @@ function Main() {
   async function open(path: string, origin: Origin) {
     setError(undefined);
     setStage({ kind: 'reading' });
+    const dropped = performance.now();
     const r = await api.inspect(path).catch((e: Error) => ({ ok: false as const, error: e.message }));
     if (!r.ok) { setError(r.error); setStage({ kind: 'idle' }); return; }
+    marks.current = { dropped, read: performance.now() };
     const target = dropPrinter(state!.settings);
     if (target) proceed(r.value, target, origin);
     else setStage({ kind: 'choose', project: r.value, origin });
@@ -117,11 +128,13 @@ function Main() {
 
   async function convert(project: InspectResult, target: SavedPrinter, filamentMap: Record<number, number>, openAfter: boolean) {
     setError(undefined);
-    setStage({ kind: 'converting', project, target });
+    cancelled.current = false;
     const started = performance.now();
+    setStage({ kind: 'converting', project, target, map: filamentMap, openAfter, times: { ...marks.current, started } });
     const r = await api.convert({ path: project.path, printer: target.model, slicer: target.slicer, filamentMap }).catch((e: Error) => ({ ok: false as const, error: e.message }));
+    if (cancelled.current) { setStage({ kind: 'idle' }); return; }
     if (!r.ok) { setError(r.error); setStage({ kind: 'idle' }); return; }
-    const elapsed = (performance.now() - started) / 1000;
+    const elapsed = (performance.now() - marks.current.dropped) / 1000;
     let launchError: string | undefined;
     if (openAfter) {
       const launched = await api.openInSlicer(r.value.outputPath, target.slicer);
@@ -136,15 +149,26 @@ function Main() {
     onReport: async (e: HistoryEntry) => {
       const result = await api.historyReport(e.id);
       if (result) setStage({ kind: 'report', result, back });
-      else setError('The report for this conversion is no longer available.');
+      else setError(t.history.reportGone);
     },
     onSource: (e: HistoryEntry) => api.openSourcePage(e.id),
     onRemove: async (e: HistoryEntry, trash: boolean) => setHistory(await api.removeHistory(e.id, trash)),
   });
 
-  const convertActions = (project: InspectResult, target: SavedPrinter) => (map: Record<number, number>) => {
+  const outputFolder = (project: InspectResult) => (state.settings.output === 'app-folder' ? state.outputFolder : project.path.replace(/[\\/][^\\/]*$/, ''));
+
+  /** Review offers both buttons; the merge question only the one the settings call for. */
+  const convertActions = (project: InspectResult, target: SavedPrinter, both = false) => (map: Record<number, number>) => {
     const slicerName = SLICER_KINDS[target.slicer].name;
     const installed = state.slicers.some((s) => s.kind === target.slicer);
+    if (both) {
+      return (
+        <>
+          <button type="button" onClick={() => void convert(project, target, map, false)}>{t.actions.convertOnly}</button>
+          <button type="button" className="primary" disabled={!installed} title={installed ? undefined : t.actions.slicerMissing} onClick={() => void convert(project, target, map, true)}>{t.actions.convertOpen(slicerName)}</button>
+        </>
+      );
+    }
     return (
       <>
         <button type="button" onClick={() => setStage({ kind: 'idle' })}>{t.actions.cancel}</button>
@@ -178,7 +202,16 @@ function Main() {
         onSettings={() => setStage({ kind: 'settings' })}
         {...(firstRun && { minimal: true })}
       />
-      {firstRun && <FirstRun state={state} onDone={(patch) => void save(patch)} onLocate={locate} />}
+      {firstRun && <FirstRun state={state} onDone={(patch, several) => { void save(patch); if (several) setCatalogue('add'); }} onLocate={locate} />}
+      {catalogue && (
+        <Catalogue
+          printers={state.printers}
+          value={catalogue === 'replace' ? state.settings.printer : undefined}
+          saved={state.settings.printers.map((p) => p.model)}
+          onChoose={(p) => { void (catalogue === 'add' ? addPrinter(p) : replacePrinter(p)); setCatalogue(undefined); }}
+          onClose={() => setCatalogue(undefined)}
+        />
+      )}
       {!firstRun && stage.kind === 'idle' && (
         <>
           {error && <div role="alert" className={`${styles.error} ${styles.inset}`}>{error}</div>}
@@ -188,8 +221,7 @@ function Main() {
             dragging={dragging}
             onOpenFile={() => void browse()}
             onPrinter={(p) => void choosePrinter(p)}
-            onAddPrinter={(p) => void addPrinter(p)}
-            onReplacePrinter={(p) => void replacePrinter(p)}
+            onCatalogue={setCatalogue}
             onSlicer={(slicer) => void save({ slicer })}
             onManageSlicers={() => setStage({ kind: 'settings' })}
             onHistory={() => setStage({ kind: 'history' })}
@@ -214,7 +246,17 @@ function Main() {
         <main className={styles.main}>
           {error && <div role="alert" className={styles.error}>{error}</div>}
           {stage.kind === 'reading' && <p className={styles.busy} aria-live="polite">{t.busy.reading}</p>}
-          {stage.kind === 'converting' && <p className={styles.busy} aria-live="polite">{t.busy.converting}</p>}
+          {stage.kind === 'converting' && (
+            <ConvertingView
+              project={stage.project}
+              printer={printerDef(stage.target.model)}
+              map={stage.map}
+              times={stage.times}
+              folder={outputFolder(stage.project)}
+              slicer={stage.openAfter ? SLICER_KINDS[stage.target.slicer].name : undefined}
+              onCancel={() => { cancelled.current = true; void api.cancelConversion(); }}
+            />
+          )}
           {stage.kind === 'choose' && (
             <ChoosePrinter
               state={state}
@@ -224,11 +266,11 @@ function Main() {
           )}
           {stage.kind === 'merge' && <MergeStep project={stage.project} printer={printerDef(stage.target.model)} actions={convertActions(stage.project, stage.target)} />}
           {stage.kind === 'review' && (
-            <ConversionView
+            <ReviewView
               project={stage.project}
               printer={printerDef(stage.target.model)}
-              onCancel={() => setStage({ kind: 'idle' })}
-              renderActions={convertActions(stage.project, stage.target)}
+              outputFolder={outputFolder(stage.project)}
+              actions={convertActions(stage.project, stage.target, true)}
             />
           )}
           {stage.kind === 'done' && (
@@ -250,12 +292,7 @@ function Main() {
             />
           )}
           {stage.kind === 'history' && (
-            <>
-              <div className={styles.pageHead}>
-                <button type="button" onClick={() => setStage({ kind: 'idle' })}>{t.nav.convert}</button>
-              </div>
-              <HistoryList title="History" entries={history} emptyText="No conversions yet. Projects you convert, from here, Finder or the browser extension, appear here." {...historyActions({ kind: 'history' })} />
-            </>
+            <HistoryView entries={history} onBack={() => setStage({ kind: 'idle' })} {...historyActions({ kind: 'history' })} />
           )}
           {stage.kind === 'settings' && (
             <SettingsView

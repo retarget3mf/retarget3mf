@@ -18,6 +18,7 @@ const api: DesktopApi = {
   pathForFile: (file) => webUtils.getPathForFile(file),
   inspect: (path) => ipcRenderer.invoke('inspect', path),
   convert: (request) => ipcRenderer.invoke('convert', request),
+  cancelConversion: () => ipcRenderer.invoke('convert:cancel'),
   openInSlicer: (path, slicer) => ipcRenderer.invoke('slicer:open', path, slicer),
   showInFolder: (path) => ipcRenderer.invoke('file:show', path),
   exportReport: (result, format) => ipcRenderer.invoke('report:export', result, format),

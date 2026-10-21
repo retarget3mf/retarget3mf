@@ -90,7 +90,7 @@ test('settings: theme, brand groups and slicer cards', async () => {
 });
 
 
-test('header slicer menu switches slicer and links to settings', async () => {
+test('home printer card and slicer menu switch printer and slicer, and link to settings', async () => {
   const { userData } = profile({ printer: 'ad5x-0.4', slicer: 'flashstudio' });
   const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`], env: { ...process.env, RETARGET3MF_E2E_HOME: tmpdir() } });
   const page = await app.firstWindow();
@@ -99,10 +99,12 @@ test('header slicer menu switches slicer and links to settings', async () => {
   await page.screenshot({ path: 'e2e/.results/slicer-menu.png' });
   await page.keyboard.press('Escape');
   await expect(page.getByRole('menu')).toBeHidden();
+  // The saved printer card opens the catalogue; picking another printer swaps it.
   await page.getByRole('button', { name: 'Printer: AD5X' }).click();
-  await expect(page.getByRole('group', { name: 'Flashforge' })).toBeVisible();
-  await page.screenshot({ path: 'e2e/.results/printer-menu.png' });
-  await page.getByRole('menuitemradio', { name: /Adventurer 5M Pro/ }).click();
+  await expect(page.getByRole('dialog', { name: 'Printers' }).getByRole('group', { name: 'Flashforge' })).toBeVisible();
+  await page.getByLabel('Search printers…').fill('5m');
+  await page.screenshot({ path: 'e2e/.results/printer-catalogue.png' });
+  await page.getByRole('button', { name: 'Flashforge Adventurer 5M Pro' }).click();
   await expect(page.getByRole('button', { name: 'Printer: Adventurer 5M Pro' })).toBeVisible();
   await page.getByRole('button', { name: 'Slicer: Flash Studio' }).click();
   await page.getByRole('menuitem', { name: 'Manage slicers…' }).click();
