@@ -13,8 +13,9 @@ const MAC_APPS: Record<SlicerId, string> = {
   orca: '/Applications/OrcaSlicer.app/Contents/MacOS/OrcaSlicer',
   bambustudio: '/Applications/BambuStudio.app/Contents/MacOS/BambuStudio',
   flashstudio: '/Applications/Flash Studio.app/Contents/MacOS/Flash Studio',
+  crealityprint: '/Applications/CrealityPrint.app/Contents/MacOS/CrealityPrint',
 };
-const ENV: Record<SlicerId, string> = { orca: 'ORCA_CLI', bambustudio: 'BAMBU_CLI', flashstudio: 'FLASHSTUDIO_CLI' };
+const ENV: Record<SlicerId, string> = { orca: 'ORCA_CLI', bambustudio: 'BAMBU_CLI', flashstudio: 'FLASHSTUDIO_CLI', crealityprint: 'CREALITY_CLI' };
 const SLICE_TIMEOUT_MS = 10 * 60_000;
 const PARALLEL = Number(process.env.SLICE_PARALLEL) || 3;
 // Values every slicer writes into the G-code config block, compared with what the converted project holds.

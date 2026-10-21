@@ -45,6 +45,16 @@ export const SLICERS: Record<SlicerKind, SlicerSpec> = {
     flatpakIds: ['com.bambulab.BambuStudio'],
     appImage: /^bambu[_-]?studio.*\.appimage$/i,
   },
+  // Names from Creality Print 7.3 release assets; the bundle id is a guess until checked against an installed app.
+  crealityprint: {
+    name: 'Creality Print',
+    macBundleIds: ['com.creality.crealityprint', 'com.creality.CrealityPrint'],
+    winDisplayName: /^Creality ?Print\b/i,
+    winExe: 'CrealityPrint.exe',
+    linuxBins: ['CrealityPrint', 'crealityprint'],
+    flatpakIds: [],
+    appImage: /^creality[_-]?print.*\.appimage$/i,
+  },
 };
 export const SLICER_NAMES = Object.fromEntries(Object.entries(SLICERS).map(([k, s]) => [k, s.name])) as Record<SlicerKind, string>;
 const FLATPAK = 'flatpak:';

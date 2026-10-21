@@ -25,7 +25,7 @@ const RENAMES: Record<string, string> = {
 const FEATURE_FILAMENTS = new Set(['wall_filament', 'sparse_infill_filament', 'solid_infill_filament']);
 
 /** Orca enum value → Bambu Studio value, where the names differ. */
-const VALUES: Record<string, Record<string, string>> = {
+export const BAMBU_VALUES: Record<string, Record<string, string>> = {
   ensure_vertical_shell_thickness: { ensure_all: 'enabled', ensure_moderate: 'partial', ensure_critical_only: 'partial', none: 'disabled' },
   sparse_infill_pattern: { rectilinear: 'zig-zag', 'lateral-lattice': '2dlattice' },
   top_surface_pattern: { rectilinear: 'zig-zag' },
@@ -49,15 +49,15 @@ export function toBambuKey(key: string): string {
   return RENAMES[key] ?? key;
 }
 
-/** OrcaSlicer's option table restricted to keys Bambu Studio has (under its own name). */
-export function bambuStudioOptionsInOrcaSpace(orca: Options, bambu: Options): Options {
+/** OrcaSlicer's option table restricted to keys a Bambu-family slicer has (under its own name). */
+export function optionsInOrcaSpace(orca: Options, bambu: Options): Options {
   return Object.fromEntries(Object.entries(orca).filter(([k]) => bambu[toBambuKey(k)]));
 }
 
 /** One Orca-space key/value as Bambu Studio writes it. */
 export function toBambuValue(key: string, value: ConfigValue): [string, ConfigValue] {
   const target = toBambuKey(key);
-  const table = VALUES[target];
+  const table = BAMBU_VALUES[target];
   let next: ConfigValue = table ? (typeof value === 'string' ? (table[value] ?? value) : value.map((v) => table[v] ?? v)) : value;
   if (FEATURE_FILAMENTS.has(target) && next === '0') next = '1';
   return [target, next];

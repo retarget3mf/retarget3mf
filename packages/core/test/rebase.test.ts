@@ -14,7 +14,7 @@ const fixture = (path: string) => new Uint8Array(readFileSync(new URL(`./fixture
  * is replaced by the installed system preset's value; per-filament keys slot by slot.
  */
 function rebase(config: Config, printer: PrinterId, slicer: SlicerId): Config {
-  const target = getTargetProfiles(printer);
+  const target = getTargetProfiles(printer, slicer);
   const presets = slicer === 'bambustudio' ? target.native! : target;
   const machine = slicer === 'bambustudio' ? target.native!.machine : target.machine;
   const diff = asList(config.different_settings_to_system).map((l) => new Set(l.split(';')));
@@ -41,6 +41,8 @@ const CASES: [string, () => Uint8Array, PrinterId, SlicerId][] = [
   ['Prusa wipe tower', () => fixture('prusa/wipe_tower.3mf'), 'bambu-x1c-0.4', 'bambustudio'],
   ['Creality multicolour', () => fixture('creality/creality-print-7-multicolor.3mf'), 'ad5x-0.4', 'orca'],
   ['Creality multicolour', () => fixture('creality/creality-print-7-multicolor.3mf'), 'bambu-p1s-0.4', 'orca'],
+  ['Creality multicolour', () => fixture('creality/creality-print-7-multicolor.3mf'), 'creality-k2-plus-0.4', 'crealityprint'],
+  ['Prusa wipe tower', () => fixture('prusa/wipe_tower.3mf'), 'prusa-mk4s-0.4', 'orca'],
 ];
 
 describe('author settings survive the slicer re-basing the project on its presets', () => {

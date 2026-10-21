@@ -1,6 +1,6 @@
-export type SlicerId = 'orca' | 'flashstudio' | 'bambustudio';
+export type SlicerId = 'orca' | 'flashstudio' | 'bambustudio' | 'crealityprint';
 
-export const SLICER_NAMES: Record<SlicerId, string> = { flashstudio: 'Flash Studio', orca: 'OrcaSlicer', bambustudio: 'Bambu Studio' };
+export const SLICER_NAMES: Record<SlicerId, string> = { flashstudio: 'Flash Studio', orca: 'OrcaSlicer', bambustudio: 'Bambu Studio', crealityprint: 'Creality Print' };
 
 export type PrinterId =
   | 'ad5x-0.4' | 'adventurer-5m-0.4' | 'adventurer-5m-pro-0.4' | 'creator-5-0.4' | 'creator-5-pro-0.4'
@@ -24,14 +24,26 @@ export interface PrinterDefinition {
   maxBedTemp: number;
   /** Slicers that ship this printer's profiles, preferred first. */
   slicers: readonly SlicerId[];
+  /** Machine preset names in OrcaSlicer-based vendor slicers whose own presets are used for them (Creality Print). */
+  ownSlicerPresets?: Partial<Record<SlicerId, string>>;
 }
 
 const FLASHFORGE_SLICERS: readonly SlicerId[] = ['flashstudio', 'orca'];
 const ORCA_ONLY: readonly SlicerId[] = ['orca'];
 
-/** Printers converted for OrcaSlicer only, until their makers' own slicers get a writer of their own. */
-function orca(id: PrinterId, vendor: string, model: string, machinePreset: string, slots: number, kind: 'single' | 'semm', maxNozzleTemp: number, maxBedTemp: number): PrinterDefinition {
-  return { id, vendor, displayName: `${vendor} ${model}`, machinePreset, slots: { count: slots, kind }, maxNozzleTemp, maxBedTemp, slicers: ORCA_ONLY };
+/**
+ * Printers with OrcaSlicer profiles; `own` adds the maker's OrcaSlicer-based slicer (preferred) with its preset name.
+ * Makers whose slicer has no writer yet stay OrcaSlicer-only.
+ */
+function orca(
+  id: PrinterId, vendor: string, model: string, machinePreset: string, slots: number, kind: 'single' | 'semm',
+  maxNozzleTemp: number, maxBedTemp: number, own?: { slicer: SlicerId; machinePreset: string },
+): PrinterDefinition {
+  return {
+    id, vendor, displayName: `${vendor} ${model}`, machinePreset, slots: { count: slots, kind }, maxNozzleTemp, maxBedTemp,
+    slicers: own ? [own.slicer, ...ORCA_ONLY] : ORCA_ONLY,
+    ...(own && { ownSlicerPresets: { [own.slicer]: own.machinePreset } }),
+  };
 }
 const BAMBU_SLICERS: readonly SlicerId[] = ['bambustudio', 'orca'];
 
@@ -112,12 +124,12 @@ export const PRINTERS: readonly PrinterDefinition[] = [
   orca('prusa-mini-0.4', 'Prusa', 'MINI', 'Prusa MINI 0.4 nozzle', 1, 'single', 280, 100),
   orca('prusa-core-one-0.4', 'Prusa', 'CORE One', 'Prusa CORE One 0.4 nozzle', 1, 'single', 290, 120),
   orca('prusa-xl-0.4', 'Prusa', 'XL', 'Prusa XL 0.4 nozzle', 1, 'single', 290, 120),
-  orca('creality-k1c-0.4', 'Creality', 'K1C', 'Creality K1C 0.4 nozzle', 1, 'single', 300, 100),
-  orca('creality-k1-max-0.4', 'Creality', 'K1 Max', 'Creality K1 Max (0.4 nozzle)', 1, 'single', 300, 100),
-  orca('creality-k2-plus-0.4', 'Creality', 'K2 Plus', 'Creality K2 Plus 0.4 nozzle', 16, 'semm', 350, 120),
-  orca('creality-hi-0.4', 'Creality', 'Hi', 'Creality Hi 0.4 nozzle', 4, 'semm', 300, 100),
-  orca('creality-ender-3-v3-ke-0.4', 'Creality', 'Ender-3 V3 KE', 'Creality Ender-3 V3 KE 0.4 nozzle', 1, 'single', 300, 100),
-  orca('creality-ender-3-v3-se-0.4', 'Creality', 'Ender-3 V3 SE', 'Creality Ender-3 V3 SE 0.4 nozzle', 1, 'single', 260, 100),
+  orca('creality-k1c-0.4', 'Creality', 'K1C', 'Creality K1C 0.4 nozzle', 1, 'single', 300, 100, { slicer: 'crealityprint', machinePreset: 'Creality K1C 0.4 nozzle' }),
+  orca('creality-k1-max-0.4', 'Creality', 'K1 Max', 'Creality K1 Max (0.4 nozzle)', 1, 'single', 300, 100, { slicer: 'crealityprint', machinePreset: 'Creality K1 Max 0.4 nozzle' }),
+  orca('creality-k2-plus-0.4', 'Creality', 'K2 Plus', 'Creality K2 Plus 0.4 nozzle', 16, 'semm', 350, 120, { slicer: 'crealityprint', machinePreset: 'Creality K2 Plus 0.4 nozzle' }),
+  orca('creality-hi-0.4', 'Creality', 'Hi', 'Creality Hi 0.4 nozzle', 4, 'semm', 300, 100, { slicer: 'crealityprint', machinePreset: 'Creality Hi 0.4 nozzle' }),
+  orca('creality-ender-3-v3-ke-0.4', 'Creality', 'Ender-3 V3 KE', 'Creality Ender-3 V3 KE 0.4 nozzle', 1, 'single', 300, 100, { slicer: 'crealityprint', machinePreset: 'Creality Ender-3 V3 KE 0.4 nozzle' }),
+  orca('creality-ender-3-v3-se-0.4', 'Creality', 'Ender-3 V3 SE', 'Creality Ender-3 V3 SE 0.4 nozzle', 1, 'single', 260, 100, { slicer: 'crealityprint', machinePreset: 'Creality Ender-3 V3 SE 0.4 nozzle' }),
   orca('elegoo-centauri-carbon-0.4', 'Elegoo', 'Centauri Carbon', 'Elegoo Centauri Carbon 0.4 nozzle', 1, 'single', 320, 110),
   orca('elegoo-neptune-4-pro-0.4', 'Elegoo', 'Neptune 4 Pro', 'Elegoo Neptune 4 Pro 0.4 nozzle', 1, 'single', 300, 110),
   orca('elegoo-neptune-4-max-0.4', 'Elegoo', 'Neptune 4 Max', 'Elegoo Neptune 4 Max 0.4 nozzle', 1, 'single', 300, 95),

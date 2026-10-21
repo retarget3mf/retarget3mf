@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { PrinterId, SlicerId } from '@retarget3mf/core';
-import { PRINTERS } from '@retarget3mf/profiles/printers';
+import { PRINTERS, SLICER_NAMES } from '@retarget3mf/profiles/printers';
 import {
   ConversionView, DropZone, Dropdown, I18nProvider, Logo, LOCALES, LOCALE_NAMES, PrinterPicker, ReportView, ThemeSwitch,
   detectLocale, useT, type Locale, type ProjectSummary, type Theme,
@@ -11,7 +11,6 @@ import { WEB_MESSAGES } from './messages.ts';
 import type { Converted } from './protocol.ts';
 import styles from './App.module.css';
 
-const SLICER_NAMES: Record<SlicerId, string> = { flashstudio: 'Flash Studio', orca: 'OrcaSlicer', bambustudio: 'Bambu Studio' };
 
 interface Loaded { project: ProjectSummary; bytes: Uint8Array }
 type Stage =

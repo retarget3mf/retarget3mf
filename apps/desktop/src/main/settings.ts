@@ -5,7 +5,7 @@ import { PRINTERS } from '@retarget3mf/core';
 import type { OpenMode, Settings, SlicerKind, Theme } from '../shared/api.ts';
 
 export const DEFAULT_SETTINGS: Settings = { slicer: 'flashstudio', slicerPaths: {}, output: 'next-to-original', openAfterConvert: true, theme: 'system', openMode: 'auto' };
-const SLICERS: readonly SlicerKind[] = ['flashstudio', 'orca', 'bambustudio'];
+const SLICERS: readonly SlicerKind[] = ['flashstudio', 'orca', 'bambustudio', 'crealityprint'];
 const THEMES: readonly Theme[] = ['system', 'light', 'dark'];
 const OPEN_MODES: readonly OpenMode[] = ['auto', 'review'];
 

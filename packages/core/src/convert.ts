@@ -9,7 +9,7 @@ import { detectSource, PROJECT_SETTINGS } from './stages/detect.ts';
 import { applyFilamentMap, padToToolheads, planFilaments, remapRef, type FilamentMap } from './stages/filaments.ts';
 import { parseBed, planPlacement } from './stages/placement.ts';
 import { buildSettings, SLICER_NAMES, type SettingsResult } from './stages/settings.ts';
-import { bambuStudioOptionsInOrcaSpace } from './targets/bambuStudio.ts';
+import { optionsInOrcaSpace } from './targets/bambuStudio.ts';
 
 type OverrideConverter = SettingsResult['convertOverride'];
 import { validateConfig } from './stages/validate.ts';
@@ -45,10 +45,12 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
 
   const source = detectSource(readArchive(input));
   const { archive } = source;
-  const target = getTargetProfiles(printer.id);
+  const target = getTargetProfiles(printer.id, slicer);
+  // Bambu Studio and OrcaSlicer-based vendor slicers get a final rewrite into their own option names.
+  const writer = slicer === 'bambustudio' ? 'bambustudio' : printer.ownSlicerPresets?.[slicer] ? 'own' : undefined;
   const orca = getOptions('orca');
-  const options = slicer === 'bambustudio'
-    ? { orca, slicer: bambuStudioOptionsInOrcaSpace(orca, getOptions(slicer)), native: getOptions(slicer) }
+  const options = writer
+    ? { orca, slicer: optionsInOrcaSpace(orca, getOptions(slicer)), native: getOptions(slicer) }
     : { orca, slicer: getOptions(slicer) };
   const settings = readModelSettings(readText(archive, MODEL_SETTINGS));
   const geo = readGeometry(archive);
@@ -63,7 +65,7 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
     ...(source.config.wipe_tower_x && source.config.wipe_tower_y && { wipeTower: { x: source.config.wipe_tower_x, y: source.config.wipe_tower_y } }),
   }, parseBed(target.machine.printable_area));
 
-  const result = buildSettings({ source: source.config, plan, usedFilaments: mapped.keep.length, target, slicer, options, ...(placement.wipeTower && { wipeTower: placement.wipeTower }) });
+  const result = buildSettings({ source: source.config, plan, usedFilaments: mapped.keep.length, target, slicer, options, ...(writer && { writer }), ...(placement.wipeTower && { wipeTower: placement.wipeTower }) });
   const problems = validateConfig(result.config, options.native ?? options.slicer);
   if (problems.length) throw new ConversionError('invalid-project', `Internal error while converting (${problems.join('; ')}). Please report this file.`);
 
@@ -92,7 +94,8 @@ export async function convert(input: Uint8Array, opts: ConvertOptions): Promise<
       source: { kind: source.kind, slicer: source.slicer, application: source.application, printer: first(source.config.printer_settings_id) ?? 'unknown' },
       target: {
         printer: printer.displayName, slicer: SLICER_NAMES[slicer],
-        profiles: slicer === 'bambustudio' ? `Bambu Studio ${PROFILE_SOURCE.bambuStudio.tag}` : `OrcaSlicer ${PROFILE_SOURCE.orca.tag}`,
+        profiles: slicer === 'bambustudio' ? `Bambu Studio ${PROFILE_SOURCE.bambuStudio.tag}`
+          : slicer === 'crealityprint' ? `Creality Print ${PROFILE_SOURCE.crealityPrint.tag}` : `OrcaSlicer ${PROFILE_SOURCE.orca.tag}`,
       },
       warnings,
       filaments: result.filaments,

@@ -175,9 +175,13 @@ function extractOptions(printConfigCpp: string): Record<string, OptionInfo> {
 const orcaDir = arg('--orca', join(ROOT, 'research/OrcaSlicer-v2.4.2'));
 const ffDir = arg('--flashstudio', join(ROOT, 'research/Orca-Flashforge-1.7.15'));
 const bambuDir = arg('--bambustudio', join(ROOT, 'research/BambuStudio'));
+const crealityDir = arg('--crealityprint', join(ROOT, 'research/CrealityPrint-7.3.0'));
 const profilesOf = (dir: string, vendors: string[]) => indexPresets(join(dir, 'resources/profiles'), vendors);
 
-type SlicerId = 'orca' | 'flashstudio' | 'bambustudio';
+type SlicerId = 'orca' | 'flashstudio' | 'bambustudio' | 'crealityprint';
+
+/** OrcaSlicer-based vendor slicers whose own presets (names and values) are used for their printers. */
+const OWN_SLICERS: Partial<Record<SlicerId, Map<string, Json>>> = { crealityprint: profilesOf(crealityDir, ['Creality']) };
 
 const orcaFlashforge = profilesOf(orcaDir, ['Flashforge', 'OrcaFilamentLibrary']);
 const orcaBambu = profilesOf(orcaDir, ['BBL', 'OrcaFilamentLibrary']);
@@ -204,6 +208,19 @@ const processes: Record<string, Json> = {};
 const filaments: Record<string, Json> = {};
 const compat: Record<string, { processes: string[]; filaments: Partial<Record<SlicerId, string[]>> }> = {};
 const native: Record<'machines' | 'processes' | 'filaments', Record<string, Json>> = { machines: {}, processes: {}, filaments: {} };
+const crealityOptions = extractOptions(join(crealityDir, 'src/libslic3r/PrintConfig.cpp'));
+
+/** Creality Print writes some vectors as one comma-separated string; its loader splits them, and so does this. */
+function splitVectors(preset: Json, options: Record<string, OptionInfo>): Json {
+  return Object.fromEntries(Object.entries(preset).map(([k, v]) => {
+    const type = options[k]?.type ?? '';
+    const isList = /^co(Points|Floats|Ints|Percents|Bools|FloatsOrPercents)$/.test(type);
+    return [k, isList && typeof v === 'string' && v.includes(',') ? v.split(',') : v];
+  }));
+}
+
+type OwnSet = { compat: Record<string, { machine: string; process: string; filaments: string[] }>; machines: Record<string, Json>; processes: Record<string, Json>; filaments: Record<string, Json> };
+const own: Partial<Record<SlicerId, OwnSet>> = {};
 
 for (const printer of PRINTERS) {
   const vendor = VENDORS[printer.vendor];
@@ -212,10 +229,22 @@ for (const printer of PRINTERS) {
   machines[m] = flatten(vendor.presets, 'machine', m);
   const proc = [pinnedProcess(vendor.presets, compatibleWith(vendor.presets, 'process', m, machines[m]!), m)];
   // Values always come from `presets`, so a slicer's name list only offers presets that exist there too.
-  const names = Object.fromEntries(printer.slicers.map((id) => [id, bestPerType(vendor.presets, withLibraryFallback(vendor.slicers[id]!, compatibleWith(vendor.slicers[id]!, 'filament', m, machines[m]!)))]));
+  // Slicers with their own preset set (below) are left out here.
+  const names = Object.fromEntries(printer.slicers.filter((id) => vendor.slicers[id]).map((id) => [id, bestPerType(vendor.presets, withLibraryFallback(vendor.slicers[id]!, compatibleWith(vendor.slicers[id]!, 'filament', m, machines[m]!)))]));
   for (const n of proc) processes[n] = flatten(vendor.presets, 'process', n);
   for (const n of new Set(Object.values(names).flat())) filaments[n] = lean(flatten(vendor.presets, 'filament', n));
   compat[m] = { processes: proc, filaments: names };
+  for (const [slicer, name] of Object.entries(printer.ownSlicerPresets ?? {}) as [SlicerId, string][]) {
+    const idx = OWN_SLICERS[slicer];
+    if (!idx) throw new Error(`No presets for ${slicer}`);
+    const set = (own[slicer] ??= { compat: {}, machines: {}, processes: {}, filaments: {} });
+    const machine = (set.machines[name] = splitVectors(flatten(idx, 'machine', name), crealityOptions));
+    const process = pinnedProcess(idx, compatibleWith(idx, 'process', name, machine), name);
+    const names = bestPerType(idx, withLibraryFallback(idx, compatibleWith(idx, 'filament', name, machine)));
+    set.processes[process] = splitVectors(flatten(idx, 'process', process), crealityOptions);
+    for (const n of names) set.filaments[n] = splitVectors(lean(flatten(idx, 'filament', n)), crealityOptions);
+    set.compat[m] = { machine: name, process, filaments: names };
+  }
   if (!vendor.native) continue;
   native.machines[m] = flatten(vendor.native, 'machine', m);
   for (const n of proc) if (vendor.native.has(`process|${n}`)) native.processes[n] = flatten(vendor.native, 'process', n);
@@ -224,10 +253,11 @@ for (const printer of PRINTERS) {
 
 mkdirSync(OUT, { recursive: true });
 const write = (file: string, data: unknown) => writeFileSync(join(OUT, file), JSON.stringify(data, null, 1) + '\n');
-write('profiles.json', { source: { orca: gitInfo(orcaDir), flashStudio: gitInfo(ffDir), bambuStudio: gitInfo(bambuDir) }, compat, machines, processes, filaments, native });
+write('profiles.json', { source: { orca: gitInfo(orcaDir), flashStudio: gitInfo(ffDir), bambuStudio: gitInfo(bambuDir), crealityPrint: gitInfo(crealityDir) }, compat, machines, processes, filaments, native, own });
 write('options.json', {
   orca: extractOptions(join(orcaDir, 'src/libslic3r/PrintConfig.cpp')),
   flashstudio: extractOptions(join(ffDir, 'src/libslic3r/PrintConfig.cpp')),
   bambustudio: extractOptions(join(bambuDir, 'src/libslic3r/PrintConfig.cpp')),
+  crealityprint: crealityOptions,
 });
 console.log(`machines ${Object.keys(machines).length}, processes ${Object.keys(processes).length}, filaments ${Object.keys(filaments).length}`);

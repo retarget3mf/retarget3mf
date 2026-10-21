@@ -6,6 +6,7 @@ import {
   isBedTemperatureKey, ruleFor, type Section,
 } from '../rules/index.ts';
 import { toBambuStudio, toBambuValue } from '../targets/bambuStudio.ts';
+import { toOwnSlicer } from '../targets/ownSlicer.ts';
 import { remapRef, type FilamentPlan } from './filaments.ts';
 
 export interface SettingsInput {
@@ -17,6 +18,8 @@ export interface SettingsInput {
   slicer: SlicerId;
   /** `slicer` is in OrcaSlicer's key space; `native` is the target slicer's own table when its keys differ (Bambu Studio). */
   options: { orca: Readonly<Record<string, OptionInfo>>; slicer: Readonly<Record<string, OptionInfo>>; native?: Readonly<Record<string, OptionInfo>> };
+  /** Final rewrite into the target slicer's own names: Bambu Studio, or an OrcaSlicer-based vendor slicer. */
+  writer?: 'bambustudio' | 'own';
   wipeTower?: { x: string[]; y: string[] };
 }
 
@@ -31,7 +34,8 @@ export interface SettingsResult {
 
 // Rebuilt for the target presets on every conversion; reporting them would only be noise.
 const IDENTITY_KEYS = new Set(['name', 'from', 'version', 'inherits_group', 'different_settings_to_system', 'print_compatible_printers', 'filament_ids', 'filament_map', 'filament_map_mode', 'filament_self_index', 'filament_extruder_variant']);
-export const SLICER_NAMES: Record<SlicerId, string> = { orca: 'OrcaSlicer', flashstudio: 'Flash Studio', bambustudio: 'Bambu Studio' };
+import { SLICER_NAMES } from '@retarget3mf/profiles';
+export { SLICER_NAMES };
 const PROJECT_PER_FILAMENT = new Set(['filament_colour', 'filament_colour_type', 'filament_multi_colour']);
 const PINNED_LAYER_HEIGHT = 0.2;
 const DEFAULT_VARIANT = 'Direct Drive Standard';
@@ -41,7 +45,7 @@ const isVectorType = (info: OptionInfo | undefined) => info !== undefined && /s$
 function pickProcess(target: TargetProfiles): [string, Preset] {
   const entries = Object.entries(target.processes);
   const pinned = entries.find(([, p]) => Number(first(p.layer_height)) === PINNED_LAYER_HEIGHT) ?? entries[0];
-  if (!pinned) throw new Error(`No process preset for ${target.printer.machinePreset}`);
+  if (!pinned) throw new Error(`No process preset for ${target.machineName}`);
   return pinned;
 }
 
@@ -60,7 +64,7 @@ function pickFilament(type: string, target: TargetProfiles, slicer: SlicerId): {
   const exact = byType(type)[0];
   if (exact) return { name: exact, exact: true };
   const fallback = byType('PLA')[0] ?? names[0];
-  if (!fallback) throw new Error(`No filament presets for ${target.printer.machinePreset}`);
+  if (!fallback) throw new Error(`No filament presets for ${target.machineName}`);
   return { name: fallback, exact: false };
 }
 
@@ -292,11 +296,11 @@ function setIdentity(ctx: Ctx, processName: string, process: Preset): void {
     name: 'project_settings',
     from: 'project',
     version: '2.3.0.0',
-    printer_settings_id: target.printer.machinePreset,
+    printer_settings_id: target.machineName,
     print_settings_id: processName,
     filament_settings_id: names,
     filament_ids: ctx.chosen.map((c) => first(c.preset.filament_id) ?? ''),
-    inherits_group: [processName, ...names, target.printer.machinePreset],
+    inherits_group: [processName, ...names, target.machineName],
     // Keys listed here survive the slicer re-basing the project on its installed presets (docs/research.md §1).
     different_settings_to_system: [[...ctx.kept.print].sort().join(';'), ...names.map(() => filamentList), ''],
     print_compatible_printers: asList(process.compatible_printers),
@@ -334,8 +338,13 @@ export function buildSettings(input: SettingsInput): SettingsResult {
   for (const key of Object.keys(source).sort()) applySourceKey(ctx, key, source[key]!);
   applySpecialCases(ctx);
   setIdentity(ctx, processName, process);
-  if (input.options.native) {
-    if (!target.native) throw new Error(`No ${SLICER_NAMES[input.slicer]} presets for ${target.printer.machinePreset}`);
+  if (input.writer === 'own' && input.options.native) {
+    const out = toOwnSlicer(ctx.config, input.options.native);
+    ctx.config = out.config;
+    ctx.changes.push(...out.changes);
+  }
+  if (input.writer === 'bambustudio' && input.options.native) {
+    if (!target.native) throw new Error(`No ${SLICER_NAMES[input.slicer]} presets for ${target.machineName}`);
     const out = toBambuStudio({
       config: ctx.config, baseline: presetValues, native: target.native, processName,
       filamentNames: ctx.chosen.map((c) => c.name), options: input.options.native,

@@ -1,8 +1,8 @@
 import profiles from './generated/profiles.json' with { type: 'json' };
 import options from './generated/options.json' with { type: 'json' };
-import { PRINTERS, type PrinterDefinition, type PrinterId, type SlicerId } from './printers.ts';
+import { PRINTERS, SLICER_NAMES, type PrinterDefinition, type PrinterId, type SlicerId } from './printers.ts';
 
-export { PRINTERS, type PrinterDefinition, type PrinterId, type SlicerId };
+export { PRINTERS, SLICER_NAMES, type PrinterDefinition, type PrinterId, type SlicerId };
 
 /** Flattened preset: every key a vendor JSON sets along the inherits chain. Values are strings or string arrays. */
 export type Preset = Readonly<Record<string, string | readonly string[]>>;
@@ -10,6 +10,8 @@ export interface OptionInfo { type: string; nullable: boolean; min?: number; max
 
 export interface TargetProfiles {
   printer: PrinterDefinition;
+  /** Machine preset name in the target slicer (an OrcaSlicer-based vendor slicer may name it differently). */
+  machineName: string;
   machine: Preset;
   processes: Readonly<Record<string, Preset>>;
   filaments: Readonly<Record<string, Preset>>;
@@ -20,7 +22,8 @@ export interface TargetProfiles {
 }
 
 interface PresetSet { machines: Record<string, Preset>; processes: Record<string, Preset>; filaments: Record<string, Preset> }
-type Bundle = typeof profiles & PresetSet & { native: PresetSet };
+interface OwnSet extends PresetSet { compat: Record<string, { machine: string; process: string; filaments: string[] }> }
+type Bundle = typeof profiles & PresetSet & { native: PresetSet; own: Partial<Record<SlicerId, OwnSet>> };
 const bundle = profiles as Bundle;
 
 export const PROFILE_SOURCE = bundle.source;
@@ -29,9 +32,22 @@ export function getPrinter(id: string): PrinterDefinition | undefined {
   return PRINTERS.find((p) => p.id === id);
 }
 
-export function getTargetProfiles(id: PrinterId): TargetProfiles {
+/** For an OrcaSlicer-based vendor slicer with its own presets (Creality Print), those presets; else OrcaSlicer's. */
+export function getTargetProfiles(id: PrinterId, slicer?: SlicerId): TargetProfiles {
   const printer = getPrinter(id);
   if (!printer) throw new Error(`Unknown printer "${id}"`);
+  const set = slicer ? bundle.own[slicer] : undefined;
+  const ownCompat = set?.compat[printer.machinePreset];
+  if (set && ownCompat) {
+    return {
+      printer,
+      machineName: ownCompat.machine,
+      machine: set.machines[ownCompat.machine]!,
+      processes: { [ownCompat.process]: set.processes[ownCompat.process]! },
+      filaments: Object.fromEntries(ownCompat.filaments.map((n) => [n, set.filaments[n]!])),
+      filamentNames: { [slicer!]: ownCompat.filaments },
+    };
+  }
   const compat = (bundle.compat as Record<string, { processes: string[]; filaments: Partial<Record<SlicerId, string[]>> }>)[printer.machinePreset];
   const machine = bundle.machines[printer.machinePreset];
   if (!compat || !machine) throw new Error(`No generated profiles for "${printer.machinePreset}"; run sync-profiles`);
@@ -41,6 +57,7 @@ export function getTargetProfiles(id: PrinterId): TargetProfiles {
   const nativeMachine = bundle.native.machines[printer.machinePreset];
   return {
     printer,
+    machineName: printer.machinePreset,
     machine,
     processes: pick(compat.processes, bundle.processes),
     filaments: pick(presetNames, bundle.filaments),

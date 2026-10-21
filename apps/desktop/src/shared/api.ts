@@ -2,7 +2,7 @@ import type { ConversionReport, FilamentMap, PrinterDefinition, PrinterId, Proje
 import type { SourceSite } from '@retarget3mf/bridge';
 import type { Theme } from '@retarget3mf/ui';
 
-export type SlicerKind = 'flashstudio' | 'orca' | 'bambustudio';
+export type SlicerKind = 'flashstudio' | 'orca' | 'bambustudio' | 'crealityprint';
 
 export interface SlicerInstall { kind: SlicerKind; name: string; path: string; /** App icon as a data URL, read from the installed app. */ icon?: string }
 

@@ -4,6 +4,7 @@ import type { SlicerInstall, SlicerKind } from '../../shared/api.ts';
 export const SLICER_KINDS: Record<SlicerKind, { name: string; blurb: string }> = {
   flashstudio: { name: 'Flash Studio', blurb: "Flashforge's own slicer" },
   bambustudio: { name: 'Bambu Studio', blurb: "Bambu Lab's own slicer" },
+  crealityprint: { name: 'Creality Print', blurb: "Creality's own slicer" },
   orca: { name: 'OrcaSlicer', blurb: 'Open-source, all brands' },
 };
 
