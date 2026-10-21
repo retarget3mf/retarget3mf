@@ -2,7 +2,7 @@ export { compactMap, type ProjectSummary } from './project.ts';
 export { Dropdown, IconPlaceholder, type DropdownOption } from './Dropdown.tsx';
 export { DropZone } from './DropZone.tsx';
 export { FilamentRows, Swatch } from './FilamentRows.tsx';
-export { ChevronDown, CoffeeIcon, GearIcon, GitHubIcon, ThemeIcon } from './icons.tsx';
+export { ChevronDown, CoffeeIcon, ExternalIcon, GearIcon, GitHubIcon, ThemeIcon } from './icons.tsx';
 export { Logo } from './Logo.tsx';
 export { ENABLED_LOCALES, I18nProvider, LOCALES, LOCALE_NAMES, detectLocale, plural, useLocale, useT, type Locale } from './i18n.tsx';
 export { UI_MESSAGES, type UiMessages } from './messages.ts';

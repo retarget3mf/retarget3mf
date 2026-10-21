@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { ACCENTS, Dropdown, UI_MESSAGES, useT, type Accent, type Theme } from '@retarget3mf/ui';
-import { issuesUrl, licenseUrl, releaseNotesUrl } from '@retarget3mf/ui/links';
+import { ACCENTS, Dropdown, ExternalIcon, UI_MESSAGES, useT, type Accent, type Theme } from '@retarget3mf/ui';
+import { issuesUrl, licenseUrl, LINKS, releaseNotesUrl } from '@retarget3mf/ui/links';
 import iconUrl from '@retarget3mf/ui/icon.svg';
 import { HISTORY_RETENTION, type AppState, type HistoryRetention, type OpenMode, type Settings, type SlicerKind, type UpdateStatus } from '../../../shared/api.ts';
 import { browserRows } from './browsers.ts';
@@ -92,6 +92,18 @@ export function ConvertingPage({ state, onChange, onPickFolder }: { state: AppSt
 }
 
 const CHROMIUM_EXAMPLES = 'Chrome, Edge, Brave, Arc, Dia, Vivaldi, Opera';
+/** Store pages per browser row; Safari has none yet. */
+const STORES: Record<string, { store: string; label: string }> = {
+  'Chrome and Chromium browsers': { store: LINKS.chromeStore, label: 'Chrome' },
+  Firefox: { store: LINKS.firefoxAddons, label: 'Firefox' },
+};
+
+function StoreLink({ store, label }: { store: string; label: string }) {
+  const t = useT(SETTINGS_MESSAGES).browser;
+  const name = t.get(label);
+  if (!store) return <span className={`${styles.iconButton} ${styles.disabled}`} role="link" aria-disabled="true" aria-label={`${name} (${t.soon})`} title={t.soon}><ExternalIcon /></span>;
+  return <a className={styles.iconButton} href={store} target="_blank" rel="noreferrer" aria-label={name} title={name}><ExternalIcon /></a>;
+}
 
 export function BrowserPage({ state, onChange }: { state: AppState; onChange: Change }) {
   const t = useT(SETTINGS_MESSAGES).browser;
@@ -114,6 +126,7 @@ export function BrowserPage({ state, onChange }: { state: AppState; onChange: Ch
               )}
             </span></span>
             <span className={row.state === 'ready' ? styles.ok : styles.muted} title={row.state === 'unsupported' ? t.safari : undefined}>{t.states[row.state]}</span>
+            {STORES[row.name] ? <StoreLink {...STORES[row.name]!} /> : <span className={styles.iconSpacer} aria-hidden />}
           </Row>
         ))}
       </div>

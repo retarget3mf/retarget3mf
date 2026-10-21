@@ -14,7 +14,7 @@ export interface SettingsMessages {
     files: string; nextTo: string; inFolder: string; choose: string; fileName: string; fileNameHelp: string;
     fromOs: string; openModes: Record<OpenMode, string>; during: string; openAfter: string; removeUnused: string; autoCombine: string;
   };
-  browser: { intro: string; chromiumRow: string; files: string; modes: Record<OpenMode, string>; which: string; chromium: (examples: string) => string; found: (list: string) => string; noneFound: string; states: Record<'ready' | 'failed' | 'missing' | 'unsupported', string>; safari: string };
+  browser: { intro: string; chromiumRow: string; get: (browser: string) => string; soon: string; files: string; modes: Record<OpenMode, string>; which: string; chromium: (examples: string) => string; found: (list: string) => string; noneFound: string; states: Record<'ready' | 'failed' | 'missing' | 'unsupported', string>; safari: string };
   appearance: { theme: string; accent: string; preview: string; previewButton: (slicer: string) => string; previewLink: string; previewRow: string; accents: Record<string, string> };
   about: {
     version: (v: string) => string; current: string; available: (v: string) => string; devBuild: string; failed: string; check: string; checking: string;
@@ -51,7 +51,7 @@ const en: SettingsMessages = {
   },
   browser: {
     intro: 'The browser extension sends 3MF downloads from MakerWorld, Printables, Creality Cloud and Snapmaker Space straight to Retarget3MF.',
-    chromiumRow: 'Chrome and Chromium browsers', files: 'Files from the extension',
+    chromiumRow: 'Chrome and Chromium browsers', get: (b) => `Get the extension for ${b}`, soon: 'Store page coming soon', files: 'Files from the extension',
     modes: { auto: 'Convert for the current printer and open in the slicer', review: 'Bring Retarget3MF to the front and show the review screen' },
     which: 'Which browsers?', chromium: (x) => `One extension build works in every browser based on Chromium: ${x} and others.`,
     found: (l) => `Set up on this computer: ${l}.`, noneFound: 'None found on this computer.',
@@ -100,7 +100,7 @@ const pl: SettingsMessages = {
   },
   browser: {
     intro: 'Rozszerzenie przeglądarki wysyła pliki 3MF z MakerWorld, Printables, Creality Cloud i Snapmaker Space prosto do Retarget3MF.',
-    chromiumRow: 'Chrome i przeglądarki oparte na Chromium', files: 'Pliki z rozszerzenia',
+    chromiumRow: 'Chrome i przeglądarki oparte na Chromium', get: (b) => `Rozszerzenie dla ${b}`, soon: 'Strona w sklepie wkrótce', files: 'Pliki z rozszerzenia',
     modes: { auto: 'Konwertuj dla bieżącej drukarki i otwórz w slicerze', review: 'Pokaż Retarget3MF z ekranem przeglądu' },
     which: 'Które przeglądarki?', chromium: (x) => `Jedna wersja rozszerzenia działa w każdej przeglądarce opartej na Chromium: ${x} i innych.`,
     found: (l) => `Skonfigurowane na tym komputerze: ${l}.`, noneFound: 'Nie znaleziono na tym komputerze.',

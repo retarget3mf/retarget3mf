@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { PRINTERS, type PrinterDefinition } from '@retarget3mf/profiles/printers';
 import { ExtensionPopup, groupByVendor, modelName, useT } from '@retarget3mf/ui';
-import { releasesUrl } from '@retarget3mf/ui/links';
+import { LINKS, releasesUrl } from '@retarget3mf/ui/links';
 import { LANDING_MESSAGES } from './messages';
 import styles from './landing.module.css';
 
@@ -58,9 +58,11 @@ export function Extension() {
   const [printer, setPrinter] = useState(DEMO_PRINTER.id);
   const [slicer, setSlicer] = useState(DEMO_PRINTER.slicers.at(-1)!);
   const [offer, setOffer] = useState(true);
-  const install = (label: string, primary: boolean) => (releasesUrl
-    ? <a className={primary ? styles.primarySmall : styles.secondarySmall} href={releasesUrl}>{label}</a>
-    : <span className={styles.soonSmall}>{t.soon}</span>);
+  // The store page once listed; until then the release download (unpacked install) when published.
+  const install = (store: string, label: string, primary: boolean) => {
+    const href = store || releasesUrl;
+    return href ? <a className={primary ? styles.primarySmall : styles.secondarySmall} href={href}>{label}</a> : <span className={styles.soonSmall}>{t.soon}</span>;
+  };
   return (
     <section id="extension" className={styles.section}>
       <div className={`${styles.wrap} ${styles.split}`}>
@@ -68,8 +70,8 @@ export function Extension() {
           <h2 className={styles.h2}>{t.title}</h2>
           <p className={styles.lead}>{t.body}</p>
           <div className={styles.rows}>
-            <div><strong>{t.chromium}</strong>{install(t.addChrome, true)}</div>
-            <div><strong>Firefox</strong>{install(t.addFirefox, false)}</div>
+            <div><strong>{t.chromium}</strong>{install(LINKS.chromeStore, t.addChrome, true)}</div>
+            <div><strong>Firefox</strong>{install(LINKS.firefoxAddons, t.addFirefox, false)}</div>
             <div><strong>Safari</strong><span className={styles.muted}>{t.later}</span></div>
           </div>
         </div>

@@ -43,3 +43,12 @@ export function ThemeIcon({ size = 16 }: { size?: number }) {
     </svg>
   );
 }
+
+/** Arrow out of a box: opens a page elsewhere. */
+export function ExternalIcon({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M14 4h6v6" /><path d="M20 4l-9 9" /><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" />
+    </svg>
+  );
+}

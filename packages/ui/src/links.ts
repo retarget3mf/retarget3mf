@@ -4,6 +4,9 @@ export const LINKS = {
   repo: '',
   /** Buy Me a Coffee (or similar) page. */
   support: '',
+  /** The extension's store pages. */
+  chromeStore: '',
+  firefoxAddons: '',
 };
 
 export const releasesUrl = LINKS.repo ? `${LINKS.repo}/releases/latest` : '';
