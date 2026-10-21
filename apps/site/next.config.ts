@@ -13,7 +13,7 @@ const config: NextConfig = {
   images: { unoptimized: true },
   transpilePackages: ['@retarget3mf/ui', '@retarget3mf/profiles'],
   // One small page: inlined CSS saves the render-blocking stylesheet requests.
-  experimental: { inlineCss: true, optimizePackageImports: ['@retarget3mf/ui'] },
+  experimental: { inlineCss: true, optimizePackageImports: ['@retarget3mf/ui'], globalNotFound: true },
 };
 
 export default config;

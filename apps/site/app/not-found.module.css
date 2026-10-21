@@ -1,0 +1,14 @@
+.header { max-width: 1200px; margin: 0 auto; padding: 14px clamp(16px, 4vw, 40px); }
+.logo { display: inline-flex; color: inherit; text-decoration: none; }
+.main { max-width: 720px; margin: 0 auto; padding: clamp(48px, 12vh, 140px) clamp(16px, 4vw, 40px) 80px; display: flex; flex-direction: column; align-items: flex-start; gap: 18px; }
+.slots { display: flex; gap: 10px; margin-bottom: 8px; }
+.slots span { width: 34px; height: 42px; border-radius: 8px; box-shadow: inset 0 0 0 1px var(--edge); }
+.slots .empty { display: flex; align-items: center; justify-content: center; border: 2px dashed var(--accent); box-shadow: none; color: var(--accent-ink); font: 600 16px var(--font-mono); }
+.eyebrow { margin: 0; font: 500 12px var(--font-mono); color: var(--accent-ink); letter-spacing: 0.04em; }
+.title { margin: 0; font-size: clamp(32px, 5.4vw, 60px); line-height: 1.04; letter-spacing: -0.03em; font-weight: 600; text-wrap: balance; }
+.text { margin: 0; color: var(--muted); font-size: clamp(16px, 1.6vw, 18px); max-width: 560px; text-wrap: pretty; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+.primary, .secondary { text-decoration: none; padding: 11px 20px; border-radius: 10px; font-weight: 600; font-size: 16px; }
+.primary { background: var(--accent); color: var(--on-accent); }
+.secondary { border: 1px solid var(--line); color: var(--text); font-weight: 500; }
+.secondary:hover { border-color: var(--muted); }

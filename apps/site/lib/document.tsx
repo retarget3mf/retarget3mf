@@ -47,23 +47,24 @@ export const viewport: Viewport = {
  * Runs before the first paint: applies the saved colour mode, and on the English root page moves a visitor whose
  * saved (or, without a saved one, browser) language is another one to that language's page.
  */
-function bootScript(locale: Locale): string {
+function bootScript(locale: Locale, redirect: boolean): string {
   const base = JSON.stringify(asset(''));
   const others = JSON.stringify(ENABLED_LOCALES.filter((l) => l !== 'en'));
   return `try{var d=document.documentElement,t=localStorage.getItem('retarget3mf.theme');if(t==='light'||t==='dark')d.dataset.theme=t;`
-    + (locale === 'en'
+    + (locale === 'en' && redirect
       ? `var s=localStorage.getItem('retarget3mf.locale'),l=s||((navigator.languages||[]).map(function(x){return x.slice(0,2).toLowerCase()}).filter(function(x){return x==='en'||${others}.indexOf(x)>=0})[0]);`
         + `if(${others}.indexOf(l)>=0)location.replace(${base}+'/'+l+'/'+location.hash)`
       : '')
     + `}catch(e){}`;
 }
 
-export function Document({ locale, children }: { locale: Locale; children: ReactNode }) {
+/** `redirect: false` keeps a visitor on this page whatever their language (the 404 page). */
+export function Document({ locale, children, redirect = true }: { locale: Locale; children: ReactNode; redirect?: boolean }) {
   return (
     <html lang={locale} className={`${geist.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <head>
         {/* Inline on purpose: it must run before anything paints, and it only reads this site's own localStorage. */}
-        <script dangerouslySetInnerHTML={{ __html: bootScript(locale) }} />
+        <script dangerouslySetInnerHTML={{ __html: bootScript(locale, redirect) }} />
       </head>
       <body>{children}</body>
     </html>
