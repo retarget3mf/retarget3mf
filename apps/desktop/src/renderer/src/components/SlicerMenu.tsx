@@ -1,5 +1,5 @@
 import type { SlicerInstall, SlicerKind } from '../../../shared/api.ts';
-import { Dropdown, IconPlaceholder } from '@retarget3mf/ui';
+import { Dropdown, GearIcon, IconPlaceholder } from '@retarget3mf/ui';
 import { SLICER_KINDS } from '../slicerKinds.ts';
 
 interface Props { kinds: readonly SlicerKind[]; slicers: SlicerInstall[]; value: SlicerKind; onChange: (kind: SlicerKind) => void; onManage: () => void }
@@ -19,7 +19,7 @@ export function SlicerMenu({ kinds, slicers, value, onChange, onManage }: Props)
       value={value}
       groups={[{ options }]}
       onChange={(kind) => (slicers.some((s) => s.kind === kind) ? onChange(kind) : onManage())}
-      action={{ label: 'Manage slicers…', icon: <IconPlaceholder>⚙</IconPlaceholder>, onSelect: onManage }}
+      action={{ label: 'Manage slicers…', icon: <IconPlaceholder><GearIcon size={14} /></IconPlaceholder>, onSelect: onManage }}
     />
   );
 }

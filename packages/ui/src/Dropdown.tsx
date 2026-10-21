@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { ChevronDown } from './icons.tsx';
 import styles from './Dropdown.module.css';
 
 /** Letter or symbol shown where an option has no icon image. */
@@ -58,7 +59,7 @@ export function Dropdown<T extends string>({ label, value, groups, onChange, act
       <button ref={trigger} type="button" className={styles.trigger} aria-haspopup="menu" aria-expanded={open} aria-label={`${label}: ${current?.label ?? 'none'}`} onClick={() => setOpen(!open)}>
         {current?.icon}
         {current?.label ?? `Choose ${label.toLowerCase()}`}
-        <span className={styles.chevron} aria-hidden>▾</span>
+        <span className={styles.chevron}><ChevronDown /></span>
       </button>
       {open && (
         <div className={styles.menu} role="menu" aria-label={label}>

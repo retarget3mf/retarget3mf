@@ -1,7 +1,7 @@
 import type { AppState, Settings } from '../../../shared/api.ts';
 import { SlicerMenu } from './SlicerMenu.tsx';
 import { pickSlicer, slicersFor } from '../slicerKinds.ts';
-import { PrinterSelect, ThemeSwitch } from '@retarget3mf/ui';
+import { GearIcon, PrinterSelect, ThemeSwitch } from '@retarget3mf/ui';
 import styles from './Header.module.css';
 
 interface Props {
@@ -25,7 +25,7 @@ export function Header({ state, onChange, onSettings, onHistory }: Props) {
       <SlicerMenu kinds={kinds} slicers={slicers} value={settings.slicer} onChange={(kind) => onChange({ slicer: kind })} onManage={onSettings} />
       <ThemeSwitch value={settings.theme} onChange={(theme) => onChange({ theme })} />
       <button type="button" onClick={onHistory} title="Converted files">History</button>
-      <button type="button" onClick={onSettings} aria-label="Settings" title="Settings">⚙</button>
+      <button type="button" className={styles.iconButton} onClick={onSettings} aria-label="Settings" title="Settings"><GearIcon /></button>
     </header>
   );
 }
