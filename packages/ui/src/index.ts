@@ -11,3 +11,5 @@ export { ReportView } from './ReportView.tsx';
 export { ThemeSwitch, type Theme } from './ThemeSwitch.tsx';
 export { applyTheme, ThemeButton } from './ThemeButton.tsx';
 export { ACCENTS, applyAccent, type Accent } from './accent.ts';
+export { ExtensionPopup, POPUP_MESSAGES, type ExtensionPopupProps } from './ExtensionPopup.tsx';
+export { stored } from './stored.ts';

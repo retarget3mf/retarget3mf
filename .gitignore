@@ -6,3 +6,4 @@ dist/
 .DS_Store
 .e2e-dist/
 apps/desktop/shots.mts
+apps/web/site-shots.mjs

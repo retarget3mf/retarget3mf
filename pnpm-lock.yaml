@@ -180,6 +180,9 @@ importers:
       '@retarget3mf/core':
         specifier: workspace:*
         version: link:../core
+      '@retarget3mf/profiles':
+        specifier: workspace:*
+        version: link:../profiles
     devDependencies:
       '@playwright/test':
         specifier: 1.63.0
