@@ -1,6 +1,0 @@
-.view { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 12px; }
-.view h2 { color: var(--ok); word-break: break-all; }
-.error { background: var(--error-bg); color: var(--error-text); padding: 10px 12px; border-radius: var(--radius); margin: 0; }
-.warnings { background: var(--warn-bg); color: var(--warn-text); border-radius: var(--radius); margin: 0; padding: 10px 12px 10px 30px; }
-.hint { color: var(--muted); margin: 0; }
-.actions { display: flex; gap: 10px; flex-wrap: wrap; }

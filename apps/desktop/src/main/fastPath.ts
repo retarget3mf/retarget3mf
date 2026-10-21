@@ -3,6 +3,7 @@ import { PRINTERS } from '@retarget3mf/core';
 import { suggestFilamentMap } from '@retarget3mf/core/suggest';
 import type { AppContext } from './context.ts';
 import { convertProject, inspectProject, openInSlicer } from './conversion.ts';
+import { dropPrinter } from './settings.ts';
 import { showWindow } from './window.ts';
 
 export type FastPathOutcome =
@@ -15,15 +16,18 @@ export type FastPathOutcome =
  * showing the window, unless something needs the user (no printer yet, colours to merge, errors, or "review" mode).
  */
 export async function openFromOs(ctx: AppContext, path: string): Promise<FastPathOutcome> {
-  const { printer: printerId, openMode, slicer, openAfterConvert } = ctx.settings;
-  const printer = PRINTERS.find((p) => p.id === printerId);
-  if (!printer) return review(ctx, path, 'Choose your printer in Retarget3MF first.');
+  const { openMode, openAfterConvert, autoCombine } = ctx.settings;
+  if (!ctx.settings.printer) return review(ctx, path, 'Choose your printer in Retarget3MF first.');
+  const target = dropPrinter(ctx.settings);
+  if (!target) return review(ctx, path, 'Choose the printer for this project in Retarget3MF.');
+  const printer = PRINTERS.find((p) => p.id === target.model)!;
+  const { slicer } = target;
   if (openMode === 'review') return review(ctx, path, 'Review the project in Retarget3MF.');
 
   const inspected = await inspectProject(path);
   if (!inspected.ok) return fail(ctx, inspected.error);
   const used = inspected.value.filaments.filter((f) => f.used);
-  if (used.length > printer.slots.count) {
+  if (used.length > printer.slots.count && !autoCombine) {
     return review(ctx, path, `${used.length} colours for ${printer.slots.count} slot(s): choose how to merge them in Retarget3MF.`);
   }
 

@@ -23,3 +23,8 @@ export function pickSlicer(allowed: readonly SlicerKind[], current: SlicerKind, 
   if (allowed.includes(current)) return current;
   return allowed.find((k) => installed.some((s) => s.kind === k)) ?? allowed[0]!;
 }
+
+/** The first slicer for the printer that is installed, in the printer's preferred order. */
+export function detectSlicer(allowed: readonly SlicerKind[], installed: readonly SlicerInstall[]): SlicerKind {
+  return allowed.find((k) => installed.some((s) => s.kind === k)) ?? allowed[0]!;
+}

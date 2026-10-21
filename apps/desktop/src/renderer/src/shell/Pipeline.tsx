@@ -33,7 +33,8 @@ export function Pipeline({ state, phase, project, needsInput, opened, onPrinter,
   const slicerName = SLICER_KINDS[state.settings.slicer].name;
   const install = state.slicers.find((s) => s.kind === state.settings.slicer);
   const done = phase === 'done';
-  const locked = phase === 'converting' || done;
+  // Once a project is loaded its printer and slicer are fixed; change them before dropping.
+  const locked = Boolean(project) || phase !== 'idle';
 
   const printerState: StageState = done ? 'done' : needsInput ? 'needs' : phase === 'review' || phase === 'converting' ? 'active' : 'idle';
   const printerLabel = `${t.stage.printer}${printerState === 'done' ? ' ✓' : printerState === 'needs' ? ` · ${t.stage.needsInput}` : ''}`;

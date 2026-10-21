@@ -26,7 +26,7 @@ interface Props<T extends string> {
   /** Optional last item under a separator, e.g. "Manage slicers…". */
   action?: { label: string; icon?: ReactNode; onSelect: () => void };
   /** Replaces the trigger's look, e.g. a pipeline stage card; the trigger stays the same button. */
-  triggerClassName?: string;
+  triggerClassName?: string | undefined;
   renderTrigger?: (current: DropdownOption<T> | undefined) => ReactNode;
 }
 

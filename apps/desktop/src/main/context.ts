@@ -44,7 +44,9 @@ export class AppContext {
 
   async update(patch: Partial<Settings>, sanitize: (raw: unknown, base: Settings) => Settings): Promise<void> {
     const pathsChanged = patch.slicerPaths !== undefined;
-    this.settings = sanitize({ ...this.settings, ...patch }, this.settings);
+    // Switching printers without naming a slicer brings back the one that printer last used.
+    const saved = patch.printer && patch.slicer === undefined ? this.settings.printers.find((p) => p.model === patch.printer) : undefined;
+    this.settings = sanitize({ ...this.settings, ...patch, ...(saved && { slicer: saved.slicer }) }, this.settings);
     nativeTheme.themeSource = this.settings.theme;
     await saveSettings(app.getPath('userData'), this.settings);
     if (pathsChanged) await this.refreshSlicers();

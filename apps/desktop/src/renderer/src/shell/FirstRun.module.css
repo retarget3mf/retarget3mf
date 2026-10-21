@@ -1,0 +1,14 @@
+.page { flex: 1; display: flex; align-items: center; justify-content: center; padding: 30px; overflow-y: auto; }
+.card { width: 620px; max-width: 100%; display: flex; flex-direction: column; gap: 20px; }
+.title { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+.muted { color: var(--muted); margin: 4px 0 0; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: start; }
+.printer { padding: 12px 14px; }
+.slicer { flex-direction: column; align-items: stretch; gap: 0; padding: 12px 14px; }
+.iconArea { height: 150px; margin-bottom: 12px; border-radius: 8px; background: var(--bg); display: flex; align-items: center; justify-content: center; }
+.slicerTrigger { display: flex; width: 100%; border: none; background: none; padding: 0; text-align: left; }
+.found { color: var(--success); }
+.link { border: none; background: none; padding: 0; color: var(--accent-ink); font: inherit; }
+.check { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+.check input { accent-color: var(--accent); margin: 0; }
+.actions { display: flex; justify-content: flex-end; }

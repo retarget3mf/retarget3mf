@@ -19,7 +19,7 @@ test('a file opened from the OS converts straight away', async () => {
   writeFileSync(input, bambuProject());
   const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`, input], env: { ...process.env, RETARGET3MF_E2E_HOME: tmpdir() } });
   const page = await app.firstWindow();
-  await expect(page.getByRole('heading', { name: /Converted: cube - AD5X\.3mf/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Converted for AD5X' })).toBeVisible();
   expect(existsSync(join(dir, 'cube - AD5X.3mf'))).toBe(true);
   await page.screenshot({ path: 'e2e/.results/os-open-done.png' });
   await app.close();
@@ -35,7 +35,7 @@ test('a retarget3mf:// link downloads, converts and records where it came from',
     env: { ...process.env, RETARGET3MF_E2E_HOME: dir, RETARGET3MF_E2E_FIXTURE: fixture },
   });
   const page = await app.firstWindow();
-  await expect(page.getByRole('heading', { name: /Converted: cube - AD5X\.3mf/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Converted for AD5X' })).toBeVisible();
   expect(existsSync(join(dir, 'cube - AD5X.3mf'))).toBe(true);
   await page.getByRole('button', { name: 'History' }).click();
   await expect(page.getByRole('button', { name: 'Printables ↗' })).toBeVisible();
@@ -56,8 +56,7 @@ test('too many colours for the printer opens the review screen instead', async (
   writeFileSync(input, bambuProject());
   const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`, input], env: { ...process.env, RETARGET3MF_E2E_HOME: tmpdir() } });
   const page = await app.firstWindow();
-  await expect(page.getByRole('heading', { name: 'Test cube' })).toBeVisible();
-  await expect(page.getByText(/uses 2 colours but the printer has 1 slot/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'This project uses 2 colours but the printer has 1 slot.' })).toBeVisible();
   expect(existsSync(join(dir, 'cube - Adventurer 5M.3mf'))).toBe(false);
   await app.close();
 });

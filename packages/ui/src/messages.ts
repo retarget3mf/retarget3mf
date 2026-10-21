@@ -12,6 +12,10 @@ export interface UiMessages {
     chooseAnother: string;
     filamentsTo: (printer: string, kind: SlotKind) => string;
     tooMany: (used: number, slots: number, kind: SlotKind) => string;
+    /** The two sentences of `tooMany`, for layouts that show them apart. */
+    tooManyTitle: (used: number, slots: number, kind: SlotKind) => string;
+    combined: string;
+    filamentLabel: (n: number, type: string) => string;
     filament: (n: number, type: string, colour: string) => string;
     unused: (n: number, type: string) => string;
     slotFor: (n: number) => string;
@@ -39,7 +43,10 @@ const en: UiMessages = {
     madeFor: (printer, slicer, plates) => `Made for ${printer} in ${slicer} · ${plural('en', plates, { one: '{n} plate', other: '{n} plates' })}`,
     chooseAnother: 'Choose another file',
     filamentsTo: (printer, kind) => `Filaments → ${printer} ${{ semm: 'slots', toolheads: 'toolheads', single: 'extruder' }[kind]}`,
-    tooMany: (used, slots, kind) => `This project uses ${used} colours but the printer has ${plural('en', slots, kind === 'toolheads' ? { one: '{n} toolhead', other: '{n} toolheads' } : { one: '{n} slot', other: '{n} slots' })}. Similar colours were combined; adjust below.`,
+    tooManyTitle: (used, slots, kind) => `This project uses ${used} colours but the printer has ${plural('en', slots, kind === 'toolheads' ? { one: '{n} toolhead', other: '{n} toolheads' } : { one: '{n} slot', other: '{n} slots' })}.`,
+    combined: 'Similar colours were combined; adjust below.',
+    tooMany(used, slots, kind) { return `${this.tooManyTitle(used, slots, kind)} ${this.combined}`; },
+    filamentLabel: (n, type) => `Filament ${n} · ${type}`,
     filament: (n, type, colour) => `Filament ${n} · ${type} · ${colour}`,
     unused: (n, type) => `Filament ${n} · ${type} — not used by any object, will be removed`,
     slotFor: (n) => `Slot for filament ${n}`,
@@ -71,7 +78,10 @@ const pl: UiMessages = {
     madeFor: (printer, slicer, plates) => `Przygotowany dla ${printer} w ${slicer} · ${plural('pl', plates, { one: '{n} stół', few: '{n} stoły', other: '{n} stołów' })}`,
     chooseAnother: 'Wybierz inny plik',
     filamentsTo: (printer, kind) => `Filamenty → ${printer}, ${{ semm: 'sloty', toolheads: 'głowice', single: 'ekstruder' }[kind]}`,
-    tooMany: (used, slots, kind) => `Projekt używa ${plural('pl', used, { one: '{n} koloru', other: '{n} kolorów' })}, a drukarka ma ${plural('pl', slots, kind === 'toolheads' ? { one: '{n} głowicę', few: '{n} głowice', other: '{n} głowic' } : { one: '{n} slot', few: '{n} sloty', other: '{n} slotów' })}. Podobne kolory połączono; popraw poniżej.`,
+    tooManyTitle: (used, slots, kind) => `Projekt używa ${plural('pl', used, { one: '{n} koloru', other: '{n} kolorów' })}, a drukarka ma ${plural('pl', slots, kind === 'toolheads' ? { one: '{n} głowicę', few: '{n} głowice', other: '{n} głowic' } : { one: '{n} slot', few: '{n} sloty', other: '{n} slotów' })}.`,
+    combined: 'Podobne kolory połączono; popraw poniżej.',
+    tooMany(used, slots, kind) { return `${this.tooManyTitle(used, slots, kind)} ${this.combined}`; },
+    filamentLabel: (n, type) => `Filament ${n} · ${type}`,
     filament: (n, type, colour) => `Filament ${n} · ${type} · ${colour}`,
     unused: (n, type) => `Filament ${n} · ${type} — nieużywany przez żaden obiekt, zostanie usunięty`,
     slotFor: (n) => `Slot dla filamentu ${n}`,

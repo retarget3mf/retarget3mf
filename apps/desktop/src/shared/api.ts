@@ -7,12 +7,23 @@ export type SlicerKind = 'flashstudio' | 'orca' | 'bambustudio' | 'crealityprint
 export interface SlicerInstall { kind: SlicerKind; name: string; path: string; /** App icon as a data URL, read from the installed app. */ icon?: string }
 
 export type { Accent, Theme };
+/** A printer the user owns; each remembers its own slicer. */
+export interface SavedPrinter { model: PrinterId; slicer: SlicerKind }
+/** Which saved printer a dropped or OS-opened project is converted for. */
+export type DropTarget = 'last' | 'default' | 'ask';
+
 /** What happens when a .3mf is opened from the OS (double-click, "Open with"). */
 export type OpenMode = 'auto' | 'review';
 
 export interface Settings {
+  /** The current (last used) printer and its slicer; always one of `printers`. */
   printer?: PrinterId;
   slicer: SlicerKind;
+  printers: SavedPrinter[];
+  defaultPrinter?: PrinterId;
+  dropTarget: DropTarget;
+  /** Merge similar colours and convert without asking when a project has more colours than slots. */
+  autoCombine: boolean;
   /** Overrides for detected slicer locations. */
   slicerPaths: Partial<Record<SlicerKind, string>>;
   output: 'next-to-original' | 'app-folder';

@@ -8,15 +8,38 @@ import { compactMap, groupByVendor } from '@retarget3mf/ui';
 import { PRINTERS } from '@retarget3mf/core';
 import { describe, expect, it } from 'vitest';
 import { outputPathFor } from '../src/main/paths.ts';
-import { DEFAULT_SETTINGS, sanitizeSettings } from '../src/main/settings.ts';
+import { DEFAULT_SETTINGS, dropPrinter, sanitizeSettings } from '../src/main/settings.ts';
 import { launchCommand } from '../src/main/slicers.ts';
 import { pickSlicer, slicersFor } from '../src/renderer/src/slicerKinds.ts';
 import { browserRows } from '../src/renderer/src/components/BrowserSupport.tsx';
 
+describe('dropPrinter', () => {
+  const two = sanitizeSettings({ printer: 'qidi-q1-pro-0.4', slicer: 'orca', defaultPrinter: 'ad5x-0.4', printers: [{ model: 'ad5x-0.4', slicer: 'flashstudio' }] });
+  it('converts for the last printer used, the default one, or asks', () => {
+    expect(dropPrinter(two)).toEqual({ model: 'qidi-q1-pro-0.4', slicer: 'orca' });
+    expect(dropPrinter({ ...two, dropTarget: 'default' })).toEqual({ model: 'ad5x-0.4', slicer: 'flashstudio' });
+    expect(dropPrinter({ ...two, dropTarget: 'ask' })).toBeUndefined();
+  });
+  it('never asks with a single printer', () => {
+    expect(dropPrinter(sanitizeSettings({ printer: 'ad5x-0.4', dropTarget: 'ask' }))).toEqual({ model: 'ad5x-0.4', slicer: 'flashstudio' });
+  });
+});
+
 describe('sanitizeSettings', () => {
   it('keeps valid fields and drops unknown or malformed ones', () => {
     const s = sanitizeSettings({ printer: 'ad5x-0.4', slicer: 'orca', output: 'nope', slicerPaths: { orca: '/x', evil: '/y' }, extra: 1 });
-    expect(s).toEqual({ ...DEFAULT_SETTINGS, printer: 'ad5x-0.4', slicer: 'orca', slicerPaths: { orca: '/x' } });
+    expect(s).toEqual({ ...DEFAULT_SETTINGS, printer: 'ad5x-0.4', slicer: 'orca', slicerPaths: { orca: '/x' }, printers: [{ model: 'ad5x-0.4', slicer: 'orca' }], defaultPrinter: 'ad5x-0.4' });
+  });
+
+  it('saves the current printer with its slicer and keeps the others', () => {
+    const s = sanitizeSettings({ printer: 'qidi-q1-pro-0.4', slicer: 'orca', printers: [{ model: 'ad5x-0.4', slicer: 'flashstudio' }, { model: 'bogus' }, { model: 'ad5x-0.4' }] });
+    expect(s.printers).toEqual([{ model: 'ad5x-0.4', slicer: 'flashstudio' }, { model: 'qidi-q1-pro-0.4', slicer: 'orca' }]);
+    expect(s.defaultPrinter).toBe('ad5x-0.4');
+    expect(sanitizeSettings({ printer: 'ad5x-0.4', printers: [{ model: 'ad5x-0.4', slicer: 'bambustudio' }] }).printers[0]!.slicer).toBe('flashstudio');
+  });
+
+  it('upgrades a single-printer settings file to a one-printer list', () => {
+    expect(sanitizeSettings({ printer: 'ad5x-0.4', slicer: 'orca' })).toMatchObject({ printers: [{ model: 'ad5x-0.4', slicer: 'orca' }], defaultPrinter: 'ad5x-0.4', dropTarget: 'last', autoCombine: false });
   });
 
   it('keeps a known accent and falls back to lime', () => {

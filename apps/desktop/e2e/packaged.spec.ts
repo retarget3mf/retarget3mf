@@ -21,7 +21,7 @@ test('packaged app converts an OS-opened file and answers the browser through it
   mkdirSync(join(dir, 'Library/Application Support/Google/Chrome'), { recursive: true });
   const app = await electron.launch({ executablePath: exe, args: [`--user-data-dir=${userData}`, input], env: { ...process.env, HOME: dir } });
   const page = await app.firstWindow();
-  await expect(page.getByRole('heading', { name: /Converted: cube - AD5X\.3mf/ })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole('heading', { name: 'Converted for AD5X' })).toBeVisible({ timeout: 30_000 });
   expect(existsSync(join(dir, 'cube - AD5X.3mf'))).toBe(true);
 
   const launcher = join(userData, 'native-host', 'retarget3mf-host');
