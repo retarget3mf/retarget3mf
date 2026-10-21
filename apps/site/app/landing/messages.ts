@@ -5,7 +5,7 @@ interface Os { os: string; req: string; button: string }
 export interface LandingMessages {
   nav: { how: string; printers: string; extension: string; download: string; faq: string; open: string; coffee: string; github: string; menu: string; language: string };
   hero: { eyebrow: string; title: string; sub: string; cta: string; desktop: string; note: string };
-  plate: { label: string; madeFor: string; retargeted: string; colours: (n: number) => string; slots: (n: number) => string; chips: string[]; opens: (slicer: string) => string; caption: string };
+  plate: { label: string; madeFor: string; retargeted: string; colours: (n: number) => string; slots: (n: number) => string; chips: string[]; opens: string; caption: string };
   sites: { from: string; count: (printers: number, brands: number) => string };
   how: { title: string; steps: (printers: number) => { title: string; body: string }[] };
   printers: { title: string; sub: (printers: number, brands: number) => string; search: string; single: string; colours: (n: number) => string; heads: (n: number) => string; none: string };
@@ -27,7 +27,7 @@ const en: LandingMessages = {
     label: 'PLATE 1', madeFor: 'DOWNLOADED · MADE FOR', retargeted: 'RETARGETED FOR',
     colours: (n) => `${n} colours`, slots: (n) => `${n} slots`,
     chips: ['Printer profile', 'Nozzle & speeds', 'Plate size', 'Filament slots', 'Unused filaments removed'],
-    opens: (s) => `Opens in ${s} →`, caption: 'A six-colour plate made for one printer, recoloured to the four slots of another.',
+    opens: 'Opens in your slicer →', caption: 'A six-colour plate made for one printer, recoloured to the four slots of another.',
   },
   sites: { from: 'PROJECTS FROM', count: (p, b) => `FOR ${p} PRINTERS · ${b} BRANDS` },
   how: {
@@ -84,7 +84,7 @@ const pl: LandingMessages = {
     label: 'STÓŁ 1', madeFor: 'POBRANO · DLA', retargeted: 'PRZEROBIONO DLA',
     colours: (n) => plural('pl', n, { one: '{n} kolor', few: '{n} kolory', other: '{n} kolorów' }), slots: (n) => plural('pl', n, { one: '{n} slot', few: '{n} sloty', other: '{n} slotów' }),
     chips: ['Profil drukarki', 'Dysza i prędkości', 'Rozmiar stołu', 'Sloty filamentu', 'Nieużywane filamenty usunięte'],
-    opens: (s) => `Otwiera się w ${s} →`, caption: 'Sześciokolorowy stół przygotowany dla jednej drukarki, przekolorowany na cztery sloty innej.',
+    opens: 'Otwiera się w Twoim slicerze →', caption: 'Sześciokolorowy stół przygotowany dla jednej drukarki, przekolorowany na cztery sloty innej.',
   },
   sites: { from: 'PROJEKTY Z', count: (p, b) => `DLA ${p} DRUKAREK · ${b} MAREK` },
   how: {

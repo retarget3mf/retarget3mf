@@ -22,7 +22,7 @@ function Plate({ colours, label, target }: { colours: string[]; label: string; t
   );
 }
 
-export function PlateDemo({ from, to, slicer }: { from: string; to: string; slicer: string }) {
+export function PlateDemo({ from, to }: { from: string; to: string }) {
   const t = useT(LANDING_MESSAGES).plate;
   return (
     <figure className={styles.demo}>
@@ -53,7 +53,7 @@ export function PlateDemo({ from, to, slicer }: { from: string; to: string; slic
       <div className={styles.chips}>
         {t.chips.map((c) => <span key={c} className={styles.chip}><span className={styles.ink}>✓</span>{c}</span>)}
         <span className={styles.grow} />
-        <span className={styles.opens}>{t.opens(slicer)}</span>
+        <span className={styles.opens}>{t.opens}</span>
       </div>
     </figure>
   );

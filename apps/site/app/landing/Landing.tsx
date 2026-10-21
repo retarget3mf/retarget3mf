@@ -92,7 +92,7 @@ function Page({ locale, onLocale, theme, onTheme }: PageProps) {
               <a className={styles.secondary} href="#download">{t.hero.desktop}</a>
               <span className={styles.ctaNote}>{t.hero.note}</span>
             </div>
-            <PlateDemo from={name('bambu-x1c-0.4')} to={name('ad5x-0.4')} slicer="OrcaSlicer" />
+            <PlateDemo from={name('bambu-x1c-0.4')} to={name('ad5x-0.4')} />
           </div>
         </section>
 
