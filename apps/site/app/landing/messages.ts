@@ -3,6 +3,7 @@ import { plural, type Locale } from '@retarget3mf/ui/plural';
 interface Os { os: string; req: string; button: string }
 
 export interface LandingMessages {
+  meta: { title: string; description: string };
   nav: { how: string; printers: string; extension: string; download: string; faq: string; open: string; coffee: string; github: string; menu: string; language: string };
   hero: { eyebrow: string; title: string; sub: string; cta: string; desktop: string; note: string };
   plate: { label: string; madeFor: string; retargeted: string; colours: (n: number) => string; slots: (n: number) => string; chips: string[]; opens: string; caption: string };
@@ -16,6 +17,7 @@ export interface LandingMessages {
 }
 
 const en: LandingMessages = {
+  meta: { title: 'Retarget3MF: convert 3MF projects for your 3D printer', description: "Convert MakerWorld, Printables, Creality Cloud and Snapmaker Space 3MF projects for your printer: Bambu Lab, Prusa, Creality, Flashforge, Elegoo, Anycubic, Qidi or Sovol. Keeps the author's settings, fits the colours to your slots and opens your slicer. Free, open source, runs in your browser." },
   nav: { how: 'How it works', printers: 'Printers', extension: 'Extension', download: 'Download', faq: 'FAQ', open: 'Open converter', coffee: 'Buy me a coffee', github: 'GitHub', menu: 'Menu', language: 'Language' },
   hero: {
     eyebrow: 'FREE · RUNS IN YOUR BROWSER',
@@ -73,6 +75,7 @@ const en: LandingMessages = {
 };
 
 const pl: LandingMessages = {
+  meta: { title: 'Retarget3MF: konwerter projektów 3MF pod Twoją drukarkę 3D', description: 'Konwertuje projekty 3MF z MakerWorld, Printables, Creality Cloud i Snapmaker Space pod Twoją drukarkę: Bambu Lab, Prusa, Creality, Flashforge, Elegoo, Anycubic, Qidi lub Sovol. Zachowuje ustawienia autora, dopasowuje kolory do slotów i otwiera slicer. Za darmo, open source, działa w przeglądarce.' },
   nav: { how: 'Jak to działa', printers: 'Drukarki', extension: 'Rozszerzenie', download: 'Pobierz', faq: 'FAQ', open: 'Otwórz konwerter', coffee: 'Postaw kawę', github: 'GitHub', menu: 'Menu', language: 'Język' },
   hero: {
     eyebrow: 'ZA DARMO · DZIAŁA W PRZEGLĄDARCE',

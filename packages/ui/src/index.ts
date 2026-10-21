@@ -4,7 +4,7 @@ export { DropZone } from './DropZone.tsx';
 export { FilamentRows, Swatch } from './FilamentRows.tsx';
 export { ChevronDown, CoffeeIcon, GearIcon, GitHubIcon, ThemeIcon } from './icons.tsx';
 export { Logo } from './Logo.tsx';
-export { I18nProvider, LOCALES, LOCALE_NAMES, detectLocale, plural, useLocale, useT, type Locale } from './i18n.tsx';
+export { ENABLED_LOCALES, I18nProvider, LOCALES, LOCALE_NAMES, detectLocale, plural, useLocale, useT, type Locale } from './i18n.tsx';
 export { UI_MESSAGES, type UiMessages } from './messages.ts';
 export { PrinterPicker, PrinterSelect, groupByVendor, modelName, slotsLabel } from './PrinterPicker.tsx';
 export { ReportView } from './ReportView.tsx';

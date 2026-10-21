@@ -41,6 +41,16 @@ test('printer first, then convert and download, without leaving the site', async
   expect(foreign).toEqual([]);
 });
 
+test('remembers the printer and stays in English until other languages are enabled', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('retarget3mf.locale', 'pl'));
+  await page.goto('./');
+  await expect(page.getByLabel('Language')).toHaveCount(0);
+  await printerCard(page, 'Flashforge Creator 5').click();
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Open file…' })).toBeEnabled();
+  await expect(page.getByText('Runs entirely in your browser')).toBeVisible();
+});
+
 test('works offline once loaded', async ({ page, context }) => {
   await page.goto('./');
   await page.evaluate(() => navigator.serviceWorker.ready);

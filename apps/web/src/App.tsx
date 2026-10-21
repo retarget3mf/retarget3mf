@@ -3,7 +3,7 @@ import type { PrinterDefinition, PrinterId, SlicerId } from '@retarget3mf/core';
 import { suggestFilamentMap } from '@retarget3mf/core/suggest';
 import { PRINTERS, SLICER_NAMES } from '@retarget3mf/profiles/printers';
 import {
-  applyTheme, CoffeeIcon, Dropdown, DropZone, FilamentRows, GitHubIcon, I18nProvider, Logo, LOCALES, LOCALE_NAMES, PrinterPicker,
+  applyTheme, CoffeeIcon, Dropdown, DropZone, ENABLED_LOCALES, FilamentRows, GitHubIcon, I18nProvider, Logo, LOCALE_NAMES, PrinterPicker,
   ReportView, ThemeButton, UI_MESSAGES, detectLocale, useT, type Locale, type ProjectSummary, type Theme,
 } from '@retarget3mf/ui';
 import { issuesUrl, LINKS } from '@retarget3mf/ui/links';
@@ -26,7 +26,7 @@ const MAX_DOTS = 8;
 
 const initialLocale = (): Locale => {
   const saved = stored.get('locale');
-  return (LOCALES as readonly string[]).includes(saved ?? '') ? (saved as Locale) : detectLocale(navigator.languages);
+  return (ENABLED_LOCALES as readonly string[]).includes(saved ?? '') ? (saved as Locale) : detectLocale(navigator.languages);
 };
 const initialPrinter = () => PRINTERS.find((p) => p.id === stored.get('printer'))?.id;
 
@@ -104,12 +104,14 @@ function Page({ locale, onLocale }: { locale: Locale; onLocale: (l: Locale) => v
       <header className={styles.header}>
         <a className={styles.brand} href={SITE}><Logo size={22} /></a>
         <span className={styles.spacer} />
-        <label className={`${styles.language} ${styles.wideOnly}`}>
-          <span className={styles.visuallyHidden}>{t.language}</span>
-          <select value={locale} onChange={(e) => onLocale(e.target.value as Locale)} aria-label={t.language}>
-            {LOCALES.map((l) => <option key={l} value={l}>{LOCALE_NAMES[l]}</option>)}
-          </select>
-        </label>
+        {ENABLED_LOCALES.length > 1 && (
+          <label className={`${styles.language} ${styles.wideOnly}`}>
+            <span className={styles.visuallyHidden}>{t.language}</span>
+            <select value={locale} onChange={(e) => onLocale(e.target.value as Locale)} aria-label={t.language}>
+              {ENABLED_LOCALES.map((l) => <option key={l} value={l}>{LOCALE_NAMES[l]}</option>)}
+            </select>
+          </label>
+        )}
         <a className={`${styles.textLink} ${styles.wideOnly}`} href={`${SITE}#download`}>{t.getDesktop}</a>
         {LINKS.support && iconLink(LINKS.support, t.coffee, <CoffeeIcon />, true)}
         {LINKS.repo && iconLink(LINKS.repo, t.github, <GitHubIcon />)}

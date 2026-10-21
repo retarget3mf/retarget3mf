@@ -2,10 +2,11 @@
 import { useEffect, useState } from 'react';
 import { PRINTERS } from '@retarget3mf/profiles/printers';
 import {
-  applyTheme, CoffeeIcon, detectLocale, GitHubIcon, I18nProvider, LOCALES, LOCALE_NAMES, Logo, stored, ThemeButton, useT, type Locale, type Theme,
+  applyTheme, CoffeeIcon, ENABLED_LOCALES, GitHubIcon, I18nProvider, LOCALE_NAMES, Logo, stored, ThemeButton, useT, type Locale, type Theme,
 } from '@retarget3mf/ui';
 import { issuesUrl, LINKS, releaseNotesUrl } from '@retarget3mf/ui/links';
 import { asset } from '../../lib/links';
+import { localePath } from '../../lib/paths';
 import { LANDING_MESSAGES } from './messages';
 import { PlateDemo } from './PlateDemo';
 import { BRANDS, Download, Extension, Faq, HowItWorks, Printers } from './Sections';
@@ -14,22 +15,17 @@ import styles from './landing.module.css';
 const SITES = ['MakerWorld', 'Printables', 'Creality Cloud', 'Snapmaker Space'];
 const name = (id: string) => PRINTERS.find((p) => p.id === id)!.displayName;
 
-/** Static HTML renders in English; the visitor's stored or browser language takes over once the page runs. */
-export function Landing() {
-  const [locale, setLocale] = useState<Locale>('en');
+/** Each language is its own prerendered page; switching language goes to that page and remembers the choice. */
+export function Landing({ locale }: { locale: Locale }) {
+  // The boot script already applied the saved mode before paint; this only keeps the button in sync.
   const [theme, setTheme] = useState<Theme>('system');
-  useEffect(() => {
-    const saved = stored.get('locale');
-    setLocale((LOCALES as readonly string[]).includes(saved ?? '') ? (saved as Locale) : detectLocale(navigator.languages));
-    setTheme((stored.get('theme') as Theme | undefined) ?? 'system');
-  }, []);
-  useEffect(() => { document.documentElement.lang = locale; }, [locale]);
+  useEffect(() => setTheme((stored.get('theme') as Theme | undefined) ?? 'system'), []);
   useEffect(() => applyTheme(theme), [theme]);
   return (
     <I18nProvider locale={locale}>
       <Page
         locale={locale}
-        onLocale={(l) => { stored.set('locale', l); setLocale(l); }}
+        onLocale={(l) => { stored.set('locale', l); location.href = `${asset(localePath(l))}${location.hash}`; }}
         theme={theme}
         onTheme={(th) => { stored.set('theme', th); setTheme(th); }}
       />
@@ -41,9 +37,10 @@ interface PageProps { locale: Locale; onLocale: (l: Locale) => void; theme: Them
 
 function LanguageSelect({ locale, onLocale, className }: Pick<PageProps, 'locale' | 'onLocale'> & { className?: string | undefined }) {
   const t = useT(LANDING_MESSAGES).nav;
+  if (ENABLED_LOCALES.length < 2) return null;
   return (
     <select className={className} value={locale} aria-label={t.language} onChange={(e) => onLocale(e.target.value as Locale)}>
-      {LOCALES.map((l) => <option key={l} value={l}>{LOCALE_NAMES[l]}</option>)}
+      {ENABLED_LOCALES.map((l) => <option key={l} value={l}>{LOCALE_NAMES[l]}</option>)}
     </select>
   );
 }
