@@ -10,7 +10,7 @@ export type PrinterId =
   | 'bambu-x1-0.4' | 'bambu-x1c-0.4' | 'bambu-x1e-0.4' | 'bambu-h2s-0.4'
   | 'prusa-mk4s-0.4' | 'prusa-mk3s-0.4' | 'prusa-mini-0.4' | 'prusa-core-one-0.4' | 'prusa-xl-0.4'
   | 'creality-k1c-0.4' | 'creality-k1-max-0.4' | 'creality-k2-plus-0.4' | 'creality-hi-0.4' | 'creality-ender-3-v3-ke-0.4' | 'creality-ender-3-v3-se-0.4'
-  | 'elegoo-centauri-carbon-0.4' | 'elegoo-neptune-4-pro-0.4' | 'elegoo-neptune-4-max-0.4' | 'elegoo-neptune-3-pro-0.4' | 'anycubic-kobra-s1-0.4' | 'anycubic-kobra-3-0.4' | 'anycubic-kobra-2-neo-0.4'
+  | 'elegoo-centauri-carbon-0.4' | 'elegoo-neptune-4-pro-0.4' | 'elegoo-neptune-4-max-0.4' | 'elegoo-neptune-3-pro-0.4' | 'elegoo-neptune-3-plus-0.4' | 'elegoo-neptune-3-max-0.4' | 'anycubic-kobra-s1-0.4' | 'anycubic-kobra-3-0.4' | 'anycubic-kobra-2-neo-0.4'
   | 'qidi-q1-pro-0.4' | 'qidi-plus4-0.4' | 'qidi-q2-0.4' | 'sovol-sv06-0.4' | 'sovol-sv08-0.4';
 
 export interface PrinterDefinition {
@@ -136,6 +136,8 @@ export const PRINTERS: readonly PrinterDefinition[] = [
   orca('elegoo-neptune-4-pro-0.4', 'Elegoo', 'Neptune 4 Pro', 'Elegoo Neptune 4 Pro 0.4 nozzle', 1, 'single', 300, 110, { slicer: 'elegooslicer', machinePreset: 'Elegoo Neptune 4 Pro 0.4 nozzle' }),
   orca('elegoo-neptune-4-max-0.4', 'Elegoo', 'Neptune 4 Max', 'Elegoo Neptune 4 Max 0.4 nozzle', 1, 'single', 300, 95, { slicer: 'elegooslicer', machinePreset: 'Elegoo Neptune 4 Max 0.4 nozzle' }),
   orca('elegoo-neptune-3-pro-0.4', 'Elegoo', 'Neptune 3 Pro', 'Elegoo Neptune 3 Pro 0.4 nozzle', 1, 'single', 260, 110, { slicer: 'elegooslicer', machinePreset: 'Elegoo Neptune 3 Pro 0.4 nozzle' }),
+  orca('elegoo-neptune-3-plus-0.4', 'Elegoo', 'Neptune 3 Plus', 'Elegoo Neptune 3 Plus 0.4 nozzle', 1, 'single', 260, 110, { slicer: 'elegooslicer', machinePreset: 'Elegoo Neptune 3 Plus 0.4 nozzle' }),
+  orca('elegoo-neptune-3-max-0.4', 'Elegoo', 'Neptune 3 Max', 'Elegoo Neptune 3 Max 0.4 nozzle', 1, 'single', 260, 100, { slicer: 'elegooslicer', machinePreset: 'Elegoo Neptune 3 Max 0.4 nozzle' }),
   orca('anycubic-kobra-s1-0.4', 'Anycubic', 'Kobra S1', 'Anycubic Kobra S1 0.4 nozzle', 8, 'semm', 320, 120),
   orca('anycubic-kobra-3-0.4', 'Anycubic', 'Kobra 3', 'Anycubic Kobra 3 0.4 nozzle', 8, 'semm', 300, 110),
   orca('anycubic-kobra-2-neo-0.4', 'Anycubic', 'Kobra 2 Neo', 'Anycubic Kobra 2 Neo 0.4 nozzle', 1, 'single', 260, 110),
