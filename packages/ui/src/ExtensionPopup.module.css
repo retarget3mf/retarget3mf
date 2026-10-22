@@ -37,3 +37,10 @@
 .button { padding: 5px 10px; border-radius: 7px; background: var(--accent); color: var(--on-accent); font-weight: 600; font-size: 12px; }
 .hint { margin: 0; padding: 12px 14px; border-top: 1px solid var(--pop-line); font-size: 12px; color: var(--muted); text-wrap: pretty; }
 .hint b { color: var(--text); font-weight: 600; }
+
+.stores { display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-top: 1px solid var(--pop-line); font-size: 12px; color: var(--muted); }
+.stores > span:first-child { flex: 1; }
+.store { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 9px; border: 1px solid var(--pop-line); border-radius: 7px; color: var(--text); text-decoration: none; }
+.store:hover { border-color: var(--muted); }
+.storeSoon { color: var(--muted); opacity: 0.6; cursor: default; }
+.storeSoon:hover { border-color: var(--pop-line); }

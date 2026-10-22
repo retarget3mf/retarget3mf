@@ -1,5 +1,7 @@
 import type { PrinterDefinition, PrinterId, SlicerId } from '@retarget3mf/core';
 import { SLICER_NAMES } from '@retarget3mf/profiles/printers';
+import { ExternalIcon } from './icons.tsx';
+import { LINKS } from './links.ts';
 import { groupByVendor, modelName } from './PrinterPicker.tsx';
 import { plural, useT, type Locale } from './i18n.tsx';
 import icon from './brand/icon.svg';
@@ -11,6 +13,7 @@ interface PopupMessages {
   desktop: string; web: string; convertingFor: string; printer: string; slicer: string; choose: string;
   synced: string; webNote: string; offer: string; offerSub: string; hint: [string, string];
   getDesktop: string; getDesktopSub: string; download: string; slots: (n: number) => string;
+  stores: string; storeFor: (browser: string) => string; soon: string;
 }
 
 const en: PopupMessages = {
@@ -21,6 +24,7 @@ const en: PopupMessages = {
   hint: ["On MakerWorld, Printables, Creality Cloud and Snapmaker Space, open the site's download or slicer menu and pick", 'Open for …'],
   getDesktop: 'Get the desktop app', getDesktopSub: 'Opens results straight in your slicer.', download: 'Download',
   slots: (n) => plural('en', n, { one: '{n} slot', other: '{n} slots' }),
+  stores: 'Store pages', storeFor: (b) => `Retarget3MF for ${b}`, soon: 'Store page coming soon',
 };
 const pl: PopupMessages = {
   desktop: 'APLIKACJA', web: 'PRZEGLĄDARKA', convertingFor: 'KONWERSJA DLA', printer: 'DRUKARKA', slicer: 'SLICER', choose: 'Wybierz drukarkę',
@@ -30,8 +34,12 @@ const pl: PopupMessages = {
   hint: ['Na MakerWorld, Printables, Creality Cloud i Snapmaker Space otwórz menu pobierania lub slicera i wybierz', 'Open for …'],
   getDesktop: 'Aplikacja na komputer', getDesktopSub: 'Otwiera wynik od razu w slicerze.', download: 'Pobierz',
   slots: (n) => plural('pl', n, { one: '{n} slot', few: '{n} sloty', other: '{n} slotów' }),
+  stores: 'Strony w sklepach', storeFor: (b) => `Retarget3MF dla ${b}`, soon: 'Strona w sklepie wkrótce',
 };
 export const POPUP_MESSAGES: Record<Locale, PopupMessages> = { en, pl };
+
+/** The extension's store pages; greyed out until the URLs are filled in (links.ts). */
+const STORES = [{ name: 'Chrome', url: LINKS.chromeStore }, { name: 'Firefox', url: LINKS.firefoxAddons }];
 
 export interface ExtensionPopupProps {
   /** The desktop app answered: printer and slicer are its settings, and files go to it. */
@@ -97,6 +105,12 @@ export function ExtensionPopup({ connected, printers, printer, onPrinter, slicer
         )}
       </div>
       {connected && <p className={styles.hint}>{t.hint[0]} <b>{t.hint[1]}</b></p>}
+      <footer className={styles.stores}>
+        <span>{t.stores}</span>
+        {STORES.map(({ name, url }) => (url
+          ? <a key={name} className={styles.store} href={url} target="_blank" rel="noreferrer" aria-label={t.storeFor(name)} title={t.storeFor(name)}><ExternalIcon /><span>{name}</span></a>
+          : <span key={name} className={`${styles.store} ${styles.storeSoon}`} role="link" aria-disabled="true" aria-label={`${t.storeFor(name)} (${t.soon})`} title={t.soon}><ExternalIcon /><span>{name}</span></span>))}
+      </footer>
     </div>
   );
 }

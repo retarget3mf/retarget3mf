@@ -99,7 +99,8 @@ test('popup printer and slicer menus change the desktop app', async () => {
   // The popup's printer joins the app's saved printers and becomes the current one.
   await expect(window.getByRole('radio', { name: /X1 Carbon/ })).toHaveAttribute('aria-checked', 'true');
   await expect(window.getByRole('button', { name: /^Slicer: Bambu Studio/ })).toBeVisible();
-  await popup.setViewportSize({ width: 348, height: 400 });
+  await popup.setViewportSize({ width: 348, height: 470 });
+  await expect(popup.getByRole('link', { name: /Retarget3MF for Chrome/ })).toHaveAttribute('aria-disabled', 'true');
   await popup.screenshot({ path: 'e2e/.results/popup-light.png' });
   await popup.emulateMedia({ colorScheme: 'dark' });
   await popup.screenshot({ path: 'e2e/.results/popup-dark.png' });
