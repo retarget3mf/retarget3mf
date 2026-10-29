@@ -1,5 +1,10 @@
 name: Site and web app
 
+# The landing page is this repository's Pages site (custom domain retarget3mf.app, set in Settings → Pages).
+# The converter is published to a second repository whose Pages site serves app.retarget3mf.app; set the
+# repository variable APP_PAGES_REPO (owner/name) and the secret APP_DEPLOY_KEY (a deploy key with write access
+# to that repository). Without them, the converter is published at app/ next to the landing page.
+
 on:
   push:
     branches: [main]
@@ -14,6 +19,9 @@ concurrency:
   group: pages
   cancel-in-progress: true
 
+env:
+  APP_DOMAIN: app.retarget3mf.app
+
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -25,12 +33,21 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - id: pages
         uses: actions/configure-pages@v5
-      # Landing page at the root, the web app next to it at app/ (it uses relative paths).
       - run: pnpm -C apps/site build
-        env: { PAGES_BASE_PATH: '${{ steps.pages.outputs.base_path }}', SITE_URL: '${{ steps.pages.outputs.base_url }}', NEXT_TELEMETRY_DISABLED: '1' }
-      - run: pnpm -C apps/web build && cp -R apps/web/dist apps/site/out/app
+        env:
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          SITE_URL: ${{ steps.pages.outputs.base_url }}
+          NEXT_PUBLIC_APP_URL: ${{ vars.APP_PAGES_REPO && format('https://{0}', env.APP_DOMAIN) || '' }}
+          NEXT_TELEMETRY_DISABLED: '1'
+      - run: pnpm -C apps/web build
+      - name: Converter next to the landing page (no separate app repository configured)
+        if: vars.APP_PAGES_REPO == ''
+        run: cp -R apps/web/dist apps/site/out/app
       - uses: actions/upload-pages-artifact@v3
         with: { path: apps/site/out }
+      - uses: actions/upload-artifact@v4
+        if: vars.APP_PAGES_REPO != ''
+        with: { name: web-app, path: apps/web/dist, retention-days: 1 }
 
   deploy:
     needs: build
@@ -41,3 +58,23 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # Pushes the built converter to the app repository's gh-pages branch (Pages source: that branch).
+  deploy-app:
+    needs: build
+    if: vars.APP_PAGES_REPO != ''
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: web-app, path: dist }
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          deploy_key: ${{ secrets.APP_DEPLOY_KEY }}
+          external_repository: ${{ vars.APP_PAGES_REPO }}
+          publish_branch: gh-pages
+          publish_dir: dist
+          cname: ${{ env.APP_DOMAIN }}
+          force_orphan: true
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          commit_message: 'deploy: ${{ github.sha }}'

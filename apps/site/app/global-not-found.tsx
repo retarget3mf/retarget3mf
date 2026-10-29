@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Logo } from '@retarget3mf/ui/logo';
 import { Document, viewport } from '../lib/document';
-import { asset } from '../lib/links';
+import { appHref, asset } from '../lib/links';
 import styles from './not-found.module.css';
 
 export const metadata: Metadata = {
@@ -27,7 +27,7 @@ export default function GlobalNotFound() {
         <h1 className={styles.title}>This page isn’t on the plate.</h1>
         <p className={styles.text}>The link may be old or mistyped. The converter and everything else are still where they were.</p>
         <div className={styles.actions}>
-          <a className={styles.primary} href={asset('/app/')}>Open the converter →</a>
+          <a className={styles.primary} href={appHref()}>Open the converter →</a>
           <a className={styles.secondary} href={asset('/')}>Go to the home page</a>
         </div>
       </main>

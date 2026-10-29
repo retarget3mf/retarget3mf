@@ -3,7 +3,7 @@
 Retarget3MF converts 3D-printing projects (.3mf with print settings) made for one printer so they open correctly in the slicer of **your** printer: the right printer and filament profiles, filaments mapped to your slots, objects placed on your bed, and the author's settings (layer height, walls, infill, supports, paint) kept where they make sense.
 
 - **Desktop app** (macOS, Windows, Linux): drop a file, or double-click a .3mf, and it converts and opens your slicer.
-- **Web app**: the same conversion in any modern browser, nothing to install. It works offline once opened and gives you the converted file to download. Published to GitHub Pages from `main`, in English and Polish.
+- **Web app**: the same conversion in any modern browser, nothing to install. It works offline once opened and gives you the converted file to download. Live at [app.retarget3mf.app](https://app.retarget3mf.app); the landing page is [retarget3mf.app](https://retarget3mf.app). Both are published to GitHub Pages from `main`.
 - **Browser extension** (Chrome-family browsers and Firefox): adds **Open for <your printer>** to the download menus of MakerWorld, Printables, Creality Cloud and Snapmaker Space.
 
 Everything runs on your computer. Nothing is uploaded, there is no account and no telemetry.

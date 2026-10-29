@@ -5,7 +5,7 @@ import {
   applyTheme, CoffeeIcon, ENABLED_LOCALES, GitHubIcon, I18nProvider, LOCALE_NAMES, Logo, stored, ThemeButton, useT, type Locale, type Theme,
 } from '@retarget3mf/ui';
 import { issuesUrl, LINKS, releaseNotesUrl } from '@retarget3mf/ui/links';
-import { asset } from '../../lib/links';
+import { appHref, asset } from '../../lib/links';
 import { localePath } from '../../lib/paths';
 import { LANDING_MESSAGES } from './messages';
 import { PlateDemo } from './PlateDemo';
@@ -48,7 +48,7 @@ function LanguageSelect({ locale, onLocale, className }: Pick<PageProps, 'locale
 function Page({ locale, onLocale, theme, onTheme }: PageProps) {
   const t = useT(LANDING_MESSAGES);
   const [menu, setMenu] = useState(false);
-  const app = asset('/app/');
+  const app = appHref();
   const links = [['#how', t.nav.how], ['#printers', t.nav.printers], ['#extension', t.nav.extension], ['#download', t.nav.download], ['#faq', t.nav.faq]] as const;
   return (
     <>
