@@ -3,7 +3,7 @@ export const LINKS = {
   /** GitHub repository, e.g. https://github.com/owner/retarget3mf */
   repo: '',
   /** Buy Me a Coffee (or similar) page. */
-  support: '',
+  support: 'https://buymeacoffee.com/retarget3mf',
   /** The extension's store pages. */
   chromeStore: '',
   firefoxAddons: '',

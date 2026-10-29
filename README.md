@@ -87,6 +87,10 @@ Layout: `packages/core` (conversion), `packages/profiles` (printer definitions a
 2. Run `pnpm sync-profiles`, then `pnpm test`.
 3. Run `pnpm slice-check` with the target slicers installed and include the result in the pull request.
 
+## Support
+
+Retarget3MF is free. If it saved you a print, you can [buy me a coffee](https://buymeacoffee.com/retarget3mf).
+
 ## License
 
 [AGPL-3.0-or-later](LICENSE). Test fixtures from PrusaSlicer and Creality Print are AGPL-3.0 as well ([fixtures/README](packages/core/test/fixtures/README.md)).
