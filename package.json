@@ -16,7 +16,6 @@
     "sync-profiles": "node packages/profiles/scripts/sync-profiles.ts",
     "slice-check": "node packages/core/scripts/slice-check.ts",
     "web": "pnpm -C apps/web dev",
-    "icons": "node packages/ui/scripts/render-icons.ts",
     "site": "pnpm -C apps/site dev"
   },
   "devDependencies": {

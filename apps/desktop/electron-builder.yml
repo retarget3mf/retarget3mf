@@ -28,8 +28,10 @@ mac:
     - { target: dmg, arch: [universal] }
     - { target: zip, arch: [universal] }
   category: public.app-category.productivity
+  icon: build/icon.icns
 win:
   target: nsis
+  icon: build/icon.ico
 nsis:
   oneClick: false
   perMachine: false
@@ -37,6 +39,7 @@ nsis:
 linux:
   target: [AppImage, deb]
   executableName: retarget3mf
+  icon: build/icons
   category: Graphics
   mimeTypes: [model/3mf]
 deb:

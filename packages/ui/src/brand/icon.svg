@@ -1,13 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-  <rect x="100" y="100" width="824" height="824" rx="185" fill="#15171C"/>
-  <polygon points="512,342 659,427 512,512 365,427" fill="#5FA0F2"/>
-  <polygon points="365,427 512,512 512,682 365,597" fill="#2F86EE"/>
-  <polygon points="512,512 659,427 659,597 512,682" fill="#0B66D0"/>
-  <circle cx="512" cy="512" r="300" fill="none" stroke="#E6E9EE" stroke-width="26" stroke-dasharray="411 60" stroke-dashoffset="-30" transform="rotate(45 512 512)"/>
-  <g stroke="#E6E9EE" stroke-width="26" stroke-linecap="round">
-    <line x1="512" y1="182" x2="512" y2="252"/>
-    <line x1="512" y1="772" x2="512" y2="842"/>
-    <line x1="182" y1="512" x2="252" y2="512"/>
-    <line x1="772" y1="512" x2="842" y2="512"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 128 128"><defs><linearGradient id="r3mf-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2c2e33"></stop><stop offset="1" stop-color="#121315"></stop></linearGradient><radialGradient id="r3mf-gl" cx="0.5" cy="0.35" r="0.7"><stop offset="0" stop-color="#C8F04B" stop-opacity=".22"></stop><stop offset="1" stop-color="#C8F04B" stop-opacity="0"></stop></radialGradient></defs><rect width="128" height="128" rx="29" fill="url(#r3mf-bg)"></rect><rect width="128" height="128" rx="29" fill="url(#r3mf-gl)"></rect><rect x="1" y="1" width="126" height="126" rx="28" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="1.5"></rect><circle cx="64" cy="64" r="48" fill="none" stroke="#C8F04B" stroke-opacity=".14" stroke-width="2"></circle><circle cx="64" cy="64" r="36" fill="none" stroke="#C8F04B" stroke-opacity=".28" stroke-width="2"></circle><circle cx="64" cy="64" r="24" fill="#C8F04B" fill-opacity=".08" stroke="#C8F04B" stroke-opacity=".5" stroke-width="2"></circle><path d="M64 8V20M64 108V120M8 64H20M108 64H120" stroke="#e9e9ea" stroke-width="4" stroke-linecap="round"></path><polygon points="64,45 81,54.5 64,64 47,54.5" fill="#C8F04B"></polygon><polygon points="47,54.5 64,64 64,83 47,73.5" fill="#8FB12A"></polygon><polygon points="64,64 81,54.5 81,73.5 64,83" fill="#5F7A14"></polygon><path d="M47 58.3L64 67.8M47 62.1L64 71.6M47 65.9L64 75.4M47 69.7L64 79.2M64 67.8L81 58.3M64 71.6L81 62.1M64 75.4L81 65.9M64 79.2L81 69.7" stroke="#121315" stroke-opacity=".25" stroke-width="1"></path></svg>

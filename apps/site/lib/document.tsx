@@ -27,7 +27,10 @@ export function metadataFor(locale: Locale): Metadata {
     description,
     applicationName: SITE_NAME,
     keywords: ['3MF', '3MF converter', 'MakerWorld', 'Printables', 'Creality Cloud', 'Snapmaker Space', 'Bambu Studio', 'OrcaSlicer', 'PrusaSlicer', 'Flashforge', 'Prusa', 'Creality', 'Elegoo', 'Anycubic', 'Qidi', 'Sovol', 'multi-colour', 'AMS', '3D printing'],
-    icons: { icon: asset('/favicon.svg') },
+    icons: {
+      icon: [{ url: asset('/favicon.ico'), sizes: 'any' }, { url: asset('/favicon.svg'), type: 'image/svg+xml' }],
+      apple: asset('/apple-touch-icon.png'),
+    },
     openGraph: {
       type: 'website', siteName: SITE_NAME, title, description, locale: OG_LOCALES[locale],
       images: [{ url: asset('/og.png'), width: 1200, height: 630, alt: LANDING_MESSAGES.en.meta.title }],

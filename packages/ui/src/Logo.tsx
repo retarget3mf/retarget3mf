@@ -1,5 +1,6 @@
 /// <reference path="./assets.d.ts" />
-import icon from './brand/icon.svg';
+// The simplified mark: the full icon's fine rings blur below 32 px (retarget3mf-icons README).
+import icon from './brand/icon-small.svg';
 
 const iconUrl = typeof icon === 'string' ? icon : icon.src;
 import styles from './Logo.module.css';

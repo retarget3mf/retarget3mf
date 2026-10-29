@@ -1,4 +1,4 @@
-import iconSvg from '@retarget3mf/ui/icon.svg?raw';
+import iconSvg from '@retarget3mf/ui/icon-small.svg?raw';
 import { buildOpenLink, isAllowedDownloadUrl, parseSlicerLink, type OpenLink } from '@retarget3mf/bridge';
 import { findImportButton, findMenu, findSlicerTarget, MARKER, siteFor } from '../src/sites.ts';
 import { idleLabel, type AppStatus, type ButtonState, type DownloadOffer, type ToBackground } from '../src/messages.ts';
