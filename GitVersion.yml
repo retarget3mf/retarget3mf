@@ -1,0 +1,4 @@
+# Versions come from git: a tag v1.2.3 builds exactly 1.2.3; other commits get the next version with a
+# pre-release label. CI writes the result into the apps (scripts/set-version.ts).
+workflow: GitHubFlow/v1
+next-version: 0.1.0

@@ -1,0 +1,15 @@
+name: Version
+description: Computes the version with GitVersion (needs a checkout with fetch-depth 0) and writes it into the apps.
+outputs:
+  semVer:
+    description: The computed SemVer, e.g. 1.2.3 on a tag or 1.2.4-alpha.3 between releases.
+    value: ${{ steps.gitversion.outputs.semVer }}
+runs:
+  using: composite
+  steps:
+    - uses: gittools/actions/gitversion/setup@v4.7.0
+      with: { versionSpec: '6.8.x' }
+    - id: gitversion
+      uses: gittools/actions/gitversion/execute@v4.7.0
+    - shell: bash
+      run: node scripts/set-version.ts "${{ steps.gitversion.outputs.semVer }}"

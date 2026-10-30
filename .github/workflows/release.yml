@@ -17,10 +17,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/version
       - run: pnpm test
       - name: Build installers
         shell: bash
@@ -48,10 +50,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/version
       - run: pnpm -C apps/extension zip
       - name: Attach extension zips to the draft release
         env: { GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
