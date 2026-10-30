@@ -10,7 +10,7 @@ export const LINKS = {
   privacy: 'https://retarget3mf.app/privacy/',
   /** The extension's store pages. */
   chromeStore: '',
-  firefoxAddons: '',
+  firefoxAddons: 'https://addons.mozilla.org/firefox/addon/retarget3mf/',
 };
 
 export const releasesUrl = LINKS.repo ? `${LINKS.repo}/releases/latest` : '';
