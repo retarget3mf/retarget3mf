@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ACCENTS, Dropdown, ExternalIcon, UI_MESSAGES, useT, type Accent, type Theme } from '@retarget3mf/ui';
 import { issuesUrl, licenseUrl, LINKS, releaseNotesUrl } from '@retarget3mf/ui/links';
 import iconUrl from '@retarget3mf/ui/icon.svg';
@@ -187,14 +187,16 @@ export function AppearancePage({ state, onChange }: { state: AppState; onChange:
   );
 }
 
-interface AboutProps { state: AppState; historyCount: number; onChange: Change; onCheck: () => Promise<UpdateStatus>; onClearHistory: () => void }
+interface AboutProps { state: AppState; historyCount: number; onChange: Change; onCheck: () => Promise<UpdateStatus>; onInstall: () => Promise<void>; onClearHistory: () => void }
 
-export function AboutPage({ state, historyCount, onChange, onCheck, onClearHistory }: AboutProps) {
+export function AboutPage({ state, historyCount, onChange, onCheck, onInstall, onClearHistory }: AboutProps) {
   const t = useT(SETTINGS_MESSAGES).about;
   const [status, setStatus] = useState<UpdateStatus | 'checking'>();
   const [confirming, setConfirming] = useState(false);
+  const check = async () => { setStatus('checking'); setStatus(await onCheck()); };
+  useEffect(() => { if (state.packaged) void check(); }, []);
   const statusText = status === 'checking' ? t.checking
-    : status?.kind === 'available' ? t.available(status.version!)
+    : status?.kind === 'available' || status?.kind === 'ready' ? t.available(status.version!)
     : status?.kind === 'error' ? t.failed
     : status?.kind === 'current' ? t.current
     : state.packaged ? '' : t.devBuild;
@@ -204,11 +206,15 @@ export function AboutPage({ state, historyCount, onChange, onCheck, onClearHisto
       <div className={styles.aboutHead}>
         <img className={styles.aboutIcon} src={typeof iconUrl === 'string' ? iconUrl : iconUrl.src} alt="" />
         <div className={styles.grow}><strong style={{ fontSize: 16 }}>Retarget3MF</strong><span className={styles.sub}>{[t.version(state.version), statusText].filter(Boolean).join(' · ')}</span></div>
-        <button type="button" disabled={status === 'checking'} onClick={async () => { setStatus('checking'); setStatus(await onCheck()); }}>{t.check}</button>
+        {status !== 'checking' && (status?.kind === 'available' || status?.kind === 'ready')
+          ? <button type="button" className="primary" onClick={() => void onInstall()}>{status.canInstall ? t.restart : t.download(status.version!)}</button>
+          : <button type="button" disabled={status === 'checking'} onClick={() => void check()}>{t.check}</button>}
       </div>
-      <div className={styles.panel}>
-        <ToggleRow label={t.autoUpdate} checked={state.settings.autoUpdate} onChange={(autoUpdate) => onChange({ autoUpdate })} />
-      </div>
+      {state.canSelfUpdate && (
+        <div className={styles.panel}>
+          <ToggleRow label={t.autoUpdate} checked={state.settings.autoUpdate} onChange={(autoUpdate) => onChange({ autoUpdate })} />
+        </div>
+      )}
       <Group title={t.history}>
         <Row>
           <label className={styles.grow} htmlFor="retention">{t.keep}</label>

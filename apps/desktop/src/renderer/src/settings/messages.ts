@@ -17,7 +17,7 @@ export interface SettingsMessages {
   browser: { intro: string; chromiumRow: string; get: (browser: string) => string; soon: string; files: string; modes: Record<OpenMode, string>; which: string; chromium: (examples: string) => string; found: (list: string) => string; noneFound: string; states: Record<'ready' | 'failed' | 'missing' | 'unsupported', string>; safari: string; links: string; linksToggle: string; linksHint: string };
   appearance: { theme: string; accent: string; preview: string; previewButton: (slicer: string) => string; previewLink: string; previewRow: string; accents: Record<string, string> };
   about: {
-    version: (v: string) => string; current: string; available: (v: string) => string; devBuild: string; failed: string; check: string; checking: string;
+    version: (v: string) => string; current: string; available: (v: string) => string; devBuild: string; failed: string; check: string; checking: string; restart: string; download: (v: string) => string;
     autoUpdate: string; history: string; keep: string; retention: Record<HistoryRetention, string>; count: (n: number) => string;
     clear: string; clearConfirm: string; cancel: string; report: string; notes: string; licenses: string; privacy: string;
   };
@@ -66,7 +66,7 @@ const en: SettingsMessages = {
   },
   about: {
     version: (v) => `Version ${v}`, current: 'up to date', available: (v) => `version ${v} is available`, devBuild: 'updates are checked in installed builds',
-    failed: 'could not check for updates', check: 'Check for updates', checking: 'Checking…',
+    failed: 'could not check for updates', check: 'Check for updates', checking: 'Checking…', restart: 'Restart to update', download: (v) => `Download ${v}`,
     autoUpdate: 'Download updates automatically', history: 'History', keep: 'Keep conversion history',
     retention: { forever: 'Forever', 365: 'For a year', 90: 'For 90 days', 30: 'For 30 days' },
     count: (n) => plural('en', n, { one: '{n} conversion', other: '{n} conversions' }),
@@ -117,7 +117,7 @@ const pl: SettingsMessages = {
   },
   about: {
     version: (v) => `Wersja ${v}`, current: 'aktualna', available: (v) => `dostępna wersja ${v}`, devBuild: 'aktualizacje są sprawdzane w zainstalowanej wersji',
-    failed: 'nie udało się sprawdzić aktualizacji', check: 'Sprawdź aktualizacje', checking: 'Sprawdzam…',
+    failed: 'nie udało się sprawdzić aktualizacji', check: 'Sprawdź aktualizacje', checking: 'Sprawdzam…', restart: 'Uruchom ponownie, aby zaktualizować', download: (v) => `Pobierz ${v}`,
     autoUpdate: 'Pobieraj aktualizacje automatycznie', history: 'Historia', keep: 'Przechowuj historię konwersji',
     retention: { forever: 'Zawsze', 365: 'Rok', 90: '90 dni', 30: '30 dni' },
     count: (n) => plural('pl', n, { one: '{n} konwersja', few: '{n} konwersje', other: '{n} konwersji' }),

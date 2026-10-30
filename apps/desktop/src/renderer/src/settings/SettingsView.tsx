@@ -16,6 +16,7 @@ interface Props {
   onAddPrinter: () => void;
   onPickFolder: () => void;
   onCheckUpdates: () => Promise<UpdateStatus>;
+  onInstallUpdate: () => Promise<void>;
   onClearHistory: () => void;
   onBack: () => void;
   initialPage?: Page | undefined;
@@ -42,7 +43,7 @@ export function SettingsView(props: Props) {
           {page === 'converting' && <ConvertingPage state={state} onChange={onChange} onPickFolder={props.onPickFolder} />}
           {page === 'browser' && <BrowserPage state={state} onChange={onChange} />}
           {page === 'appearance' && <AppearancePage state={state} onChange={onChange} />}
-          {page === 'about' && <AboutPage state={state} historyCount={props.historyCount} onChange={onChange} onCheck={props.onCheckUpdates} onClearHistory={props.onClearHistory} />}
+          {page === 'about' && <AboutPage state={state} historyCount={props.historyCount} onChange={onChange} onCheck={props.onCheckUpdates} onInstall={props.onInstallUpdate} onClearHistory={props.onClearHistory} />}
         </div>
       </div>
     </div>

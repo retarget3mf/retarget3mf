@@ -28,6 +28,7 @@ const api: DesktopApi = {
   clearHistory: () => ipcRenderer.invoke('history:clear'),
   pickOutputFolder: () => ipcRenderer.invoke('folder:pick'),
   checkForUpdates: () => ipcRenderer.invoke('update:check'),
+  installUpdate: () => ipcRenderer.invoke('update:install'),
   openSourcePage: (id) => ipcRenderer.invoke('history:source', id),
 };
 

@@ -60,6 +60,8 @@ export interface AppState {
   version: string;
   /** Installed builds update themselves; development runs do not. */
   packaged: boolean;
+  /** False on macOS: unsigned builds cannot replace themselves, so updates are downloaded by hand. */
+  canSelfUpdate: boolean;
 }
 
 export interface InspectResult {
@@ -102,7 +104,8 @@ export type AppEvent =
   /** Printer or slicer changed from outside the window (the extension popup). */
   | { kind: 'settings-changed' };
 
-export type UpdateStatus = { kind: 'current' | 'available' | 'unavailable' | 'error'; version?: string; message?: string };
+/** `ready`: downloaded and waiting for a restart. `canInstall` is false on unsigned macOS builds, which download by hand. */
+export type UpdateStatus = { kind: 'current' | 'available' | 'ready' | 'unavailable' | 'error'; version?: string; message?: string; canInstall?: boolean };
 
 export type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
@@ -131,6 +134,7 @@ export interface DesktopApi {
   /** Chooses the folder for converted files and switches output to it. */
   pickOutputFolder(): Promise<AppState>;
   checkForUpdates(): Promise<UpdateStatus>;
+  installUpdate(): Promise<void>;
   /** Opens a model page in the default browser; only known model-site pages are accepted. */
   openSourcePage(id: string): Promise<void>;
 }

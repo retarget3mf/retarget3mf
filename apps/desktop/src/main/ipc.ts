@@ -7,7 +7,7 @@ import type { ConvertRequest, ConvertResult, SlicerKind } from '../shared/api.ts
 import type { AppContext } from './context.ts';
 import { assertProjectPath, convertProject, inspectProject, openInSlicer } from './conversion.ts';
 import { cancelWorker } from './converter.ts';
-import { checkNow } from './updates.ts';
+import { checkNow, installUpdate } from './updates.ts';
 import { sanitizeSettings } from './settings.ts';
 import { SLICER_NAMES } from './slicers.ts';
 
@@ -34,6 +34,7 @@ export function registerIpc(ctx: AppContext): void {
     return ctx.state();
   });
   ipcMain.handle('update:check', () => checkNow(ctx.settings.autoUpdate));
+  ipcMain.handle('update:install', () => installUpdate());
   ipcMain.handle('slicer:pick', async (_e, kind: SlicerKind) => {
     if (!(kind in SLICER_NAMES)) return ctx.state();
     const r = await dialog.showOpenDialog(ctx.window!, { title: `Locate ${SLICER_NAMES[kind]}`, properties: ['openFile', 'treatPackageAsDirectory'] });

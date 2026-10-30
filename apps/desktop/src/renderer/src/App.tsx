@@ -255,6 +255,7 @@ function Main() {
               onAddPrinter={() => setCatalogue('add')}
               onPickFolder={async () => setState(await api.pickOutputFolder())}
               onCheckUpdates={() => api.checkForUpdates()}
+              onInstallUpdate={() => api.installUpdate()}
               onClearHistory={async () => setHistory(await api.clearHistory())}
               onBack={() => setStage({ kind: 'idle' })}
             />

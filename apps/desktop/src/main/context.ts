@@ -6,6 +6,7 @@ import { History } from './history.ts';
 import { saveSettings } from './settings.ts';
 import { macAppIcon } from './appIcon.ts';
 import { discoverSlicers } from './slicers.ts';
+import { canInstall } from './updates.ts';
 
 /** Main-process state shared by IPC handlers, the window and the OS-open fast path. */
 export class AppContext {
@@ -34,7 +35,7 @@ export class AppContext {
   async state(): Promise<AppState> {
     return {
       settings: this.settings, printers: PRINTERS, slicers: await this.slicers, outputFolder: this.outputFolder, browsers: this.browsers,
-      version: app.getVersion(), packaged: app.isPackaged,
+      version: app.getVersion(), packaged: app.isPackaged, canSelfUpdate: canInstall,
     };
   }
 
