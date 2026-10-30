@@ -26,13 +26,13 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - id: pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - run: pnpm -C apps/site build
         env:
           PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
@@ -43,9 +43,9 @@ jobs:
       - name: Converter next to the landing page (no separate app repository configured)
         if: vars.APP_PAGES_REPO == ''
         run: cp -R apps/web/dist apps/site/out/app
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with: { path: apps/site/out }
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: vars.APP_PAGES_REPO != ''
         with: { name: web-app, path: apps/web/dist, retention-days: 1 }
 
@@ -57,7 +57,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   # Pushes the built converter to the app repository's gh-pages branch (Pages source: that branch).
   deploy-app:
@@ -65,7 +65,7 @@ jobs:
     if: vars.APP_PAGES_REPO != ''
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with: { name: web-app, path: dist }
       - uses: peaceiris/actions-gh-pages@v4
         with:
