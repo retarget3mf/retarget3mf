@@ -60,6 +60,8 @@ jobs:
             apps/desktop/dist/*.deb
           retention-days: 7
 
+  # The extension ships through the stores (publish-extension.yml), so its zips are only a workflow artifact.
+  # Blockmaps only make updates smaller; electron-updater falls back to a full download without them.
   extension:
     needs: desktop
     runs-on: ubuntu-24.04
@@ -73,9 +75,10 @@ jobs:
       - uses: ./.github/actions/version
       - run: pnpm -C apps/extension zip
       - uses: actions/upload-artifact@v7
-        if: github.ref_type != 'tag'
-        with: { name: extension, path: apps/extension/dist/*.zip, retention-days: 7 }
-      - name: Attach extension zips to the draft release
+        with: { name: extension, path: apps/extension/dist/*.zip, retention-days: 30 }
+      - name: Keep only installers and update files on the release
         if: github.ref_type == 'tag'
         env: { GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
-        run: gh release upload "$GITHUB_REF_NAME" apps/extension/dist/*.zip --clobber --repo "$GITHUB_REPOSITORY"
+        run: |
+          gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name | select(endswith(".blockmap"))' |
+            while read -r name; do gh release delete-asset "$GITHUB_REF_NAME" "$name" --yes --repo "$GITHUB_REPOSITORY"; done
