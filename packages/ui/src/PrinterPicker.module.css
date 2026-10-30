@@ -1,6 +1,10 @@
 .groups { display: flex; flex-direction: column; gap: 14px; align-self: stretch; width: 100%; }
 .group { border: none; margin: 0; padding: 0; }
-.group legend { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+.brands { display: flex; flex-wrap: wrap; gap: 6px; }
+.brand { padding: 6px 12px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; }
+.brand:hover { color: var(--text); border-color: var(--muted); }
+.brand[aria-pressed='true'] { color: var(--on-accent); background: var(--accent); border-color: var(--accent); font-weight: 600; }
+.visuallyHidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
 .card { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); cursor: pointer; transition: border-color 120ms, box-shadow 120ms; }
 .card:hover { border-color: var(--muted); }

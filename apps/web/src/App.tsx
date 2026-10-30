@@ -21,7 +21,7 @@ type Stage =
   | ({ kind: 'done' | 'report'; result: Converted; fileName: string } & Loaded);
 
 /** The landing page sits one level up (the app is deployed at app/). */
-const SITE = '../';
+const SITE = LINKS.site;
 const MAX_DOTS = 8;
 
 const initialLocale = (): Locale => {

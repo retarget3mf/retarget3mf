@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { PrinterDefinition, PrinterId } from '@retarget3mf/core';
 import { Dropdown } from './Dropdown.tsx';
 import { useT } from './i18n.tsx';
@@ -18,25 +19,32 @@ export const slotsLabel = (t: UiMessages['printer'], p: PrinterDefinition) =>
 interface Props { printers: readonly PrinterDefinition[]; value: PrinterId | undefined; onChange: (id: PrinterId) => void }
 type SelectProps = Props & Pick<Parameters<typeof Dropdown<PrinterId>>[0], 'triggerClassName' | 'renderTrigger'>;
 
+/** Brand chips, then that brand's models: the full catalogue would fill the screen. */
 export function PrinterPicker({ printers, value, onChange }: Props) {
   const t = useT(UI_MESSAGES).printer;
+  const groups = groupByVendor(printers);
+  const [vendor, setVendor] = useState(() => printers.find((p) => p.id === value)?.vendor ?? groups[0]?.[0]);
+  const list = groups.find(([v]) => v === vendor)?.[1] ?? [];
   return (
     <div className={styles.groups}>
-      {groupByVendor(printers).map(([vendor, list]) => (
-        <fieldset key={vendor} className={styles.group}>
-          <legend>{vendor}</legend>
-          <div className={styles.grid}>
-            {list.map((p) => (
-              <label key={p.id} className={`${styles.card} ${value === p.id ? styles.selected : ''}`}>
-                {/* A checked radio fires no change event, so re-choosing the current printer goes through click. */}
-                <input type="radio" name="printer" value={p.id} checked={value === p.id} onChange={() => onChange(p.id)} onClick={() => value === p.id && onChange(p.id)} aria-label={p.displayName} />
-                <strong>{modelName(p)}</strong>
-                <span>{slotsLabel(t, p)}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-      ))}
+      <div className={styles.brands} role="group" aria-label={t.label}>
+        {groups.map(([v]) => (
+          <button key={v} type="button" className={styles.brand} aria-pressed={v === vendor} onClick={() => setVendor(v)}>{v}</button>
+        ))}
+      </div>
+      <fieldset className={styles.group}>
+        <legend className={styles.visuallyHidden}>{vendor}</legend>
+        <div className={styles.grid}>
+          {list.map((p) => (
+            <label key={p.id} className={`${styles.card} ${value === p.id ? styles.selected : ''}`}>
+              {/* A checked radio fires no change event, so re-choosing the current printer goes through click. */}
+              <input type="radio" name="printer" value={p.id} checked={value === p.id} onChange={() => onChange(p.id)} onClick={() => value === p.id && onChange(p.id)} aria-label={p.displayName} />
+              <strong>{modelName(p)}</strong>
+              <span>{slotsLabel(t, p)}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
     </div>
   );
 }
