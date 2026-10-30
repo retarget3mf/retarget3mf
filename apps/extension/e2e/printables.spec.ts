@@ -15,10 +15,13 @@ test('Printables: row only for 3MF files, explains the PrusaSlicer dialog, hands
   });
   await context.route('https://www.printables.com/**', (route) => route.fulfill({ contentType: 'text/html', body: fakePrintablesPage('https://files.printables.com/media/prints/1/3mf/2/model.3mf') }));
   const page = await context.newPage();
-  // No native host in this test, so the extension falls back to the desktop app's own scheme.
+  // No native host in this test, so the extension falls back to the desktop app's own scheme. Cancel that hand-off:
+  // left pending, Chromium's external-protocol prompt swallows mouse input to the page (the toast's button).
   await page.addInitScript(() => (navigation as EventTarget).addEventListener('navigate', (e) => {
     const url = (e as Event & { destination: { url: string } }).destination.url;
-    if (url.startsWith('retarget3mf:')) (window as unknown as { launched: string }).launched = url;
+    if (!url.startsWith('retarget3mf:')) return;
+    (window as unknown as { launched: string }).launched = url;
+    e.preventDefault();
   }));
   await page.goto(URL);
   const row = page.locator('[data-retarget3mf="row"]');
