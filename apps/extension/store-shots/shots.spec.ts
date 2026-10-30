@@ -117,5 +117,10 @@ test('store screenshots and promo tile', async () => {
   `.tile { width: 440px; height: 280px; display: flex; align-items: center; gap: 22px; padding: 0 36px; background: #10160a; color: #fff; }
    .tile img { width: 96px; height: 96px; } .tile b { display: block; font-size: 30px; letter-spacing: -.01em; }
    .tile span { display: block; margin-top: 10px; font-size: 20px; line-height: 1.3; color: ${ACCENT}; font-weight: 600; }`));
+  await render('marquee-1400x560.png', 1400, 560, page(`<div class="marquee"><div>${copy('Free browser extension + desktop app',
+    'Any 3MF. <em>Your printer.</em> One click.', 'MakerWorld, Printables, Creality Cloud and Snapmaker Space projects, converted locally for 40+ printers.')}</div>
+    <div class="frame dark"><img src="${png(menuShot)}" width="560" height="300"></div></div>`,
+  `.marquee { width: 1400px; height: 560px; display: grid; grid-template-columns: 1fr 560px; align-items: center; gap: 56px; padding: 0 72px; }
+   .marquee .brand { margin-bottom: 28px; } .dark { background: #1e1e1e; }`));
   await composer.close();
 });
