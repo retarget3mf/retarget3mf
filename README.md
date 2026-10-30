@@ -87,6 +87,16 @@ Layout: `packages/core` (conversion), `packages/profiles` (printer definitions a
 2. Run `pnpm sync-profiles`, then `pnpm test`.
 3. Run `pnpm slice-check` with the target slicers installed and include the result in the pull request.
 
+### Versions and releases
+
+Versions come from git via [GitVersion](https://gitversion.net) (`GitVersion.yml`): CI computes the version and writes it into the apps, so `package.json` versions in the repository are placeholders. To release, tag the commit and push the tag; the release workflow builds every installer and the extension zips into a draft GitHub release.
+
+```bash
+git tag v0.2.0 && git push origin v0.2.0
+```
+
+Commits after the last tag build as pre-releases of the next patch version (e.g. `0.2.1-…`).
+
 ## Support
 
 Retarget3MF is free. If it saved you a print, you can [buy me a coffee](https://buymeacoffee.com/retarget3mf).
