@@ -9,7 +9,7 @@ export const LINKS = {
   /** Privacy policy page (store listings need one). */
   privacy: 'https://retarget3mf.app/privacy/',
   /** The extension's store pages. */
-  chromeStore: '',
+  chromeStore: 'https://chromewebstore.google.com/detail/linjkofcpahliajjmcmemfofemaecjmp',
   firefoxAddons: 'https://addons.mozilla.org/firefox/addon/retarget3mf/',
 };
 
