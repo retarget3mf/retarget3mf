@@ -5,6 +5,10 @@ const SITES = ['https://makerworld.com/*', 'https://www.crealitycloud.com/*', 'h
 
 const STORE = process.env.STORE_BUILD === '1';
 
+const DESCRIPTION = 'Adds "Open for your printer" to MakerWorld, Printables, Creality Cloud and Snapmaker Space 3MF downloads. Converts locally.';
+// The Chrome Web Store rejects a manifest description over 132 characters.
+if (DESCRIPTION.length > 132) throw new Error(`manifest description is ${DESCRIPTION.length} characters; the limit is 132`);
+
 export default defineConfig({
   // The popup is React (shared with the landing page's preview); esbuild compiles its JSX.
   vite: () => ({ esbuild: { jsx: 'automatic' } }),
@@ -18,7 +22,7 @@ export default defineConfig({
   },
   manifest: ({ browser }) => ({
     name: 'Retarget3MF',
-    description: 'Adds "Open for your printer" to MakerWorld, Printables, Creality Cloud and Snapmaker Space: converts the project locally and opens it in your slicer.',
+    description: DESCRIPTION,
     // Fixed IDs that the desktop app's native messaging manifests allow (packages/bridge EXTENSION_IDS, FIREFOX_EXTENSION_ID).
     ...(browser === 'firefox'
       ? { browser_specific_settings: { gecko: { id: FIREFOX_EXTENSION_ID, strict_min_version: '128.0', data_collection_permissions: { required: ['none'] } } } }
