@@ -1,9 +1,11 @@
 name: Release
 
 # Push a tag like v0.1.0. Installers are uploaded to a draft GitHub release; review it, then publish.
+# Run it by hand to build everything as workflow artifacts without releasing.
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -39,11 +41,22 @@ jobs:
         run: |
           if [ -z "$CSC_LINK" ]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi
           pnpm -C apps/desktop build
+          if [ "$GITHUB_REF_TYPE" != tag ]; then pnpm -C apps/desktop exec electron-builder --publish never; exit; fi
           pnpm -C apps/desktop exec electron-builder --publish always \
             -c.publish.provider=github -c.publish.owner="${GITHUB_REPOSITORY%/*}" -c.publish.repo="${GITHUB_REPOSITORY#*/}" -c.publish.releaseType=draft
       - name: Smoke-test the packaged app (OS open, native host)
         if: runner.os == 'macOS'
         run: PACKAGED_APP="$PWD/apps/desktop/dist/mac-universal/Retarget3MF.app/Contents/MacOS/Retarget3MF" pnpm -C apps/desktop exec playwright test e2e/packaged.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: github.ref_type != 'tag'
+        with:
+          name: desktop-${{ runner.os }}
+          path: |
+            apps/desktop/dist/*.dmg
+            apps/desktop/dist/*.exe
+            apps/desktop/dist/*.AppImage
+            apps/desktop/dist/*.deb
+          retention-days: 7
 
   extension:
     needs: desktop
@@ -57,6 +70,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - uses: ./.github/actions/version
       - run: pnpm -C apps/extension zip
+      - uses: actions/upload-artifact@v4
+        if: github.ref_type != 'tag'
+        with: { name: extension, path: apps/extension/dist/*.zip, retention-days: 7 }
       - name: Attach extension zips to the draft release
+        if: github.ref_type == 'tag'
         env: { GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
         run: gh release upload "$GITHUB_REF_NAME" apps/extension/dist/*.zip --clobber --repo "$GITHUB_REPOSITORY"
