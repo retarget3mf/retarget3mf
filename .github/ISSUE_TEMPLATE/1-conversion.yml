@@ -1,0 +1,42 @@
+name: Conversion problem
+description: A project converts wrongly, fails to convert, or the slicer will not open it.
+labels: [conversion]
+body:
+  - type: input
+    id: model
+    attributes:
+      label: Model link
+      description: The MakerWorld, Printables, Creality Cloud or Snapmaker Space page, so we can reproduce it.
+      placeholder: https://makerworld.com/en/models/...
+  - type: input
+    id: printer
+    attributes:
+      label: Your printer and slicer
+      placeholder: Flashforge AD5X, Flash Studio 1.7.15
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What went wrong
+      description: What you expected and what happened. Screenshots help.
+    validations:
+      required: true
+  - type: textarea
+    id: report
+    attributes:
+      label: Conversion report
+      description: In the app, open the report and use Export (Markdown), then paste it here.
+      render: markdown
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where did you convert?
+      options: [Desktop app, Web app, Browser extension]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version and OS
+      placeholder: 0.1.0 on macOS 15

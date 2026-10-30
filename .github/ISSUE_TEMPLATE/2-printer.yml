@@ -1,0 +1,23 @@
+name: Printer or slicer request
+description: Ask for a printer, slicer or model site that is not supported yet.
+labels: [printer request]
+body:
+  - type: input
+    id: printer
+    attributes:
+      label: Printer
+      placeholder: Brand, model and nozzle, e.g. Sovol SV07 0.4
+    validations:
+      required: true
+  - type: input
+    id: slicer
+    attributes:
+      label: Slicer you use with it
+      placeholder: OrcaSlicer 2.4
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: Multi-colour unit (AMS, CFS, IFS, toolheads), a link to a project you want to print, and so on.
