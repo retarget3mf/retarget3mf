@@ -29,6 +29,13 @@ mac:
     - { target: zip, arch: [universal] }
   category: public.app-category.productivity
   icon: build/icon.icns
+  # macOS only lets an app take a link scheme it declares. The slicer schemes stay with the slicers unless the
+  # "Catch Open in slicer buttons" setting is on; links that arrive while it is off are passed on (slicerLinks.ts).
+  protocols:
+    - name: Retarget3MF link
+      schemes: [retarget3mf]
+    - name: Model site slicer links
+      schemes: [bambustudio, bambustudioopen, bambusuite, crealityprintlink, snapmaker-orca, prusaslicer]
 win:
   target: nsis
   icon: build/icon.ico
@@ -36,6 +43,7 @@ nsis:
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
+  include: build/installer.nsh
 linux:
   target: [AppImage, deb]
   executableName: retarget3mf

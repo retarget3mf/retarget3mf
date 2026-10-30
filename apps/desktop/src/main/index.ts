@@ -6,6 +6,8 @@ import { openFromOs } from './fastPath.ts';
 import { registerHistoryIpc, registerIpc } from './ipc.ts';
 import { openLink, registerAppScheme, startBridge } from './bridge.ts';
 import { loadSettings } from './settings.ts';
+import { handleSlicerLink, syncSlicerLinks } from './slicerLinks.ts';
+import { linkScheme } from '@retarget3mf/bridge';
 import { checkOnLaunch } from './updates.ts';
 import { showWindow } from './window.ts';
 
@@ -16,8 +18,9 @@ const IDLE_QUIT_MS = 15_000;
 let ctx: AppContext | undefined;
 const early: string[] = [];
 
-/** A .3mf path or a retarget3mf:// link handed over by the OS. */
-const handle = (item: string) => (appLinksFromArgv([item]).length ? openLink(ctx!, item) : openFromOs(ctx!, item));
+/** A .3mf path, a retarget3mf:// link or a model site's slicer link handed over by the OS. */
+const handle = (item: string) =>
+  linkScheme(item) ? handleSlicerLink(ctx!, item) : appLinksFromArgv([item]).length ? openLink(ctx!, item) : openFromOs(ctx!, item);
 
 // Windows/Linux have no dock to keep a windowless app reachable: quit once OS-opened items are done.
 async function openAndMaybeQuit(item: string): Promise<void> {
@@ -50,6 +53,7 @@ app.whenReady().then(() => {
   registerHistoryIpc(ctx);
   startBridge(ctx);
   registerAppScheme();
+  void syncSlicerLinks(ctx);
   const files = [...early, ...fromArgv(process.argv.slice(1), process.cwd())];
   // The fast path, and launches by the browser extension's host, stay windowless; a plain launch shows the window.
   if (files.length === 0 && !process.argv.includes('--from-browser')) showWindow(ctx);

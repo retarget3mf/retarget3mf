@@ -69,7 +69,24 @@ export function isAllowedDownloadUrl(raw: string): boolean {
 
 export interface SlicerLink { url: string; name: string }
 
-export const SLICER_SCHEMES = /^(bambustudio|bambustudioopen|bambusuite|crealityprintlink|snapmaker-orca|prusaslicer):\/\//i;
+/** Link schemes the model sites' "Open in <slicer>" buttons launch, with the site and slicer behind each. */
+export const LINK_SCHEMES = {
+  bambustudio: { site: 'makerworld', slicer: 'Bambu Studio' },
+  bambustudioopen: { site: 'makerworld', slicer: 'Bambu Studio' },
+  bambusuite: { site: 'makerworld', slicer: 'Bambu Studio' },
+  crealityprintlink: { site: 'crealitycloud', slicer: 'Creality Print' },
+  'snapmaker-orca': { site: 'snapmaker', slicer: 'Snapmaker Orca' },
+  prusaslicer: { site: 'printables', slicer: 'PrusaSlicer' },
+} as const satisfies Record<string, { site: SourceSite; slicer: string }>;
+export type LinkScheme = keyof typeof LINK_SCHEMES;
+
+export const SLICER_SCHEMES = new RegExp(`^(${Object.keys(LINK_SCHEMES).join('|')}):\\/\\/`, 'i');
+
+/** The scheme of a slicer link, if it is one of LINK_SCHEMES. */
+export function linkScheme(href: string): LinkScheme | undefined {
+  const scheme = href.slice(0, href.indexOf(':')).toLowerCase();
+  return SLICER_SCHEMES.test(href) ? (scheme as LinkScheme) : undefined;
+}
 
 /**
  * The project URL inside a slicer deep link:

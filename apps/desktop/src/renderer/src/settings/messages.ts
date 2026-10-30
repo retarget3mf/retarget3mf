@@ -14,7 +14,7 @@ export interface SettingsMessages {
     files: string; nextTo: string; inFolder: string; choose: string; fileName: string; fileNameHelp: string;
     fromOs: string; openModes: Record<OpenMode, string>; during: string; openAfter: string; removeUnused: string; autoCombine: string;
   };
-  browser: { intro: string; chromiumRow: string; get: (browser: string) => string; soon: string; files: string; modes: Record<OpenMode, string>; which: string; chromium: (examples: string) => string; found: (list: string) => string; noneFound: string; states: Record<'ready' | 'failed' | 'missing' | 'unsupported', string>; safari: string };
+  browser: { intro: string; chromiumRow: string; get: (browser: string) => string; soon: string; files: string; modes: Record<OpenMode, string>; which: string; chromium: (examples: string) => string; found: (list: string) => string; noneFound: string; states: Record<'ready' | 'failed' | 'missing' | 'unsupported', string>; safari: string; links: string; linksToggle: string; linksHint: string };
   appearance: { theme: string; accent: string; preview: string; previewButton: (slicer: string) => string; previewLink: string; previewRow: string; accents: Record<string, string> };
   about: {
     version: (v: string) => string; current: string; available: (v: string) => string; devBuild: string; failed: string; check: string; checking: string;
@@ -57,6 +57,8 @@ const en: SettingsMessages = {
     found: (l) => `Set up on this computer: ${l}.`, noneFound: 'None found on this computer.',
     states: { ready: '● Ready for the extension', failed: 'Could not connect', missing: 'Not installed', unsupported: 'Not supported yet' },
     safari: 'Safari extensions must ship inside a signed macOS app; planned separately.',
+    links: 'Without the extension', linksToggle: 'Catch "Open in slicer" buttons on model sites',
+    linksHint: 'The site\'s own "Open in Bambu Studio", "Open in PrusaSlicer" and similar buttons come to Retarget3MF, which asks whether to convert or pass the project on to that slicer. Turning this off gives the buttons back to the slicers.',
   },
   appearance: {
     theme: 'Theme', accent: 'Accent colour', preview: 'Preview', previewButton: (s) => `Convert & open in ${s}`, previewLink: 'Printables ↗', previewRow: 'Selected row',
@@ -106,6 +108,8 @@ const pl: SettingsMessages = {
     found: (l) => `Skonfigurowane na tym komputerze: ${l}.`, noneFound: 'Nie znaleziono na tym komputerze.',
     states: { ready: '● Gotowa na rozszerzenie', failed: 'Nie udało się połączyć', missing: 'Niezainstalowana', unsupported: 'Jeszcze nieobsługiwana' },
     safari: 'Rozszerzenia Safari muszą być częścią podpisanej aplikacji macOS; planowane osobno.',
+    links: 'Bez rozszerzenia', linksToggle: 'Przechwytuj przyciski „Otwórz w slicerze" na stronach z modelami',
+    linksHint: 'Przyciski strony, takie jak „Otwórz w Bambu Studio" czy „Otwórz w PrusaSlicer", trafiają do Retarget3MF, który pyta, czy przekonwertować projekt, czy przekazać go do tego slicera. Wyłączenie oddaje przyciski slicerom.',
   },
   appearance: {
     theme: 'Motyw', accent: 'Kolor akcentu', preview: 'Podgląd', previewButton: (s) => `Konwertuj i otwórz w ${s}`, previewLink: 'Printables ↗', previewRow: 'Wybrany wiersz',

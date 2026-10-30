@@ -38,6 +38,8 @@ export interface Settings {
   removeUnused: boolean;
   /** Files from the browser extension: convert and open, or show the review screen. */
   extensionMode: OpenMode;
+  /** Take over the model sites' "Open in <slicer>" links (bambustudio://, prusaslicer://, …) and offer to convert them. */
+  slicerLinks: boolean;
   autoUpdate: boolean;
   historyRetention: HistoryRetention;
   openAfterConvert: boolean;

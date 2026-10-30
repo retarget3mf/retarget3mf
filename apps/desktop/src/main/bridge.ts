@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { app } from 'electron';
-import { APP_SCHEME, parseOpenLink } from '@retarget3mf/bridge';
+import { APP_SCHEME, parseOpenLink, type OpenLink } from '@retarget3mf/bridge';
 import { PRINTERS } from '@retarget3mf/core';
 import { DOWNLOAD_FAILED, startBridgeServer, type BridgeDeps } from './bridgeServer.ts';
 import { bridgeSocketPath } from './bridgeSocket.ts';
@@ -64,6 +64,11 @@ function bridgeDeps(ctx: AppContext): BridgeDeps {
 export async function openLink(ctx: AppContext, href: string): Promise<void> {
   const link = parseOpenLink(href);
   if (!link) return showError(ctx, 'This Retarget3MF link is not from a supported model site.');
+  await convertLink(ctx, link);
+}
+
+/** Downloads a model site's project and converts it like a file from the extension. */
+export async function convertLink(ctx: AppContext, link: OpenLink): Promise<void> {
   const deps = bridgeDeps(ctx);
   let path: string;
   try {

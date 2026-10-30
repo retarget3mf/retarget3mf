@@ -2,7 +2,8 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pngFromIcns } from '../src/main/appIcon.ts';
-import { projectPathsFromArgv } from '../src/main/externalFiles.ts';
+import { appLinksFromArgv, projectPathsFromArgv } from '../src/main/externalFiles.ts';
+import { regDefaultValue, windowsCommand } from '../src/main/linkHandlers.ts';
 import { exeFromUninstallEntry, parseRegistry } from '../src/main/slicers.ts';
 import { compactMap, groupByVendor } from '@retarget3mf/ui';
 import { PRINTERS } from '@retarget3mf/core';
@@ -173,5 +174,26 @@ describe('browserRows', () => {
     ]);
     expect(browserRows([{ browser: 'Firefox', registered: true }])[0]!.state).toBe('missing');
     expect(browserRows([{ browser: 'Firefox', registered: true }])[1]!.state).toBe('ready');
+  });
+});
+
+describe('slicer link hand-off', () => {
+  it('picks retarget3mf and model site slicer links out of a command line', () => {
+    expect(appLinksFromArgv(['C:\\R\\Retarget3MF.exe', 'bambustudio://open?file=x', 'retarget3mf://open?url=y', 'a.3mf'])).toEqual(['bambustudio://open?file=x', 'retarget3mf://open?url=y']);
+  });
+
+  it('builds the slicer launch from its registered open command', () => {
+    const link = 'bambustudio://open?file=https%3A%2F%2Fa&b';
+    expect(windowsCommand('"C:\\Program Files\\Bambu Studio\\bambu-studio.exe" "%1"', link)).toEqual({ file: 'C:\\Program Files\\Bambu Studio\\bambu-studio.exe', args: [link] });
+    expect(windowsCommand('C:\\PS\\prusa-slicer.exe --single-instance %1', link)).toEqual({ file: 'C:\\PS\\prusa-slicer.exe', args: ['--single-instance', link] });
+    expect(windowsCommand('"C:\\x.exe"', link)).toEqual({ file: 'C:\\x.exe', args: [link] });
+    expect(windowsCommand('', link)).toBeUndefined();
+  });
+
+  it('reads the default value from reg query output in any Windows language', () => {
+    const out = (label: string) => `\r\nHKEY_CLASSES_ROOT\\bambustudio\\shell\\open\\command\r\n    ${label}    REG_SZ    "C:\\B\\bambu-studio.exe" "%1"\r\n`;
+    expect(regDefaultValue(out('(Default)'))).toBe('"C:\\B\\bambu-studio.exe" "%1"');
+    expect(regDefaultValue(out('(По умолчанию)'))).toBe('"C:\\B\\bambu-studio.exe" "%1"');
+    expect(regDefaultValue('ERROR: The system was unable to find the specified registry key or value.')).toBeUndefined();
   });
 });

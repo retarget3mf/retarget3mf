@@ -1,3 +1,4 @@
+import { syncSlicerLinks } from './slicerLinks.ts';
 import { writeFile } from 'node:fs/promises';
 import { dialog, ipcMain, shell } from 'electron';
 import { isSitePageUrl } from '@retarget3mf/bridge';
@@ -14,7 +15,9 @@ export function registerIpc(ctx: AppContext): void {
   ipcMain.handle('state', () => ctx.state());
   ipcMain.handle('events:drain', () => ctx.drainEvents());
   ipcMain.handle('settings:save', async (_e, patch: unknown) => {
+    const before = ctx.settings.slicerLinks;
     await ctx.update(patch && typeof patch === 'object' ? patch : {}, sanitizeSettings);
+    if (ctx.settings.slicerLinks !== before) await syncSlicerLinks(ctx);
     return ctx.state();
   });
   ipcMain.handle('slicers:refresh', async () => {

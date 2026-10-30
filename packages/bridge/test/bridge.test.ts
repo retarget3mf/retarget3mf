@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildOpenLink, decodeNativeMessages, encodeNativeMessage, isAllowedDownloadUrl, parseOpenLink, parseSlicerLink } from '../src/index.ts';
+import { buildOpenLink, decodeNativeMessages, encodeNativeMessage, isAllowedDownloadUrl, parseOpenLink, parseSlicerLink, LINK_SCHEMES, linkScheme } from '../src/index.ts';
 
 const signed = 'https://makerworld.bblmw.com/makerworld/model/X/123/instance/abc.3mf?at=1&exp=2&key=k&uid=9';
 
@@ -72,5 +72,20 @@ describe('retarget3mf:// links', () => {
     expect(parseOpenLink(buildOpenLink({ ...link, site: 'nope' as never }))).toBeUndefined();
     expect(parseOpenLink(buildOpenLink({ ...link, pageUrl: 'javascript:alert(1)' }))?.pageUrl).toBe('');
     expect(parseOpenLink('bambustudio://open?url=x')).toBeUndefined();
+  });
+});
+
+describe('linkScheme', () => {
+  it('names the slicer scheme of a model site link, case-insensitively', () => {
+    expect(linkScheme('PrusaSlicer://open?file=https%3A%2F%2Ffiles.printables.com%2Fa.3mf')).toBe('prusaslicer');
+    expect(linkScheme('snapmaker-orca://open?file=x')).toBe('snapmaker-orca');
+    expect(linkScheme('retarget3mf://open?url=x')).toBeUndefined();
+    expect(linkScheme('https://makerworld.com/')).toBeUndefined();
+  });
+
+  it('maps every scheme to the site whose button launches it', () => {
+    expect(LINK_SCHEMES.bambustudioopen.site).toBe('makerworld');
+    expect(LINK_SCHEMES.crealityprintlink.site).toBe('crealitycloud');
+    expect(Object.keys(LINK_SCHEMES).every((s) => linkScheme(`${s}://open`) === s)).toBe(true);
   });
 });

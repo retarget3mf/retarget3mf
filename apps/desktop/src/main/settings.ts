@@ -8,7 +8,7 @@ import { DEFAULT_FILE_NAME, HISTORY_RETENTION, type Accent, type DropTarget, typ
 export const DEFAULT_SETTINGS: Settings = {
   slicer: 'flashstudio', printers: [], dropTarget: 'last', autoCombine: false,
   slicerPaths: {}, output: 'next-to-original', fileNamePattern: DEFAULT_FILE_NAME, removeUnused: true, openAfterConvert: true,
-  theme: 'system', accent: 'lime', openMode: 'auto', extensionMode: 'auto', autoUpdate: true, historyRetention: 'forever',
+  theme: 'system', accent: 'lime', openMode: 'auto', extensionMode: 'auto', slicerLinks: false, autoUpdate: true, historyRetention: 'forever',
 };
 const MAX_PATTERN = 120;
 
@@ -67,6 +67,7 @@ export function sanitizeSettings(raw: unknown, base: Settings = DEFAULT_SETTINGS
     fileNamePattern: fileNamePattern(r.fileNamePattern, base.fileNamePattern),
     removeUnused: typeof r.removeUnused === 'boolean' ? r.removeUnused : base.removeUnused,
     extensionMode: OPEN_MODES.includes(r.extensionMode as OpenMode) ? (r.extensionMode as OpenMode) : base.extensionMode,
+    slicerLinks: typeof r.slicerLinks === 'boolean' ? r.slicerLinks : base.slicerLinks,
     autoUpdate: typeof r.autoUpdate === 'boolean' ? r.autoUpdate : base.autoUpdate,
     historyRetention: HISTORY_RETENTION.includes(r.historyRetention as HistoryRetention) ? (r.historyRetention as HistoryRetention) : base.historyRetention,
     openAfterConvert: typeof r.openAfterConvert === 'boolean' ? r.openAfterConvert : base.openAfterConvert,

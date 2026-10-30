@@ -133,6 +133,10 @@ export function BrowserPage({ state, onChange }: { state: AppState; onChange: Ch
       <Group title={t.files}>
         {OPEN_MODES.map((m) => <RadioRow key={m} name="extensionMode" value={m} current={state.settings.extensionMode} onChange={(extensionMode) => onChange({ extensionMode })}>{t.modes[m]}</RadioRow>)}
       </Group>
+      <Group title={t.links}>
+        <ToggleRow label={t.linksToggle} checked={state.settings.slicerLinks} onChange={(slicerLinks) => onChange({ slicerLinks })} />
+      </Group>
+      <p className={styles.hint}>{t.linksHint}</p>
     </>
   );
 }
