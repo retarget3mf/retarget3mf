@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { strToU8, zipSync } from 'fflate';
 import { afterEach, describe, expect, it } from 'vitest';
-import { decodeNativeMessages, encodeNativeMessage, type BridgeResponse } from '@retarget3mf/bridge';
+import { decodeNativeMessages, encodeNativeMessage, EXTENSION_IDS, type BridgeResponse } from '@retarget3mf/bridge';
 import { handleRequest, startBridgeServer, type BridgeDeps } from '../src/main/bridgeServer.ts';
 import { downloadProject, DownloadError, safeFileName } from '../src/main/download.ts';
 import { hostManifest, hostTargets, launcherScript } from '../src/main/nativeHost.ts';
@@ -106,7 +106,7 @@ describe('native host registration', () => {
   it('pins the manifest to our extension and runs the host with plain Node', () => {
     expect(hostManifest('/h/host', true)).toMatchObject({ allowed_extensions: ['retarget3mf@retarget3mf.app'] });
     expect(hostManifest('/h/host', true)).not.toHaveProperty('allowed_origins');
-    expect(hostManifest('/h/host')).toMatchObject({ type: 'stdio', path: '/h/host', allowed_origins: [expect.stringMatching(/^chrome-extension:\/\/[a-p]{32}\/$/)] });
+    expect(hostManifest('/h/host')).toMatchObject({ type: 'stdio', path: '/h/host', allowed_origins: EXTENSION_IDS.map((id) => `chrome-extension://${id}/`) });
     const sh = launcherScript({ electron: '/A/Electron', hostScript: '/A/host.js', socket: '/s.sock', appExec: '/A/Electron', appArgs: ['/app'] }, 'darwin');
     expect(sh).toMatch(/^#!\/bin\/sh\nELECTRON_RUN_AS_NODE=1 exec "\/A\/Electron" "\/A\/host.js" --socket "\/s.sock" --app "\/A\/Electron" --app-arg "\/app" "\$@"/);
   });

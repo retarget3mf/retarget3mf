@@ -105,7 +105,7 @@ test('store screenshots and promo tile', async () => {
 
   await render('screenshot-2-popup.png', 1280, 800, page(`<div class="shot">${copy('Set up once',
     'Pick your <em>printer and slicer</em>',
-    '40+ printers from Bambu Lab, Prusa, Creality, Flashforge, Elegoo, Anycubic, Qidi and Sovol. Synced with the free desktop app.')}
+    'Choose from 40+ printers. Your choice stays in sync with the free desktop app.')}
     <div class="frame"><img src="${png(popupShot)}" width="348" height="470" style="width:435px;height:auto"></div></div>`, ''));
 
   await render('screenshot-3-converted.png', 1280, 800, page(`<div class="shot">${copy('Converted on your computer',

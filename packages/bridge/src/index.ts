@@ -2,7 +2,7 @@
 
 export const NATIVE_HOST_NAME = 'app.retarget3mf.bridge';
 /** Fixed by the `key` in the extension manifest (apps/extension/.keys); store IDs are added when published. */
-export const EXTENSION_IDS = ['gkpcbbjkoifgehdhgdbegojpjaaplfgp'];
+export const EXTENSION_IDS = ['gkpcbbjkoifgehdhgdbegojpjaaplfgp', 'linjkofcpahliajjmcmemfofemaecjmp'];
 /** Firefox add-on ID (browser_specific_settings.gecko.id in the extension manifest). */
 export const FIREFOX_EXTENSION_ID = 'retarget3mf@retarget3mf.app';
 
