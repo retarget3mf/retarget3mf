@@ -161,7 +161,7 @@ export async function discoverSlicers(overrides: Partial<Record<SlicerKind, stri
   return found.flat();
 }
 
-/** Command that opens `file` as a project (a fresh slicer process loads argv as a project; docs/research.md §1). */
+/** Command that opens `file` as a project (a fresh slicer process loads argv as a project). */
 export function launchCommand(slicerPath: string, file: string, platform = process.platform): { command: string; args: string[] } {
   if (slicerPath.startsWith(FLATPAK)) return { command: 'flatpak', args: ['run', `--file-forwarding`, slicerPath.slice(FLATPAK.length), '@@', file, '@@'] };
   if (platform === 'darwin') return { command: 'open', args: ['-a', slicerPath, file] };

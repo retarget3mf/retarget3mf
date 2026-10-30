@@ -10,7 +10,7 @@ const OVERRIDES: Record<string, KeyRule> = {
   curr_bed_type: { section: 'project', action: 'keep' },
 };
 
-/** Rule for an OrcaSlicer key (docs/settings-map-keys.md); undefined = not an OrcaSlicer setting. */
+/** Rule for an OrcaSlicer key; undefined = not an OrcaSlicer setting. */
 export function ruleFor(key: string): KeyRule | undefined {
   const entry = OVERRIDES[key] ?? (keyActions as Record<string, { section: string; action: string }>)[key];
   if (!entry) return undefined;
@@ -44,7 +44,7 @@ const featureFilament = (...to: string[]): Translation => (v) => {
 const mapValue = (key: string, table: Record<string, string>): Translation => (v) =>
   [[key, typeof v === 'string' ? (table[v] ?? v) : v]];
 
-/** Bambu → Orca renames the Orca loader does not do (or does lossily). docs/settings-map.md §6. */
+/** Bambu → Orca renames the Orca loader does not do (or does lossily). */
 export const BAMBU_TRANSLATIONS: Record<string, Translation> = {
   wall_filament: featureFilament('outer_wall_filament_id', 'inner_wall_filament_id'),
   sparse_infill_filament: featureFilament('sparse_infill_filament_id'),
@@ -62,7 +62,7 @@ export const BAMBU_TRANSLATIONS: Record<string, Translation> = {
   sparse_infill_lattice_angle_2: rename('lateral_lattice_angle_2'),
 };
 
-/** Enum values written for Flash Studio, whose option tables are older (docs/research.md §2). */
+/** Enum values written for Flash Studio, whose option tables are older. */
 export const FLASHSTUDIO_VALUES: Record<string, Record<string, string>> = {
   sparse_infill_pattern: { rectilinear: 'zig-zag', 'lateral-lattice': '2dlattice', crosszag: 'zig-zag', lockedzag: 'zig-zag', tpmsd: 'gyroid', tpmsfk: 'gyroid', 'lateral-honeycomb': 'honeycomb' },
   top_surface_pattern: { rectilinear: 'zig-zag' },

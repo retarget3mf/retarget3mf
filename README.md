@@ -32,7 +32,7 @@ Profiles come from OrcaSlicer v2.4.2, Flash Studio 1.7.15, Bambu Studio 02.08.04
 | **Replaced by your printer's profile** | speeds, accelerations, retraction, filament calibration (flow ratio, pressure advance, volumetric speed), start/end G-code |
 | **Dropped** | anything specific to the source hardware, and post-processing scripts (they would run programs on your computer) |
 
-Each conversion has a report listing every change and why. Per-setting details: [docs/settings-map.md](docs/settings-map.md).
+Each conversion has a report listing every change and why.
 
 ## Install the desktop app
 
@@ -51,7 +51,7 @@ Until the extension is in the stores, install it from the release:
 - **Chrome, Edge, Brave, Arc, Dia, Vivaldi, Opera**: unzip `retarget3mf-*-chrome.zip`, open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and pick the unzipped folder.
 - **Firefox**: open `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on…** and pick the `.zip` (`retarget3mf-*-firefox.zip`). Firefox removes temporary add-ons on restart until the add-on is signed on addons.mozilla.org.
 
-On a model page, open the site's download or slicer menu and choose **Open for <your printer>**. Without the desktop app, the extension can convert in the browser and give you the file to download. Details and permissions: [docs/extension.md](docs/extension.md).
+On a model page, open the site's download or slicer menu and choose **Open for <your printer>**. Without the desktop app, the extension can convert in the browser and give you the file to download.
 
 ## Develop
 
@@ -79,7 +79,7 @@ pnpm test
 | `pnpm slice-check` | converts fixtures for every printer and slices them with the installed slicers (`ORCA_CLI`, `BAMBU_CLI`, `FLASHSTUDIO_CLI`, `CREALITY_CLI`, `QIDI_CLI`, `ELEGOO_CLI`, `PRUSA_CLI`; defaults to the macOS apps) |
 | `pnpm sync-profiles` | regenerates `packages/profiles/src/generated` from slicer checkouts in `research/` |
 
-Layout: `packages/core` (conversion), `packages/profiles` (printer definitions and slicer profiles), `packages/bridge` (extension ↔ app protocol), `packages/ui` (shared React components and translations), `apps/desktop` (Electron), `apps/web` (static PWA), `apps/extension` (WXT). Decisions are recorded in [docs/decisions](docs/decisions).
+Layout: `packages/core` (conversion), `packages/profiles` (printer definitions and slicer profiles), `packages/bridge` (extension ↔ app protocol), `packages/ui` (shared React components and translations), `apps/desktop` (Electron), `apps/web` (static PWA), `apps/extension` (WXT).
 
 ### Adding a printer
 

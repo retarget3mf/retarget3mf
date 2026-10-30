@@ -1,5 +1,5 @@
 // 3MF geometry files are machine-written and can be >100 MB, so they are edited with targeted attribute
-// regexes instead of a DOM (docs/decisions/0003-xml-handling.md).
+// regexes instead of a DOM.
 import { strFromU8 } from 'fflate';
 import { paintStates } from './paint.ts';
 import { readText, type Archive } from './zip.ts';

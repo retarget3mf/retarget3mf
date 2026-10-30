@@ -302,7 +302,7 @@ function setIdentity(ctx: Ctx, processName: string, process: Preset): void {
     filament_settings_id: names,
     filament_ids: ctx.chosen.map((c) => first(c.preset.filament_id) ?? ''),
     inherits_group: [processName, ...names, target.machineName],
-    // Keys listed here survive the slicer re-basing the project on its installed presets (docs/research.md §1).
+    // Keys listed here survive the slicer re-basing the project on its installed presets.
     different_settings_to_system: [[...ctx.kept.print].sort().join(';'), ...names.map(() => filamentList), ''],
     print_compatible_printers: asList(process.compatible_printers),
   } satisfies Config);

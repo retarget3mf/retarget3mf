@@ -2,7 +2,7 @@ name: Publish extension
 
 # Submits the extension zips attached to a GitHub release (built by release.yml) to the stores. Runs when a release
 # is published, or by hand (use dry run to check the credentials). A store whose secrets are missing is skipped.
-# The first upload to each store is manual; docs/store-listing.md lists the secrets.
+# The first upload to each store is manual.
 on:
   release:
     types: [published]

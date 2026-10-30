@@ -10,7 +10,7 @@ import { bambuProject } from './fixtures.ts';
 const fixture = (path: string) => new Uint8Array(readFileSync(new URL(`./fixtures/${path}`, import.meta.url)));
 
 /**
- * What the slicer GUI does on load (docs/research.md §1): every preset key not listed in different_settings_to_system
+ * What the slicer GUI does on load: every preset key not listed in different_settings_to_system
  * is replaced by the installed system preset's value; per-filament keys slot by slot.
  */
 function rebase(config: Config, printer: PrinterId, slicer: SlicerId): Config {

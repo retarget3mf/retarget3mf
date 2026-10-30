@@ -126,7 +126,7 @@ function bestPerType(idx: Map<string, Json>, names: string[]): string[] {
   return [...best.values()].sort();
 }
 
-/** Conversions pin the 0.20 mm standard process (docs/research.md §1), so only that one ships. */
+/** Conversions pin the 0.20 mm standard process, so only that one ships. */
 function pinnedProcess(idx: Map<string, Json>, names: string[], machine: string): string {
   const at020 = names.filter((n) => Number([flatten(idx, 'process', n).layer_height].flat()[0]) === 0.2);
   // Prusa names its everyday profiles SPEED / STRUCTURAL / QUALITY; SOLUBLE ones assume soluble supports.

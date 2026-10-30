@@ -7,3 +7,6 @@ dist/
 .e2e-dist/
 apps/desktop/shots.mts
 apps/web/site-shots.mjs
+/docs/
+/claude-code-prompt-flashforge-3mf.md
+*.log

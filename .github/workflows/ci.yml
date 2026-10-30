@@ -46,7 +46,7 @@ jobs:
         if: failure()
         with: { name: e2e-results, path: 'apps/*/e2e/.results', retention-days: 7 }
 
-  # Converted projects must load and slice in the real slicers (docs/research.md §8). Flash Studio has no Linux
+  # Converted projects must load and slice in the real slicers. Flash Studio has no Linux
   # build; it is covered by running `pnpm slice-check` on macOS before a release.
   slicers:
     runs-on: ubuntu-24.04

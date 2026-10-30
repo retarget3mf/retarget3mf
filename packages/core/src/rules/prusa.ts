@@ -1,7 +1,7 @@
 import type { OptionInfo } from '@retarget3mf/profiles';
 import type { Config, ConfigValue } from '../config.ts';
 
-// PrusaSlicer 2.x key → OrcaSlicer key (docs/research/bambu-prusa-formats.md, Task 5 §5).
+// PrusaSlicer 2.x key → OrcaSlicer key.
 const RENAMES: Record<string, string> = {
   layer_height: 'layer_height',
   perimeters: 'wall_loops',

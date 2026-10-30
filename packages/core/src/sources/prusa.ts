@@ -1,6 +1,6 @@
 // PrusaSlicer 2.x project → Bambu/Orca project layout, so the rest of the pipeline treats both sources the same.
 // Prusa stores one mesh per object with volumes as triangle ranges (vertices already in object space) and settings
-// in Slic3r_PE*.config; Orca reads that format as geometry only (docs/research.md §4).
+// in Slic3r_PE*.config; Orca reads that format as geometry only.
 import type { OptionInfo } from '@retarget3mf/profiles';
 import type { Config } from '../config.ts';
 import { MAIN_MODEL } from '../model.ts';
