@@ -1,7 +1,7 @@
 /** External links. Leave one empty and everything that depends on it stays hidden or shows "coming soon". */
 export const LINKS = {
   /** GitHub repository, e.g. https://github.com/owner/retarget3mf */
-  repo: '',
+  repo: 'https://github.com/retarget3mf/retarget3mf',
   /** Buy Me a Coffee (or similar) page. */
   support: 'https://buymeacoffee.com/retarget3mf',
   /** The extension's store pages. */
