@@ -1,0 +1,62 @@
+name: Publish extension
+
+# Submits the extension zips attached to a GitHub release (built by release.yml) to the stores. Runs when a release
+# is published, or by hand (use dry run to check the credentials). A store whose secrets are missing is skipped.
+# The first upload to each store is manual; docs/store-listing.md lists the secrets.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag, e.g. v0.1.0
+        required: true
+      dry_run:
+        description: Only check the credentials
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-extension
+
+jobs:
+  submit:
+    runs-on: ubuntu-24.04
+    environment: stores
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Download the release zips
+        env: { GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
+        run: gh release download "$TAG" --pattern '*.zip' --dir zips --repo "$GITHUB_REPOSITORY"
+      - name: Submit
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+          CHROME_API_VERSION: v2
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+          CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL: ${{ secrets.CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL }}
+          CHROME_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.CHROME_SERVICE_ACCOUNT_PRIVATE_KEY }}
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+          FIREFOX_EXTENSION_ID: retarget3mf@retarget3mf.app
+          FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
+        run: |
+          zips="$PWD/zips"
+          args=()
+          [ -n "$CHROME_SERVICE_ACCOUNT_PRIVATE_KEY" ] && args+=(--chrome-zip "$(ls "$zips"/*-chrome-store.zip)")
+          [ -n "$EDGE_API_KEY" ] && args+=(--edge-zip "$(ls "$zips"/*-chrome-store.zip)")
+          [ -n "$FIREFOX_JWT_SECRET" ] && args+=(--firefox-zip "$(ls "$zips"/*-firefox.zip)" --firefox-sources-zip "$(ls "$zips"/*-sources.zip)")
+          if [ ${#args[@]} -eq 0 ]; then echo "::warning::No store secrets set; nothing to submit."; exit 0; fi
+          [ "$DRY_RUN" = true ] && args+=(--dry-run)
+          pnpm -C apps/extension exec wxt submit "${args[@]}"
