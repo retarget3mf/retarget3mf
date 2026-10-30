@@ -24,6 +24,7 @@ export default defineConfig({
         ],
       },
       workbox: {
+        clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,png,svg,ico,webmanifest}'],
         // The conversion worker carries every printer profile (~3 MB); it must be cached to work offline.
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
