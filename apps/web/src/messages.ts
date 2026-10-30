@@ -2,6 +2,7 @@ import { plural, type Locale } from '@retarget3mf/ui';
 
 export interface WebMessages {
   privacy: string;
+  privacyPolicy: string;
   change: string;
   slicer: string;
   openWith: string;
@@ -35,6 +36,7 @@ export interface WebMessages {
 
 const en: WebMessages = {
   privacy: 'Runs entirely in your browser: files never leave your computer, and it works offline.',
+  privacyPolicy: 'Privacy',
   change: 'Change',
   slicer: 'Slicer',
   openWith: 'Open with',
@@ -68,6 +70,7 @@ const en: WebMessages = {
 
 const pl: WebMessages = {
   privacy: 'Wszystko działa w przeglądarce: pliki nie opuszczają Twojego komputera, działa też offline.',
+  privacyPolicy: 'Prywatność',
   change: 'Zmień',
   slicer: 'Slicer',
   openWith: 'Otwórz w',

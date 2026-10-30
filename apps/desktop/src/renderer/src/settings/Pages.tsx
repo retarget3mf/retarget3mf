@@ -194,7 +194,7 @@ export function AboutPage({ state, historyCount, onChange, onCheck, onClearHisto
     : status?.kind === 'error' ? t.failed
     : status?.kind === 'current' ? t.current
     : state.packaged ? '' : t.devBuild;
-  const links = [[issuesUrl, t.report], [releaseNotesUrl, t.notes], [licenseUrl, t.licenses]].filter(([url]) => url);
+  const links = [[issuesUrl, t.report], [releaseNotesUrl, t.notes], [licenseUrl, t.licenses], [LINKS.privacy, t.privacy]].filter(([url]) => url);
   return (
     <>
       <div className={styles.aboutHead}>

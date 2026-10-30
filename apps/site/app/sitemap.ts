@@ -12,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const languages = Object.fromEntries(ENABLED_LOCALES.map((l) => [l, `${SITE_URL}${localePath(l)}`]));
   return [
     ...ENABLED_LOCALES.map((l) => ({ url: `${SITE_URL}${localePath(l)}`, changeFrequency: 'weekly' as const, priority: l === 'en' ? 1 : 0.9, alternates: { languages } })),
+    { url: `${SITE_URL}/privacy/`, changeFrequency: 'yearly' as const, priority: 0.3 },
     // A sitemap lists only its own host; a converter on its own subdomain is linked from the page instead.
     ...(APP_URL ? [] : [{ url: `${SITE_URL}/app/`, changeFrequency: 'monthly' as const, priority: 0.8 }]),
   ];

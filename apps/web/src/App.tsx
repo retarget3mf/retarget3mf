@@ -132,7 +132,7 @@ function Page({ locale, onLocale }: { locale: Locale; onLocale: (l: Locale) => v
               </section>
             )}
             <DropZone label={t.openProject} onFile={(f) => void open(f)} disabled={!printer} />
-            <div className={styles.footnote}><span>{t.privacy}</span><a href={`${SITE}#how`}>{t.howItWorks}</a></div>
+            <div className={styles.footnote}><span>{t.privacy}</span><a href={`${SITE}#how`}>{t.howItWorks}</a><a href={LINKS.privacy}>{t.privacyPolicy}</a></div>
           </>
         )}
 

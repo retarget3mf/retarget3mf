@@ -117,7 +117,7 @@ function Page({ locale, onLocale, theme, onTheme }: PageProps) {
           {LINKS.support && <a href={LINKS.support}>{t.nav.coffee}</a>}
           {issuesUrl && <a href={issuesUrl}>{t.footer.report}</a>}
           {releaseNotesUrl && <a href={releaseNotesUrl}>{t.footer.notes}</a>}
-          <a href="#privacy">{t.footer.privacy}</a>
+          <a href={asset('/privacy/')}>{t.footer.privacy}</a>
           <LanguageSelect className={styles.language} locale={locale} onLocale={onLocale} />
         </div>
       </footer>

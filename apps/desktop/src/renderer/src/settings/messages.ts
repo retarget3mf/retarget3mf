@@ -19,7 +19,7 @@ export interface SettingsMessages {
   about: {
     version: (v: string) => string; current: string; available: (v: string) => string; devBuild: string; failed: string; check: string; checking: string;
     autoUpdate: string; history: string; keep: string; retention: Record<HistoryRetention, string>; count: (n: number) => string;
-    clear: string; clearConfirm: string; cancel: string; report: string; notes: string; licenses: string;
+    clear: string; clearConfirm: string; cancel: string; report: string; notes: string; licenses: string; privacy: string;
   };
 }
 
@@ -68,7 +68,7 @@ const en: SettingsMessages = {
     autoUpdate: 'Download updates automatically', history: 'History', keep: 'Keep conversion history',
     retention: { forever: 'Forever', 365: 'For a year', 90: 'For 90 days', 30: 'For 30 days' },
     count: (n) => plural('en', n, { one: '{n} conversion', other: '{n} conversions' }),
-    clear: 'Clear history…', clearConfirm: 'Clear history', cancel: 'Cancel', report: 'Report a problem', notes: 'Release notes', licenses: 'Licenses',
+    clear: 'Clear history…', clearConfirm: 'Clear history', cancel: 'Cancel', report: 'Report a problem', notes: 'Release notes', licenses: 'Licenses', privacy: 'Privacy',
   },
 };
 
@@ -117,7 +117,7 @@ const pl: SettingsMessages = {
     autoUpdate: 'Pobieraj aktualizacje automatycznie', history: 'Historia', keep: 'Przechowuj historię konwersji',
     retention: { forever: 'Zawsze', 365: 'Rok', 90: '90 dni', 30: '30 dni' },
     count: (n) => plural('pl', n, { one: '{n} konwersja', few: '{n} konwersje', other: '{n} konwersji' }),
-    clear: 'Wyczyść historię…', clearConfirm: 'Wyczyść historię', cancel: 'Anuluj', report: 'Zgłoś problem', notes: 'Informacje o wydaniu', licenses: 'Licencje',
+    clear: 'Wyczyść historię…', clearConfirm: 'Wyczyść historię', cancel: 'Anuluj', report: 'Zgłoś problem', notes: 'Informacje o wydaniu', licenses: 'Licencje', privacy: 'Prywatność',
   },
 };
 

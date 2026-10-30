@@ -4,6 +4,8 @@ export const LINKS = {
   repo: 'https://github.com/retarget3mf/retarget3mf',
   /** Buy Me a Coffee (or similar) page. */
   support: 'https://buymeacoffee.com/retarget3mf',
+  /** Privacy policy page (store listings need one). */
+  privacy: 'https://retarget3mf.app/privacy/',
   /** The extension's store pages. */
   chromeStore: '',
   firefoxAddons: '',
