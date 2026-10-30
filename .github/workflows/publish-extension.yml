@@ -39,7 +39,7 @@ jobs:
         run: gh release download "$TAG" --pattern '*.zip' --dir zips --repo "$GITHUB_REPOSITORY"
       - name: Submit
         env:
-          DRY_RUN: ${{ inputs.dry_run }}
+          IS_DRY_RUN: ${{ inputs.dry_run }}
           CHROME_API_VERSION: v2
           CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
           CHROME_PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
@@ -58,5 +58,5 @@ jobs:
           [ -n "$EDGE_API_KEY" ] && args+=(--edge-zip "$(ls "$zips"/*-chrome-store.zip)")
           [ -n "$FIREFOX_JWT_SECRET" ] && args+=(--firefox-zip "$(ls "$zips"/*-firefox.zip)" --firefox-sources-zip "$(ls "$zips"/*-sources.zip)")
           if [ ${#args[@]} -eq 0 ]; then echo "::warning::No store secrets set; nothing to submit."; exit 0; fi
-          [ "$DRY_RUN" = true ] && args+=(--dry-run)
+          [ "$IS_DRY_RUN" = true ] && args+=(--dry-run)
           pnpm -C apps/extension exec wxt submit "${args[@]}"
