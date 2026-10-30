@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process';
 import { chmod, mkdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { join, posix, win32 } from 'node:path';
 import { EXTENSION_IDS, FIREFOX_EXTENSION_ID, NATIVE_HOST_NAME } from '@retarget3mf/bridge';
 
 export interface HostTarget {
@@ -37,6 +37,7 @@ const CHROMIUM: BrowserSpec[] = [
 ];
 
 export function hostTargets(platform: NodeJS.Platform, home: string, appData = process.env.LOCALAPPDATA ?? ''): HostTarget[] {
+  const { join } = platform === 'win32' ? win32 : posix;
   const chromium = (dir: string, base: string) => ({ profileDir: join(base, dir), location: join(base, dir, 'NativeMessagingHosts') });
   if (platform === 'darwin') {
     const support = join(home, 'Library', 'Application Support');

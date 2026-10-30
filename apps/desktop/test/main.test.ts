@@ -88,13 +88,13 @@ describe('launchCommand', () => {
 describe('outputPathFor', () => {
   it('names the file after the printer, next to the original by default', () => {
     const names = { printer: 'AD5X', slicer: 'Flash Studio' };
-    expect(outputPathFor('/m/Benchy.3mf', names, undefined)).toBe('/m/Benchy - AD5X.3mf');
-    expect(outputPathFor('/m/Benchy.3MF', names, '/out')).toBe('/out/Benchy - AD5X.3mf');
+    expect(outputPathFor('/m/Benchy.3mf', names, undefined)).toBe(join('/m', 'Benchy - AD5X.3mf'));
+    expect(outputPathFor('/m/Benchy.3MF', names, '/out')).toBe(join('/out', 'Benchy - AD5X.3mf'));
   });
 
   it('fills in the file name pattern and keeps separators out of it', () => {
-    expect(outputPathFor('/m/Benchy.3mf', { printer: 'K2 Plus', slicer: 'Creality Print' }, undefined, '{name} — {printer} ({slicer})')).toBe('/m/Benchy — K2 Plus (Creality Print).3mf');
-    expect(outputPathFor('/m/a.3mf', { printer: 'X/Y', slicer: 'S' }, undefined, '{printer}_{name}')).toBe('/m/X-Y_a.3mf');
+    expect(outputPathFor('/m/Benchy.3mf', { printer: 'K2 Plus', slicer: 'Creality Print' }, undefined, '{name} — {printer} ({slicer})')).toBe(join('/m', 'Benchy — K2 Plus (Creality Print).3mf'));
+    expect(outputPathFor('/m/a.3mf', { printer: 'X/Y', slicer: 'S' }, undefined, '{printer}_{name}')).toBe(join('/m', 'X-Y_a.3mf'));
   });
 });
 

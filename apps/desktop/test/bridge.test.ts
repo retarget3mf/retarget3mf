@@ -117,7 +117,7 @@ describe('native host ↔ app socket (integration)', () => {
   afterEach(() => close?.());
 
   it('relays framed browser messages to the running app and back', async () => {
-    const socket = join(mkdtempSync(join(tmpdir(), 'sock-')), 'b.sock');
+    const socket = process.platform === 'win32' ? `\\\\.\\pipe\\retarget3mf-test-${process.pid}` : join(mkdtempSync(join(tmpdir(), 'sock-')), 'b.sock');
     const server = startBridgeServer(socket, deps());
     close = () => server.close();
     await new Promise((r) => server.once('listening', r));

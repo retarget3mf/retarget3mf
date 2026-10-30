@@ -5,6 +5,8 @@
   "private": true,
   "type": "module",
   "license": "AGPL-3.0-or-later",
+  "homepage": "https://retarget3mf.app",
+  "repository": "github:retarget3mf/retarget3mf",
   "description": "Convert MakerWorld and Printables 3MF projects for your printer and open them in the slicer.",
   "main": "out/main/index.js",
   "scripts": {
