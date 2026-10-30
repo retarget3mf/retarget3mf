@@ -60,8 +60,7 @@ export function Extension() {
   const [offer, setOffer] = useState(true);
   // The store page once listed; until then the release download (unpacked install) when published.
   const install = (store: string, label: string, primary: boolean) => {
-    const href = store || releasesUrl;
-    return href ? <a className={primary ? styles.primarySmall : styles.secondarySmall} href={href}>{label}</a> : <span className={styles.soonSmall}>{t.soon}</span>;
+    return store ? <a className={primary ? styles.primarySmall : styles.secondarySmall} href={store}>{label}</a> : <span className={styles.soonSmall}>{t.soon}</span>;
   };
   return (
     <section id="extension" className={styles.section}>
