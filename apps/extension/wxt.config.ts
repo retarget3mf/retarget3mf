@@ -19,6 +19,10 @@ export default defineConfig({
   zip: {
     artifactTemplate: `retarget3mf-{{version}}-{{browser}}${STORE ? '-store' : ''}.zip`,
     sourcesTemplate: 'retarget3mf-{{version}}-sources.zip',
+    // Mozilla rebuilds from this zip, so it holds the workspace packages the extension imports, not just this folder.
+    sourcesRoot: '../..',
+    includeSources: ['package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'tsconfig.base.json', 'LICENSE', 'README.md', 'packages/**', 'apps/extension/**'],
+    excludeSources: ['**/dist/**', '**/test/**', 'apps/extension/e2e/**', 'apps/extension/store-shots/**'],
   },
   manifest: ({ browser }) => ({
     name: 'Retarget3MF',
