@@ -4,6 +4,7 @@ import { join, resolve } from 'node:path';
 import { _electron as electron, chromium, expect, test } from '@playwright/test';
 import { EXTENSION } from './extensionPath.ts';
 import { EXTENSION_IDS, NATIVE_HOST_NAME } from '@retarget3mf/bridge';
+import { LINKS } from '@retarget3mf/ui/links';
 import { bambuProject } from '../../../packages/core/test/fixtures.ts';
 import { fakeMakerworldPage, fakePrintablesPage } from './fakeSites.ts';
 
@@ -100,7 +101,7 @@ test('popup printer and slicer menus change the desktop app', async () => {
   await expect(window.getByRole('radio', { name: /X1 Carbon/ })).toHaveAttribute('aria-checked', 'true');
   await expect(window.getByRole('button', { name: /^Slicer: Bambu Studio/ })).toBeVisible();
   await popup.setViewportSize({ width: 348, height: 470 });
-  await expect(popup.getByRole('link', { name: /Retarget3MF for Chrome/ })).toHaveAttribute('aria-disabled', 'true');
+  await expect(popup.getByRole('link', { name: /Retarget3MF for Chrome/ })).toHaveAttribute('href', LINKS.chromeStore);
   await popup.screenshot({ path: 'e2e/.results/popup-light.png' });
   await popup.emulateMedia({ colorScheme: 'dark' });
   await popup.screenshot({ path: 'e2e/.results/popup-dark.png' });
