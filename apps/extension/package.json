@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "wxt",
     "build": "wxt build && wxt build -b firefox --mv3",
-    "zip": "wxt zip && wxt zip -b firefox --mv3",
+    "zip": "STORE_BUILD=1 wxt zip && wxt zip && wxt zip -b firefox --mv3",
     "e2e": "WXT_OUT_DIR=.e2e-dist wxt build && playwright test",
     "postinstall": "wxt prepare"
   },
