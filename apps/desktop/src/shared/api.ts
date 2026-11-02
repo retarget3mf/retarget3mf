@@ -4,7 +4,7 @@ import type { Accent, Theme } from '@retarget3mf/ui';
 
 export type SlicerKind = 'flashstudio' | 'orca' | 'bambustudio' | 'crealityprint' | 'qidistudio' | 'elegooslicer' | 'prusaslicer';
 
-export interface SlicerInstall { kind: SlicerKind; name: string; path: string; /** App icon as a data URL, read from the installed app. */ icon?: string }
+export interface SlicerInstall { kind: SlicerKind; name: string; path: string }
 
 export type { Accent, Theme };
 /** A printer the user owns; each remembers its own slicer. */

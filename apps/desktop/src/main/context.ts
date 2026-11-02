@@ -4,7 +4,6 @@ import { PRINTERS } from '@retarget3mf/core';
 import type { AppEvent, AppState, BrowserStatus, ProjectOrigin, Settings, SlicerInstall } from '../shared/api.ts';
 import { History } from './history.ts';
 import { saveSettings } from './settings.ts';
-import { macAppIcon } from './appIcon.ts';
 import { discoverSlicers } from './slicers.ts';
 import { canInstall } from './updates.ts';
 
@@ -76,19 +75,7 @@ export class AppContext {
   }
 
   private async discover(): Promise<SlicerInstall[]> {
-    const found = await discoverSlicers(this.settings.slicerPaths);
-    this.installed = await Promise.all(found.map(async (s) => {
-      const icon = await slicerIcon(s.path);
-      return icon ? { ...s, icon } : s;
-    }));
+    this.installed = await discoverSlicers(this.settings.slicerPaths);
     return this.installed;
   }
-}
-
-async function slicerIcon(path: string): Promise<string | undefined> {
-  if (process.platform === 'darwin') return macAppIcon(path);
-  // ponytail: Linux (.desktop icon lookup) shows the placeholder for now.
-  if (process.platform !== 'win32') return undefined;
-  const icon = await app.getFileIcon(path, { size: 'large' }).catch(() => undefined);
-  return icon && !icon.isEmpty() ? icon.toDataURL() : undefined;
 }

@@ -1,7 +1,6 @@
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { pngFromIcns } from '../src/main/appIcon.ts';
 import { appLinksFromArgv, projectPathsFromArgv } from '../src/main/externalFiles.ts';
 import { regDefaultValue, windowsCommand } from '../src/main/linkHandlers.ts';
 import { exeFromUninstallEntry, parseRegistry } from '../src/main/slicers.ts';
@@ -126,28 +125,6 @@ describe('Windows uninstall registry', () => {
     const [orca, flash] = parseRegistry(output);
     expect(exeFromUninstallEntry(orca!, 'orca-slicer.exe')).toBe('C:\\Program Files\\OrcaSlicer\\orca-slicer.exe');
     expect(exeFromUninstallEntry(flash!, 'Flash Studio.exe')).toMatch(/Flash Studio[\\/]Flash Studio\.exe$/);
-  });
-});
-
-describe('pngFromIcns', () => {
-  const entry = (type: string, data: Buffer) => {
-    const head = Buffer.alloc(8);
-    head.write(type, 0, 'latin1');
-    head.writeUInt32BE(data.length + 8, 4);
-    return Buffer.concat([head, data]);
-  };
-  const png = (tag: number) => Buffer.from([0x89, 0x50, 0x4e, 0x47, tag]);
-
-  it('picks a mid-size embedded PNG', () => {
-    const body = Buffer.concat([entry('ic10', png(10)), entry('ic07', png(7)), entry('is32', Buffer.from([1, 2, 3]))]);
-    const head = Buffer.alloc(8);
-    head.write('icns', 0, 'latin1');
-    head.writeUInt32BE(body.length + 8, 4);
-    expect(pngFromIcns(Buffer.concat([head, body]))?.at(-1)).toBe(7);
-  });
-
-  it('ignores non-icns data', () => {
-    expect(pngFromIcns(Buffer.from('nope'))).toBeUndefined();
   });
 });
 

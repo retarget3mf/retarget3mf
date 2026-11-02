@@ -29,6 +29,8 @@ function testFetch(): typeof fetch | undefined {
   return (async (url: string) => Object.defineProperty(new Response(readFileSync(fixture)), 'url', { value: url })) as unknown as typeof fetch;
 }
 
+// The same bundled logos as the window, so the extension popup matches on every OS.
+const SLICER_ICONS = import.meta.glob<string>('../renderer/src/assets/slicers/*.png', { eager: true, query: '?inline', import: 'default' });
 // Native messaging caps a message at 1 MB; a larger icon is left out.
 const MAX_ICON_CHARS = 200_000;
 
@@ -40,7 +42,7 @@ function bridgeDeps(ctx: AppContext): BridgeDeps {
     version: app.getVersion(),
     status: () => {
       const printer = PRINTERS.find((p) => p.id === ctx.settings.printer);
-      const icon = ctx.installed.find((s) => s.kind === ctx.settings.slicer)?.icon;
+      const icon = SLICER_ICONS[`../renderer/src/assets/slicers/${ctx.settings.slicer}.png`];
       return {
         ...(printer && { printer: printer.displayName, vendor: printer.vendor, printerId: printer.id }),
         slicer: SLICER_NAMES[ctx.settings.slicer], slicerId: ctx.settings.slicer,
