@@ -1,5 +1,5 @@
 .strip { display: grid; grid-template-columns: minmax(0, 1.4fr) 28px minmax(0, 1fr) 28px minmax(0, 1fr); align-items: stretch; padding: 8px 20px 0; flex: none; }
-.wide { grid-template-columns: minmax(0, 1fr) 28px 220px 28px 200px; }
+.wide { grid-template-columns: minmax(240px, 1.5fr) 28px minmax(190px, 1fr) 28px minmax(180px, 0.9fr); }
 .arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); }
 .arrowDone { color: var(--accent-ink); }
 
@@ -35,4 +35,3 @@ button.drop:hover, button.active:hover, button.done:hover { border-color: var(--
 .ok { color: var(--success); }
 .thumb { width: 48px; height: 48px; flex: none; border-radius: 7px; border: 1px solid var(--line); object-fit: contain; background: repeating-linear-gradient(135deg, var(--stripe) 0 4px, transparent 4px 8px); }
 .slicerIcon { flex: none; object-fit: contain; }
-.letterTile { flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 22%; background: var(--text); color: var(--bg); font: 700 1em/1 var(--font-mono); }

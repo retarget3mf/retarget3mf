@@ -42,7 +42,7 @@ export function Pipeline({ state, phase, project, needsInput, opened, onPrinter,
 
   const slicerOptions = slicersFor(state.printers, printer.id).map((kind) => {
     const found = state.slicers.find((s) => s.kind === kind);
-    return { value: kind, label: SLICER_KINDS[kind].name, icon: <SlicerIcon install={found} kind={kind} size={20} />, ...(!found && { note: t.slicerState.missing, muted: true }) };
+    return { value: kind, label: SLICER_KINDS[kind].name, icon: <SlicerIcon kind={kind} size={20} />, ...(!found && { note: t.slicerState.missing, muted: true }) };
   });
 
   return (
@@ -86,7 +86,7 @@ export function Pipeline({ state, phase, project, needsInput, opened, onPrinter,
       {locked ? (
         <div className={stageClass(done ? (opened ? 'active' : 'done') : 'idle')}>
           <StageBody
-            icon={<SlicerIcon install={install} kind={state.settings.slicer} size={32} />}
+            icon={<SlicerIcon kind={state.settings.slicer} size={32} />}
             label={`${t.stage.slicer}${done ? ' ✓' : ''}`}
             value={done && opened ? t.slicerState.opened(slicerName) : slicerName}
           />
@@ -99,10 +99,11 @@ export function Pipeline({ state, phase, project, needsInput, opened, onPrinter,
           onChange={(kind) => (state.slicers.some((s) => s.kind === kind) ? onSlicer(kind) : onManageSlicers())}
           action={{ label: t.manageSlicers, onSelect: onManageSlicers }}
           triggerClassName={stageClass('idle')}
+          align="end"
           renderTrigger={() => (
             <StageBody
               large={!project}
-              icon={<SlicerIcon install={install} kind={state.settings.slicer} size={project ? 40 : 32} />}
+              icon={<SlicerIcon kind={state.settings.slicer} size={project ? 40 : 32} />}
               label={t.stage.slicer}
               value={slicerName}
               sub={install ? <span className={styles.ok}>{t.slicerState.installed}</span> : t.slicerState.missing}

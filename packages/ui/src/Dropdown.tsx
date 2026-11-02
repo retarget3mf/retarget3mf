@@ -28,10 +28,12 @@ interface Props<T extends string> {
   /** Replaces the trigger's look, e.g. a pipeline stage card; the trigger stays the same button. */
   triggerClassName?: string | undefined;
   renderTrigger?: (current: DropdownOption<T> | undefined) => ReactNode;
+  /** `end` opens the menu from the trigger's right edge, for triggers near the right of the window. */
+  align?: 'start' | 'end';
 }
 
 /** Header dropdown: grouped options with icons, keyboard navigation, closes on outside click or Escape. */
-export function Dropdown<T extends string>({ label, value, groups, onChange, action, triggerClassName, renderTrigger }: Props<T>) {
+export function Dropdown<T extends string>({ label, value, groups, onChange, action, triggerClassName, renderTrigger, align = 'start' }: Props<T>) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -69,7 +71,7 @@ export function Dropdown<T extends string>({ label, value, groups, onChange, act
         )}
       </button>
       {open && (
-        <div className={styles.menu} role="menu" aria-label={label}>
+        <div className={`${styles.menu} ${align === 'end' ? styles.end : ''}`} role="menu" aria-label={label}>
           {groups.map((group, gi) => (
             <div key={group.label ?? gi} role="group" aria-label={group.label}>
               {group.label && <div className={styles.heading}>{group.label}</div>}

@@ -42,11 +42,11 @@ export function FirstRun({ state, onDone, onLocate }: Props) {
             renderTrigger={() => <StageBody large label={t.stage.printer} value={modelName(printer)} sub={`${printer.vendor} · ${slotsLabel(tp, printer)}`} chevron />}
           />
           <div className={stageClass('idle', styles.slicer)}>
-            <div className={styles.iconArea}><SlicerIcon install={install} kind={slicer} size={80} /></div>
+            <div className={styles.iconArea}><SlicerIcon kind={slicer} size={80} /></div>
             <Dropdown
               label="Slicer"
               value={slicer}
-              groups={[{ options: kinds.map((kind) => ({ value: kind, label: SLICER_KINDS[kind].name, icon: <SlicerIcon install={state.slicers.find((s) => s.kind === kind)} kind={kind} size={20} /> })) }]}
+              groups={[{ options: kinds.map((kind) => ({ value: kind, label: SLICER_KINDS[kind].name, icon: <SlicerIcon kind={kind} size={20} /> })) }]}
               onChange={setSlicer}
               triggerClassName={styles.slicerTrigger}
               renderTrigger={() => <StageBody large label={t.stage.slicer} value={SLICER_KINDS[slicer].name} chevron />}

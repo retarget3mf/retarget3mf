@@ -1,9 +1,9 @@
-import type { SlicerInstall, SlicerKind } from '../../../shared/api.ts';
-import { SLICER_KINDS } from '../slicerKinds.ts';
+import type { SlicerKind } from '../../../shared/api.ts';
 import styles from './Stage.module.css';
 
-/** The installed app's own icon; a letter tile when the slicer is not installed. */
-export function SlicerIcon({ install, kind, size }: { install: SlicerInstall | undefined; kind: SlicerKind; size: number }) {
-  if (install?.icon) return <img className={styles.slicerIcon} src={install.icon} alt="" width={size} height={size} />;
-  return <span className={styles.letterTile} style={{ width: size, height: size, fontSize: size * 0.48 }} aria-hidden>{SLICER_KINDS[kind].name[0]}</span>;
+const ICONS = import.meta.glob<string>('../assets/slicers/*.png', { eager: true, import: 'default' });
+
+/** The slicer's own logo, bundled so it looks the same on every OS whether or not the slicer is installed. */
+export function SlicerIcon({ kind, size }: { kind: SlicerKind; size: number }) {
+  return <img className={styles.slicerIcon} src={ICONS[`../assets/slicers/${kind}.png`]} alt="" width={size} height={size} />;
 }

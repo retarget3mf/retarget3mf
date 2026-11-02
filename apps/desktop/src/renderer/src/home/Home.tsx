@@ -37,7 +37,7 @@ export function Home({ state, history, dragging, onOpenFile, onPrinter, onCatalo
 
   return (
     <div className={styles.home}>
-      <div className={`${styles.grid} ${several ? styles.several : ''}`}>
+      <div className={styles.grid}>
         <button type="button" className={`${styles.zone} ${dragging ? styles.over : ''}`} onClick={onOpenFile} aria-label={tu.drop.title}>
           <span className={styles.label}>{t.stage.source}</span>
           <span className={styles.title}>{tu.drop.title}</span>
@@ -81,14 +81,15 @@ export function Home({ state, history, dragging, onOpenFile, onPrinter, onCatalo
             value={settings.slicer}
             groups={[{ options: slicersFor(state.printers, printer.id).map((kind) => {
               const found = state.slicers.find((s) => s.kind === kind);
-              return { value: kind, label: SLICER_KINDS[kind].name, icon: <SlicerIcon install={found} kind={kind} size={20} />, ...(!found && { note: t.slicerState.missing, muted: true }) };
+              return { value: kind, label: SLICER_KINDS[kind].name, icon: <SlicerIcon kind={kind} size={20} />, ...(!found && { note: t.slicerState.missing, muted: true }) };
             }) }]}
             onChange={(kind) => (state.slicers.some((s) => s.kind === kind) ? onSlicer(kind) : onManageSlicers())}
             action={{ label: t.manageSlicers, onSelect: onManageSlicers }}
             triggerClassName={stageClass('idle')}
+            align="end"
             renderTrigger={() => (several
-              ? <StageBody icon={<SlicerIcon install={install} kind={settings.slicer} size={32} />} label="" value={slicerName} sub={t.home.followsPrinter} />
-              : <StageBody label={t.stage.slicer} note={t.stage.saved} value={<span className={styles.inline}><SlicerIcon install={install} kind={settings.slicer} size={24} />{slicerName}</span>} chevron />)}
+              ? <StageBody icon={<SlicerIcon kind={settings.slicer} size={32} />} label="" value={slicerName} sub={t.home.followsPrinter} />
+              : <StageBody label={t.stage.slicer} note={t.stage.saved} value={<span className={styles.inline}><SlicerIcon kind={settings.slicer} size={24} />{slicerName}</span>} chevron />)}
           />
           {!several && <span className={styles.help}>{install ? t.home.opensAfter : t.actions.slicerMissing}</span>}
         </div>

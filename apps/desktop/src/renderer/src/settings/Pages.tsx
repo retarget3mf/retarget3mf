@@ -33,7 +33,7 @@ export function SlicersPage({ state, onLocate, onRescan }: { state: AppState; on
           const install = installed(kind);
           return (
             <Row key={kind} dim={!install}>
-              <SlicerIcon install={install} kind={kind} size={36} />
+              <SlicerIcon kind={kind} size={36} />
               <span className={styles.grow}>
                 <strong>{SLICER_KINDS[kind].name}</strong>
                 <span className={styles.sub}>{t.blurbs[kind]}</span>

@@ -1,3 +1,4 @@
+:global(html), :global(body) { overflow: hidden; }
 .app { display: flex; flex-direction: column; height: 100vh; font-size: 13px; line-height: 1.4; }
 .main { flex: 1; min-height: 0; overflow-y: auto; padding: 20px; width: 100%; display: flex; flex-direction: column; gap: 16px; }
 .error { background: var(--danger-soft); color: var(--danger); padding: 10px 12px; border-radius: 8px; }

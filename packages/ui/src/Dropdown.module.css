@@ -6,6 +6,7 @@
   background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
   box-shadow: var(--shadow-menu); display: flex; flex-direction: column; gap: 2px;
 }
+.end { left: auto; right: 0; }
 .heading { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; padding: 6px 10px 4px; }
 .item { display: flex; align-items: center; gap: 10px; width: 100%; border: none; background: transparent; text-align: left; padding: 8px 10px; border-radius: 8px; }
 .item:hover, .item:focus-visible { background: var(--bg); outline: none; }
