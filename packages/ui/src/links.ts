@@ -14,6 +14,6 @@ export const LINKS = {
 };
 
 export const releasesUrl = LINKS.repo ? `${LINKS.repo}/releases/latest` : '';
-export const issuesUrl = LINKS.repo ? `${LINKS.repo}/issues/new` : '';
+export const issuesUrl = LINKS.repo ? `${LINKS.repo}/issues/new/choose` : '';
 export const releaseNotesUrl = LINKS.repo ? `${LINKS.repo}/releases` : '';
 export const licenseUrl = LINKS.repo ? `${LINKS.repo}/blob/main/LICENSE` : '';
